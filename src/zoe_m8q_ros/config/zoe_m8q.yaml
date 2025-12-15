@@ -1,0 +1,12 @@
+/gps_zoe_m8q:
+  ros__parameters:
+    bus: 1
+    rate_hz: 10.0
+    frame_id: "gps_link"
+    debug: false
+    
+    # Standard Deviation Defauts (used if sensor accuracy is 0/invalid)
+    # Position: [lat, lon, alt] in meters
+    pos_std: [4.0, 4.0, 10.0]
+    # Velocity: speed in m/s
+    vel_std: [0.5]
