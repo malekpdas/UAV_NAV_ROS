@@ -1,2 +1,0 @@
-[console_scripts]
-gps_zoe_m8q_node = gps_zoe_m8q_driver.gps_zoe_m8q_node:main

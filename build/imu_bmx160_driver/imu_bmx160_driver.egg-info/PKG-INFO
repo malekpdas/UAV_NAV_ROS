@@ -1,7 +1,0 @@
-Metadata-Version: 2.1
-Name: imu-bmx160-driver
-Version: 0.0.1
-Summary: I2C driver for Bosch BMX160 IMU
-Maintainer: User
-Maintainer-email: user@example.com
-License: MIT

@@ -1,0 +1,19 @@
+/imu_bmx160:
+  ros__parameters:
+    bus: 1
+    rate_hz: 100.0
+    frame_id: "imu_link"
+    bias_removal: false
+    bias_duration_sec: 2.0
+    mag_bias: [0.0, 0.0, 0.0]
+    # Manual Biases (used if bias_removal is False)
+    accel_bias: [-0.85459606, -0.65057519, 0.35121882]
+    gyro_bias: [-0.00061568, 0.00086435, 0.0006237]
+    
+    # Sensor Variances (diagonal elements of covariance matrix)
+    accel_variance: [0.01, 0.01, 0.01] 
+    gyro_variance: [0.001, 0.001, 0.001]
+    mag_variance: [0.000001, 0.000001, 0.000001]
+    
+    # Default identity matrix 3x3 flattened
+    mag_transform: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]

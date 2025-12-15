@@ -1,1 +1,0 @@
-/home/pdas/UAV_NAV_ROS/imu_bmx160_driver/setup.py

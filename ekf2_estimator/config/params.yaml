@@ -1,4 +1,0 @@
-ekf2_node:
-  ros__parameters:
-    enable_wind_estimation: true
-    sensor_delay_ms: 10
