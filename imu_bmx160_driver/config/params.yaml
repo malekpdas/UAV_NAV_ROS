@@ -1,0 +1,11 @@
+imu_bmx160_driver:
+  ros__parameters:
+    i2c_bus: 1
+    i2c_address: 0x68
+    update_rate: 50.0
+    frame_id: "imu_link"
+    accel_range: 4
+    gyro_range: 2000
+    accel_std: 0.1
+    gyro_std: 0.01
+    mag_std: 0.2
