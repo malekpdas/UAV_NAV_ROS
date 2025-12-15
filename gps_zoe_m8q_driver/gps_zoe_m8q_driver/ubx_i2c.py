@@ -4,17 +4,21 @@ import struct
 from .ubx_nav_pvt import UbxNavPvt
 
 class UbxI2C:
-    def __init__(self, bus_num=1, address=0x42):
+    def __init__(self, bus_num=1, address=0x42, logger=None):
         self.bus_num = bus_num
         self.address = address
         self.bus = None
+        self.logger = logger
 
     def open(self):
         try:
             self.bus = SMBus(self.bus_num)
             return True
         except Exception as e:
-            print(f"Failed to open I2C bus: {e}")
+            if self.logger:
+                self.logger.error(f"Failed to open I2C bus: {e}")
+            else:
+                print(f"Failed to open I2C bus: {e}")
             return False
 
     def send_ubx_packet(self, cls, id, payload=b''):
@@ -56,6 +60,13 @@ class UbxI2C:
         payload = struct.pack('<HHH', meas_rate, nav_rate, time_ref)
         self.send_ubx_packet(0x06, 0x08, payload) # CFG-RATE
         
+        # 3. ENABLE NAV-PVT (Class 0x01, ID 0x07)
+        # CFG-MSG (0x06 0x01) Payload: Class(1), ID(1), Rate(1)
+        self.send_ubx_packet(0x06, 0x01, b'\x01\x07\x01')
+
+        if self.logger:
+             self.logger.info("Sent Enable NAV-PVT command")
+        
     def read_packet(self):
         # Read from 0xFD (Bytes available) first? 
         # U-blox DDC: Write address to read from 0xFF (stream)
@@ -80,7 +91,14 @@ class UbxI2C:
             avail_bytes = list(rd)
             bytes_to_read = (avail_bytes[0] << 8) | avail_bytes[1]
             
+            if self.logger:
+                 self.logger.debug(f"GPS Raw Avail: {avail_bytes} -> {bytes_to_read}")
+            
+            if bytes_to_read > 0 and self.logger:
+                 self.logger.debug(f"GPS Bytes available: {bytes_to_read}")
+            
             if bytes_to_read == 0:
+                # print("DEBUG: 0 bytes")
                 return None
             
             # Clamp reading to avoid too big chunks
@@ -95,7 +113,9 @@ class UbxI2C:
             data = bytes(list(rd))
             return data
             
-        except Exception:
+        except Exception as e:
+            if self.logger:
+                self.logger.error(f"I2C Read Error: {e}")
             return None
 
     # Helper buffer for parsing stream

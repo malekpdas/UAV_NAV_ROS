@@ -1,0 +1,2 @@
+[console_scripts]
+imu_bmx160_driver_node = imu_bmx160_driver.imu_bmx160_driver_node:main

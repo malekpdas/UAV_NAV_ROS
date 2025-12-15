@@ -1,0 +1,16 @@
+package.xml
+setup.cfg
+setup.py
+config/params.yaml
+gps_zoe_m8q_driver/__init__.py
+gps_zoe_m8q_driver/gps_zoe_m8q_node.py
+gps_zoe_m8q_driver/ubx_i2c.py
+gps_zoe_m8q_driver/ubx_nav_pvt.py
+gps_zoe_m8q_driver.egg-info/PKG-INFO
+gps_zoe_m8q_driver.egg-info/SOURCES.txt
+gps_zoe_m8q_driver.egg-info/dependency_links.txt
+gps_zoe_m8q_driver.egg-info/entry_points.txt
+gps_zoe_m8q_driver.egg-info/requires.txt
+gps_zoe_m8q_driver.egg-info/top_level.txt
+gps_zoe_m8q_driver.egg-info/zip-safe
+resource/gps_zoe_m8q_driver

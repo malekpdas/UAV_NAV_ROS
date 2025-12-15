@@ -1,0 +1,280 @@
+[0.186s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build', '--symlink-install']
+[0.186s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=True, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=4, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=None, packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, allow_overriding=[], cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, mixin_files=None, mixin=None, verb_parser=<colcon_mixin.mixin.mixin_argument.MixinArgumentDecorator object at 0xffff88ef7890>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0xffff88e58140>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0xffff88e58140>>, mixin_verb=('build',))
+[0.249s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[0.249s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[0.249s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[0.249s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[0.249s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) discover
+[0.249s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[0.249s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/home/pdas/UAV_NAV_ROS'
+[0.249s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ignore', 'ignore_ament_install']
+[0.250s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore'
+[0.250s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore_ament_install'
+[0.250s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_pkg']
+[0.250s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_pkg'
+[0.250s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_meta']
+[0.250s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_meta'
+[0.250s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ros']
+[0.250s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ros'
+[0.294s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['cmake', 'python']
+[0.294s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'cmake'
+[0.294s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python'
+[0.294s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['python_setup_py']
+[0.294s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python_setup_py'
+[0.294s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extensions ['ignore', 'ignore_ament_install']
+[0.294s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extension 'ignore'
+[0.294s] Level 1:colcon.colcon_core.package_identification:_identify(build) ignored
+[0.295s] Level 1:colcon.colcon_core.package_identification:_identify(ekf2_estimator) by extensions ['ignore', 'ignore_ament_install']
+[0.295s] Level 1:colcon.colcon_core.package_identification:_identify(ekf2_estimator) by extension 'ignore'
+[0.295s] Level 1:colcon.colcon_core.package_identification:_identify(ekf2_estimator) by extension 'ignore_ament_install'
+[0.295s] Level 1:colcon.colcon_core.package_identification:_identify(ekf2_estimator) by extensions ['colcon_pkg']
+[0.295s] Level 1:colcon.colcon_core.package_identification:_identify(ekf2_estimator) by extension 'colcon_pkg'
+[0.295s] Level 1:colcon.colcon_core.package_identification:_identify(ekf2_estimator) by extensions ['colcon_meta']
+[0.295s] Level 1:colcon.colcon_core.package_identification:_identify(ekf2_estimator) by extension 'colcon_meta'
+[0.295s] Level 1:colcon.colcon_core.package_identification:_identify(ekf2_estimator) by extensions ['ros']
+[0.295s] Level 1:colcon.colcon_core.package_identification:_identify(ekf2_estimator) by extension 'ros'
+[0.299s] DEBUG:colcon.colcon_core.package_identification:Package 'ekf2_estimator' with type 'ros.ament_python' and name 'ekf2_estimator'
+[0.299s] Level 1:colcon.colcon_core.package_identification:_identify(gps_zoe_m8q_driver) by extensions ['ignore', 'ignore_ament_install']
+[0.300s] Level 1:colcon.colcon_core.package_identification:_identify(gps_zoe_m8q_driver) by extension 'ignore'
+[0.300s] Level 1:colcon.colcon_core.package_identification:_identify(gps_zoe_m8q_driver) by extension 'ignore_ament_install'
+[0.300s] Level 1:colcon.colcon_core.package_identification:_identify(gps_zoe_m8q_driver) by extensions ['colcon_pkg']
+[0.300s] Level 1:colcon.colcon_core.package_identification:_identify(gps_zoe_m8q_driver) by extension 'colcon_pkg'
+[0.300s] Level 1:colcon.colcon_core.package_identification:_identify(gps_zoe_m8q_driver) by extensions ['colcon_meta']
+[0.300s] Level 1:colcon.colcon_core.package_identification:_identify(gps_zoe_m8q_driver) by extension 'colcon_meta'
+[0.300s] Level 1:colcon.colcon_core.package_identification:_identify(gps_zoe_m8q_driver) by extensions ['ros']
+[0.300s] Level 1:colcon.colcon_core.package_identification:_identify(gps_zoe_m8q_driver) by extension 'ros'
+[0.302s] DEBUG:colcon.colcon_core.package_identification:Package 'gps_zoe_m8q_driver' with type 'ros.ament_python' and name 'gps_zoe_m8q_driver'
+[0.302s] Level 1:colcon.colcon_core.package_identification:_identify(imu_bmx160_driver) by extensions ['ignore', 'ignore_ament_install']
+[0.302s] Level 1:colcon.colcon_core.package_identification:_identify(imu_bmx160_driver) by extension 'ignore'
+[0.302s] Level 1:colcon.colcon_core.package_identification:_identify(imu_bmx160_driver) by extension 'ignore_ament_install'
+[0.303s] Level 1:colcon.colcon_core.package_identification:_identify(imu_bmx160_driver) by extensions ['colcon_pkg']
+[0.303s] Level 1:colcon.colcon_core.package_identification:_identify(imu_bmx160_driver) by extension 'colcon_pkg'
+[0.303s] Level 1:colcon.colcon_core.package_identification:_identify(imu_bmx160_driver) by extensions ['colcon_meta']
+[0.303s] Level 1:colcon.colcon_core.package_identification:_identify(imu_bmx160_driver) by extension 'colcon_meta'
+[0.303s] Level 1:colcon.colcon_core.package_identification:_identify(imu_bmx160_driver) by extensions ['ros']
+[0.303s] Level 1:colcon.colcon_core.package_identification:_identify(imu_bmx160_driver) by extension 'ros'
+[0.304s] DEBUG:colcon.colcon_core.package_identification:Package 'imu_bmx160_driver' with type 'ros.ament_python' and name 'imu_bmx160_driver'
+[0.304s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extensions ['ignore', 'ignore_ament_install']
+[0.304s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extension 'ignore'
+[0.304s] Level 1:colcon.colcon_core.package_identification:_identify(install) ignored
+[0.305s] Level 1:colcon.colcon_core.package_identification:_identify(launch) by extensions ['ignore', 'ignore_ament_install']
+[0.305s] Level 1:colcon.colcon_core.package_identification:_identify(launch) by extension 'ignore'
+[0.305s] Level 1:colcon.colcon_core.package_identification:_identify(launch) by extension 'ignore_ament_install'
+[0.305s] Level 1:colcon.colcon_core.package_identification:_identify(launch) by extensions ['colcon_pkg']
+[0.305s] Level 1:colcon.colcon_core.package_identification:_identify(launch) by extension 'colcon_pkg'
+[0.305s] Level 1:colcon.colcon_core.package_identification:_identify(launch) by extensions ['colcon_meta']
+[0.305s] Level 1:colcon.colcon_core.package_identification:_identify(launch) by extension 'colcon_meta'
+[0.305s] Level 1:colcon.colcon_core.package_identification:_identify(launch) by extensions ['ros']
+[0.305s] Level 1:colcon.colcon_core.package_identification:_identify(launch) by extension 'ros'
+[0.305s] Level 1:colcon.colcon_core.package_identification:_identify(launch) by extensions ['cmake', 'python']
+[0.306s] Level 1:colcon.colcon_core.package_identification:_identify(launch) by extension 'cmake'
+[0.306s] Level 1:colcon.colcon_core.package_identification:_identify(launch) by extension 'python'
+[0.306s] Level 1:colcon.colcon_core.package_identification:_identify(launch) by extensions ['python_setup_py']
+[0.306s] Level 1:colcon.colcon_core.package_identification:_identify(launch) by extension 'python_setup_py'
+[0.306s] Level 1:colcon.colcon_core.package_identification:_identify(launch/__pycache__) by extensions ['ignore', 'ignore_ament_install']
+[0.306s] Level 1:colcon.colcon_core.package_identification:_identify(launch/__pycache__) by extension 'ignore'
+[0.306s] Level 1:colcon.colcon_core.package_identification:_identify(launch/__pycache__) by extension 'ignore_ament_install'
+[0.306s] Level 1:colcon.colcon_core.package_identification:_identify(launch/__pycache__) by extensions ['colcon_pkg']
+[0.306s] Level 1:colcon.colcon_core.package_identification:_identify(launch/__pycache__) by extension 'colcon_pkg'
+[0.306s] Level 1:colcon.colcon_core.package_identification:_identify(launch/__pycache__) by extensions ['colcon_meta']
+[0.306s] Level 1:colcon.colcon_core.package_identification:_identify(launch/__pycache__) by extension 'colcon_meta'
+[0.306s] Level 1:colcon.colcon_core.package_identification:_identify(launch/__pycache__) by extensions ['ros']
+[0.306s] Level 1:colcon.colcon_core.package_identification:_identify(launch/__pycache__) by extension 'ros'
+[0.307s] Level 1:colcon.colcon_core.package_identification:_identify(launch/__pycache__) by extensions ['cmake', 'python']
+[0.307s] Level 1:colcon.colcon_core.package_identification:_identify(launch/__pycache__) by extension 'cmake'
+[0.307s] Level 1:colcon.colcon_core.package_identification:_identify(launch/__pycache__) by extension 'python'
+[0.307s] Level 1:colcon.colcon_core.package_identification:_identify(launch/__pycache__) by extensions ['python_setup_py']
+[0.307s] Level 1:colcon.colcon_core.package_identification:_identify(launch/__pycache__) by extension 'python_setup_py'
+[0.307s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extensions ['ignore', 'ignore_ament_install']
+[0.307s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extension 'ignore'
+[0.307s] Level 1:colcon.colcon_core.package_identification:_identify(log) ignored
+[0.307s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[0.307s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) discover
+[0.307s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) using defaults
+[0.307s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) discover
+[0.307s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) using defaults
+[0.346s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) check parameters
+[0.346s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) discover
+[0.352s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 4 installed packages in /home/pdas/uav-ros/src/install
+[0.353s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 2 installed packages in /home/pdas/ROS2-UAV/ros2_ws/install
+[0.356s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 339 installed packages in /opt/ros/jazzy
+[0.362s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) using defaults
+[0.444s] Level 5:colcon.colcon_core.verb:set package 'ekf2_estimator' build argument 'cmake_args' from command line to 'None'
+[0.444s] Level 5:colcon.colcon_core.verb:set package 'ekf2_estimator' build argument 'cmake_target' from command line to 'None'
+[0.444s] Level 5:colcon.colcon_core.verb:set package 'ekf2_estimator' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.444s] Level 5:colcon.colcon_core.verb:set package 'ekf2_estimator' build argument 'cmake_clean_cache' from command line to 'False'
+[0.444s] Level 5:colcon.colcon_core.verb:set package 'ekf2_estimator' build argument 'cmake_clean_first' from command line to 'False'
+[0.444s] Level 5:colcon.colcon_core.verb:set package 'ekf2_estimator' build argument 'cmake_force_configure' from command line to 'False'
+[0.444s] Level 5:colcon.colcon_core.verb:set package 'ekf2_estimator' build argument 'ament_cmake_args' from command line to 'None'
+[0.444s] Level 5:colcon.colcon_core.verb:set package 'ekf2_estimator' build argument 'catkin_cmake_args' from command line to 'None'
+[0.444s] Level 5:colcon.colcon_core.verb:set package 'ekf2_estimator' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.444s] DEBUG:colcon.colcon_core.verb:Building package 'ekf2_estimator' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/pdas/UAV_NAV_ROS/build/ekf2_estimator', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator', 'merge_install': False, 'path': '/home/pdas/UAV_NAV_ROS/ekf2_estimator', 'symlink_install': True, 'test_result_base': None}
+[0.445s] Level 5:colcon.colcon_core.verb:set package 'gps_zoe_m8q_driver' build argument 'cmake_args' from command line to 'None'
+[0.445s] Level 5:colcon.colcon_core.verb:set package 'gps_zoe_m8q_driver' build argument 'cmake_target' from command line to 'None'
+[0.445s] Level 5:colcon.colcon_core.verb:set package 'gps_zoe_m8q_driver' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.445s] Level 5:colcon.colcon_core.verb:set package 'gps_zoe_m8q_driver' build argument 'cmake_clean_cache' from command line to 'False'
+[0.445s] Level 5:colcon.colcon_core.verb:set package 'gps_zoe_m8q_driver' build argument 'cmake_clean_first' from command line to 'False'
+[0.445s] Level 5:colcon.colcon_core.verb:set package 'gps_zoe_m8q_driver' build argument 'cmake_force_configure' from command line to 'False'
+[0.445s] Level 5:colcon.colcon_core.verb:set package 'gps_zoe_m8q_driver' build argument 'ament_cmake_args' from command line to 'None'
+[0.445s] Level 5:colcon.colcon_core.verb:set package 'gps_zoe_m8q_driver' build argument 'catkin_cmake_args' from command line to 'None'
+[0.445s] Level 5:colcon.colcon_core.verb:set package 'gps_zoe_m8q_driver' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.445s] DEBUG:colcon.colcon_core.verb:Building package 'gps_zoe_m8q_driver' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/pdas/UAV_NAV_ROS/build/gps_zoe_m8q_driver', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver', 'merge_install': False, 'path': '/home/pdas/UAV_NAV_ROS/gps_zoe_m8q_driver', 'symlink_install': True, 'test_result_base': None}
+[0.445s] Level 5:colcon.colcon_core.verb:set package 'imu_bmx160_driver' build argument 'cmake_args' from command line to 'None'
+[0.445s] Level 5:colcon.colcon_core.verb:set package 'imu_bmx160_driver' build argument 'cmake_target' from command line to 'None'
+[0.445s] Level 5:colcon.colcon_core.verb:set package 'imu_bmx160_driver' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.445s] Level 5:colcon.colcon_core.verb:set package 'imu_bmx160_driver' build argument 'cmake_clean_cache' from command line to 'False'
+[0.445s] Level 5:colcon.colcon_core.verb:set package 'imu_bmx160_driver' build argument 'cmake_clean_first' from command line to 'False'
+[0.445s] Level 5:colcon.colcon_core.verb:set package 'imu_bmx160_driver' build argument 'cmake_force_configure' from command line to 'False'
+[0.446s] Level 5:colcon.colcon_core.verb:set package 'imu_bmx160_driver' build argument 'ament_cmake_args' from command line to 'None'
+[0.446s] Level 5:colcon.colcon_core.verb:set package 'imu_bmx160_driver' build argument 'catkin_cmake_args' from command line to 'None'
+[0.446s] Level 5:colcon.colcon_core.verb:set package 'imu_bmx160_driver' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.446s] DEBUG:colcon.colcon_core.verb:Building package 'imu_bmx160_driver' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver', 'merge_install': False, 'path': '/home/pdas/UAV_NAV_ROS/imu_bmx160_driver', 'symlink_install': True, 'test_result_base': None}
+[0.446s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[0.447s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[0.448s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/pdas/UAV_NAV_ROS/ekf2_estimator' with build type 'ament_python'
+[0.448s] Level 1:colcon.colcon_core.shell:create_environment_hook('ekf2_estimator', 'ament_prefix_path')
+[0.451s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[0.451s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/ekf2_estimator/hook/ament_prefix_path.ps1'
+[0.452s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/ekf2_estimator/hook/ament_prefix_path.dsv'
+[0.453s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/ekf2_estimator/hook/ament_prefix_path.sh'
+[0.455s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.455s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.463s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/pdas/UAV_NAV_ROS/gps_zoe_m8q_driver' with build type 'ament_python'
+[0.463s] Level 1:colcon.colcon_core.shell:create_environment_hook('gps_zoe_m8q_driver', 'ament_prefix_path')
+[0.464s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/share/gps_zoe_m8q_driver/hook/ament_prefix_path.ps1'
+[0.465s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/share/gps_zoe_m8q_driver/hook/ament_prefix_path.dsv'
+[0.466s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/share/gps_zoe_m8q_driver/hook/ament_prefix_path.sh'
+[0.467s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.467s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.473s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/pdas/UAV_NAV_ROS/imu_bmx160_driver' with build type 'ament_python'
+[0.473s] Level 1:colcon.colcon_core.shell:create_environment_hook('imu_bmx160_driver', 'ament_prefix_path')
+[0.474s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/imu_bmx160_driver/hook/ament_prefix_path.ps1'
+[0.475s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/imu_bmx160_driver/hook/ament_prefix_path.dsv'
+[0.476s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/imu_bmx160_driver/hook/ament_prefix_path.sh'
+[0.477s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.477s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[1.022s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/pdas/UAV_NAV_ROS/ekf2_estimator'
+[1.023s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[1.024s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[1.617s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/pdas/UAV_NAV_ROS/gps_zoe_m8q_driver'
+[1.618s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[1.618s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[2.099s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/pdas/UAV_NAV_ROS/imu_bmx160_driver'
+[2.099s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[2.099s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[3.630s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/pdas/UAV_NAV_ROS/build/gps_zoe_m8q_driver': PYTHONPATH=/home/pdas/UAV_NAV_ROS/build/gps_zoe_m8q_driver/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/pdas/UAV_NAV_ROS/build/gps_zoe_m8q_driver/build --no-deps symlink_data
+[3.704s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver': PYTHONPATH=/home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver/build --no-deps symlink_data
+[3.742s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/pdas/UAV_NAV_ROS/build/ekf2_estimator': PYTHONPATH=/home/pdas/UAV_NAV_ROS/build/ekf2_estimator/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/pdas/UAV_NAV_ROS/build/ekf2_estimator/build --no-deps symlink_data
+[5.008s] Level 1:colcon.colcon_core.shell:create_environment_hook('gps_zoe_m8q_driver', 'pythonpath_develop')
+[5.009s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/pdas/UAV_NAV_ROS/build/gps_zoe_m8q_driver' returned '0': PYTHONPATH=/home/pdas/UAV_NAV_ROS/build/gps_zoe_m8q_driver/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/pdas/UAV_NAV_ROS/build/gps_zoe_m8q_driver/build --no-deps symlink_data
+[5.010s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/build/gps_zoe_m8q_driver/share/gps_zoe_m8q_driver/hook/pythonpath_develop.ps1'
+[5.014s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/pdas/UAV_NAV_ROS/build/gps_zoe_m8q_driver/share/gps_zoe_m8q_driver/hook/pythonpath_develop.dsv'
+[5.015s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/build/gps_zoe_m8q_driver/share/gps_zoe_m8q_driver/hook/pythonpath_develop.sh'
+[5.028s] Level 1:colcon.colcon_core.environment:checking '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver' for CMake module files
+[5.030s] Level 1:colcon.colcon_core.environment:checking '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver' for CMake config files
+[5.033s] Level 1:colcon.colcon_core.environment:checking '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/lib'
+[5.034s] Level 1:colcon.colcon_core.environment:checking '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/bin'
+[5.035s] Level 1:colcon.colcon_core.shell:create_environment_hook('gps_zoe_m8q_driver', 'path')
+[5.036s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/share/gps_zoe_m8q_driver/hook/path.ps1'
+[5.040s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/share/gps_zoe_m8q_driver/hook/path.dsv'
+[5.043s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/share/gps_zoe_m8q_driver/hook/path.sh'
+[5.047s] Level 1:colcon.colcon_core.environment:checking '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/lib/pkgconfig/gps_zoe_m8q_driver.pc'
+[5.049s] Level 1:colcon.colcon_core.environment:checking '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/lib/python3.12/site-packages'
+[5.050s] Level 1:colcon.colcon_core.shell:create_environment_hook('gps_zoe_m8q_driver', 'pythonpath')
+[5.051s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/share/gps_zoe_m8q_driver/hook/pythonpath.ps1'
+[5.056s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/share/gps_zoe_m8q_driver/hook/pythonpath.dsv'
+[5.064s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/share/gps_zoe_m8q_driver/hook/pythonpath.sh'
+[5.068s] Level 1:colcon.colcon_core.environment:checking '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/bin'
+[5.071s] Level 1:colcon.colcon_core.shell:create_environment_hook('gps_zoe_m8q_driver', 'pythonscriptspath')
+[5.073s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/share/gps_zoe_m8q_driver/hook/pythonscriptspath.ps1'
+[5.075s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/share/gps_zoe_m8q_driver/hook/pythonscriptspath.dsv'
+[5.078s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/share/gps_zoe_m8q_driver/hook/pythonscriptspath.sh'
+[5.083s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(gps_zoe_m8q_driver)
+[5.084s] INFO:colcon.colcon_core.shell:Creating package script '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/share/gps_zoe_m8q_driver/package.ps1'
+[5.088s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/share/gps_zoe_m8q_driver/package.dsv'
+[5.091s] INFO:colcon.colcon_core.shell:Creating package script '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/share/gps_zoe_m8q_driver/package.sh'
+[5.095s] INFO:colcon.colcon_core.shell:Creating package script '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/share/gps_zoe_m8q_driver/package.bash'
+[5.098s] INFO:colcon.colcon_core.shell:Creating package script '/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/share/gps_zoe_m8q_driver/package.zsh'
+[5.101s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/share/colcon-core/packages/gps_zoe_m8q_driver)
+[5.109s] Level 1:colcon.colcon_core.shell:create_environment_hook('imu_bmx160_driver', 'pythonpath_develop')
+[5.110s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver/share/imu_bmx160_driver/hook/pythonpath_develop.ps1'
+[5.114s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver' returned '0': PYTHONPATH=/home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver/build --no-deps symlink_data
+[5.116s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver/share/imu_bmx160_driver/hook/pythonpath_develop.dsv'
+[5.118s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver/share/imu_bmx160_driver/hook/pythonpath_develop.sh'
+[5.120s] Level 1:colcon.colcon_core.environment:checking '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver' for CMake module files
+[5.121s] Level 1:colcon.colcon_core.environment:checking '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver' for CMake config files
+[5.122s] Level 1:colcon.colcon_core.environment:checking '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/lib'
+[5.123s] Level 1:colcon.colcon_core.environment:checking '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/bin'
+[5.123s] Level 1:colcon.colcon_core.shell:create_environment_hook('imu_bmx160_driver', 'path')
+[5.123s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/imu_bmx160_driver/hook/path.ps1'
+[5.125s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/imu_bmx160_driver/hook/path.dsv'
+[5.127s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/imu_bmx160_driver/hook/path.sh'
+[5.129s] Level 1:colcon.colcon_core.environment:checking '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/lib/pkgconfig/imu_bmx160_driver.pc'
+[5.129s] Level 1:colcon.colcon_core.environment:checking '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/lib/python3.12/site-packages'
+[5.130s] Level 1:colcon.colcon_core.shell:create_environment_hook('imu_bmx160_driver', 'pythonpath')
+[5.130s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/imu_bmx160_driver/hook/pythonpath.ps1'
+[5.132s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/imu_bmx160_driver/hook/pythonpath.dsv'
+[5.133s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/imu_bmx160_driver/hook/pythonpath.sh'
+[5.136s] Level 1:colcon.colcon_core.environment:checking '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/bin'
+[5.136s] Level 1:colcon.colcon_core.shell:create_environment_hook('imu_bmx160_driver', 'pythonscriptspath')
+[5.137s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/imu_bmx160_driver/hook/pythonscriptspath.ps1'
+[5.139s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/imu_bmx160_driver/hook/pythonscriptspath.dsv'
+[5.140s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/imu_bmx160_driver/hook/pythonscriptspath.sh'
+[5.142s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(imu_bmx160_driver)
+[5.143s] INFO:colcon.colcon_core.shell:Creating package script '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/imu_bmx160_driver/package.ps1'
+[5.145s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/imu_bmx160_driver/package.dsv'
+[5.147s] INFO:colcon.colcon_core.shell:Creating package script '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/imu_bmx160_driver/package.sh'
+[5.148s] INFO:colcon.colcon_core.shell:Creating package script '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/imu_bmx160_driver/package.bash'
+[5.150s] INFO:colcon.colcon_core.shell:Creating package script '/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/imu_bmx160_driver/package.zsh'
+[5.152s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/colcon-core/packages/imu_bmx160_driver)
+[5.157s] Level 1:colcon.colcon_core.shell:create_environment_hook('ekf2_estimator', 'pythonpath_develop')
+[5.157s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/build/ekf2_estimator/share/ekf2_estimator/hook/pythonpath_develop.ps1'
+[5.158s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/pdas/UAV_NAV_ROS/build/ekf2_estimator' returned '0': PYTHONPATH=/home/pdas/UAV_NAV_ROS/build/ekf2_estimator/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/pdas/UAV_NAV_ROS/build/ekf2_estimator/build --no-deps symlink_data
+[5.162s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/pdas/UAV_NAV_ROS/build/ekf2_estimator/share/ekf2_estimator/hook/pythonpath_develop.dsv'
+[5.163s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/build/ekf2_estimator/share/ekf2_estimator/hook/pythonpath_develop.sh'
+[5.168s] Level 1:colcon.colcon_core.environment:checking '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator' for CMake module files
+[5.169s] Level 1:colcon.colcon_core.environment:checking '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator' for CMake config files
+[5.170s] Level 1:colcon.colcon_core.environment:checking '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/lib'
+[5.170s] Level 1:colcon.colcon_core.environment:checking '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/bin'
+[5.170s] Level 1:colcon.colcon_core.shell:create_environment_hook('ekf2_estimator', 'path')
+[5.170s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/ekf2_estimator/hook/path.ps1'
+[5.172s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/ekf2_estimator/hook/path.dsv'
+[5.173s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/ekf2_estimator/hook/path.sh'
+[5.173s] Level 1:colcon.colcon_core.environment:checking '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/lib/pkgconfig/ekf2_estimator.pc'
+[5.175s] Level 1:colcon.colcon_core.environment:checking '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/lib/python3.12/site-packages'
+[5.175s] Level 1:colcon.colcon_core.shell:create_environment_hook('ekf2_estimator', 'pythonpath')
+[5.176s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/ekf2_estimator/hook/pythonpath.ps1'
+[5.177s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/ekf2_estimator/hook/pythonpath.dsv'
+[5.177s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/ekf2_estimator/hook/pythonpath.sh'
+[5.179s] Level 1:colcon.colcon_core.environment:checking '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/bin'
+[5.180s] Level 1:colcon.colcon_core.shell:create_environment_hook('ekf2_estimator', 'pythonscriptspath')
+[5.180s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/ekf2_estimator/hook/pythonscriptspath.ps1'
+[5.182s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/ekf2_estimator/hook/pythonscriptspath.dsv'
+[5.186s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/ekf2_estimator/hook/pythonscriptspath.sh'
+[5.190s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(ekf2_estimator)
+[5.191s] INFO:colcon.colcon_core.shell:Creating package script '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/ekf2_estimator/package.ps1'
+[5.196s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/ekf2_estimator/package.dsv'
+[5.198s] INFO:colcon.colcon_core.shell:Creating package script '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/ekf2_estimator/package.sh'
+[5.201s] INFO:colcon.colcon_core.shell:Creating package script '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/ekf2_estimator/package.bash'
+[5.202s] INFO:colcon.colcon_core.shell:Creating package script '/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/ekf2_estimator/package.zsh'
+[5.203s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/colcon-core/packages/ekf2_estimator)
+[5.204s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[5.204s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[5.204s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '0'
+[5.205s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[5.214s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.notify_send': Could not find 'notify-send'
+[5.214s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[5.214s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[5.214s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[5.215s] DEBUG:colcon.colcon_notification.desktop_notification.notify2:Failed to initialize notify2: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.Notifications was not provided by any .service files
+[5.215s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[5.216s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/pdas/UAV_NAV_ROS/install/local_setup.ps1'
+[5.217s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/pdas/UAV_NAV_ROS/install/_local_setup_util_ps1.py'
+[5.220s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/pdas/UAV_NAV_ROS/install/setup.ps1'
+[5.222s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/pdas/UAV_NAV_ROS/install/local_setup.sh'
+[5.223s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/pdas/UAV_NAV_ROS/install/_local_setup_util_sh.py'
+[5.224s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/pdas/UAV_NAV_ROS/install/setup.sh'
+[5.226s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/pdas/UAV_NAV_ROS/install/local_setup.bash'
+[5.227s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/pdas/UAV_NAV_ROS/install/setup.bash'
+[5.229s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/pdas/UAV_NAV_ROS/install/local_setup.zsh'
+[5.230s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/pdas/UAV_NAV_ROS/install/setup.zsh'

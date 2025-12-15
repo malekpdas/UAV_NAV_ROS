@@ -22,7 +22,7 @@ source install/setup.bash
 
 ### 2. Launch
 ```bash
-ros2 launch uav_state_estimation.launch.py
+ros2 launch launch/uav_state_estimation.launch.py
 ```
 
 ## Parameters

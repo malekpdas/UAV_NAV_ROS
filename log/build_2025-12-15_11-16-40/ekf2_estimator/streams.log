@@ -1,0 +1,21 @@
+[2.268s] Invoking command in '/home/pdas/UAV_NAV_ROS/build/ekf2_estimator': PYTHONPATH=/home/pdas/UAV_NAV_ROS/build/ekf2_estimator/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/pdas/UAV_NAV_ROS/build/ekf2_estimator/build --no-deps symlink_data
+[2.828s] running develop
+[3.121s] running egg_info
+[3.151s] writing ekf2_estimator.egg-info/PKG-INFO
+[3.152s] writing dependency_links to ekf2_estimator.egg-info/dependency_links.txt
+[3.152s] writing entry points to ekf2_estimator.egg-info/entry_points.txt
+[3.152s] writing requirements to ekf2_estimator.egg-info/requires.txt
+[3.153s] writing top-level names to ekf2_estimator.egg-info/top_level.txt
+[3.210s] reading manifest file 'ekf2_estimator.egg-info/SOURCES.txt'
+[3.211s] writing manifest file 'ekf2_estimator.egg-info/SOURCES.txt'
+[3.246s] running build_ext
+[3.246s] Creating /home/pdas/UAV_NAV_ROS/install/ekf2_estimator/lib/python3.12/site-packages/ekf2-estimator.egg-link (link to .)
+[3.249s] Installing ekf2_node script to /home/pdas/UAV_NAV_ROS/install/ekf2_estimator/bin
+[3.251s] 
+[3.251s] Installed /home/pdas/UAV_NAV_ROS/build/ekf2_estimator
+[3.252s] running symlink_data
+[3.252s] symbolically linking /home/pdas/UAV_NAV_ROS/build/ekf2_estimator/resource/ekf2_estimator -> /home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/ament_index/resource_index/packages
+[3.252s] symbolically linking /home/pdas/UAV_NAV_ROS/build/ekf2_estimator/package.xml -> /home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/ekf2_estimator
+[3.252s] creating /home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/ekf2_estimator/config
+[3.253s] symbolically linking /home/pdas/UAV_NAV_ROS/build/ekf2_estimator/config/params.yaml -> /home/pdas/UAV_NAV_ROS/install/ekf2_estimator/share/ekf2_estimator/config
+[3.521s] Invoked command in '/home/pdas/UAV_NAV_ROS/build/ekf2_estimator' returned '0': PYTHONPATH=/home/pdas/UAV_NAV_ROS/build/ekf2_estimator/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/pdas/UAV_NAV_ROS/build/ekf2_estimator/build --no-deps symlink_data

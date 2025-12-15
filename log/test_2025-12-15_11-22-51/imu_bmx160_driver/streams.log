@@ -1,0 +1,12 @@
+[1.298s] Invoking command in '/home/pdas/UAV_NAV_ROS/imu_bmx160_driver': AMENT_PREFIX_PATH=/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver:${AMENT_PREFIX_PATH} PATH=/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/bin:${PATH} PYTEST_ADDOPTS=--tb=short --junit-xml=/home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver/pytest.xml --junit-prefix=imu_bmx160_driver -o cache_dir=/home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver/.pytest_cache PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver:/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -m pytest
+[1.860s] [1m============================= test session starts ==============================[0m
+[1.861s] platform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.4.0
+[1.870s] cachedir: /home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver/.pytest_cache
+[1.873s] rootdir: /home/pdas/UAV_NAV_ROS/imu_bmx160_driver
+[1.873s] plugins: ament-copyright-0.17.3, launch-testing-3.4.9, ament-lint-0.17.3, ament-xmllint-0.17.3, ament-flake8-0.17.3, launch-testing-ros-0.26.10, ament-pep257-0.17.3, cov-4.1.0, colcon-core-0.20.1
+[1.880s] [1mcollecting ... [0m[1m
+[1.880s] collected 0 items                                                              [0m
+[1.880s] 
+[1.881s] - generated xml file: /home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver/pytest.xml -
+[1.881s] [33m============================ [33mno tests ran[0m[33m in 0.02s[0m[33m =============================[0m
+[2.027s] Invoked command in '/home/pdas/UAV_NAV_ROS/imu_bmx160_driver' returned '5': AMENT_PREFIX_PATH=/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver:${AMENT_PREFIX_PATH} PATH=/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/bin:${PATH} PYTEST_ADDOPTS=--tb=short --junit-xml=/home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver/pytest.xml --junit-prefix=imu_bmx160_driver -o cache_dir=/home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver/.pytest_cache PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver:/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -m pytest

@@ -1,0 +1,7 @@
+Metadata-Version: 2.1
+Name: gps-zoe-m8q-driver
+Version: 0.0.1
+Summary: I2C driver for U-Blox ZOE-M8Q GPS
+Maintainer: User
+Maintainer-email: user@example.com
+License: MIT

@@ -1,0 +1,17 @@
+[1.330s] Invoking command in '/home/pdas/UAV_NAV_ROS/build/gps_zoe_m8q_driver': PYTHONPATH=/home/pdas/UAV_NAV_ROS/build/gps_zoe_m8q_driver/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/pdas/UAV_NAV_ROS/build/gps_zoe_m8q_driver/build --no-deps symlink_data
+[1.823s] running develop
+[2.166s] running egg_info
+[2.196s] writing gps_zoe_m8q_driver.egg-info/PKG-INFO
+[2.196s] writing dependency_links to gps_zoe_m8q_driver.egg-info/dependency_links.txt
+[2.197s] writing entry points to gps_zoe_m8q_driver.egg-info/entry_points.txt
+[2.197s] writing requirements to gps_zoe_m8q_driver.egg-info/requires.txt
+[2.197s] writing top-level names to gps_zoe_m8q_driver.egg-info/top_level.txt
+[2.256s] reading manifest file 'gps_zoe_m8q_driver.egg-info/SOURCES.txt'
+[2.257s] writing manifest file 'gps_zoe_m8q_driver.egg-info/SOURCES.txt'
+[2.287s] running build_ext
+[2.287s] Creating /home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/lib/python3.12/site-packages/gps-zoe-m8q-driver.egg-link (link to .)
+[2.288s] Installing gps_zoe_m8q_node script to /home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/lib/gps_zoe_m8q_driver
+[2.288s] 
+[2.289s] Installed /home/pdas/UAV_NAV_ROS/build/gps_zoe_m8q_driver
+[2.289s] running symlink_data
+[2.398s] Invoked command in '/home/pdas/UAV_NAV_ROS/build/gps_zoe_m8q_driver' returned '0': PYTHONPATH=/home/pdas/UAV_NAV_ROS/build/gps_zoe_m8q_driver/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/pdas/UAV_NAV_ROS/build/gps_zoe_m8q_driver/build --no-deps symlink_data

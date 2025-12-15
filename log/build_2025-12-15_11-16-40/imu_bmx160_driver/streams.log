@@ -1,0 +1,21 @@
+[2.250s] Invoking command in '/home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver': PYTHONPATH=/home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver/build --no-deps symlink_data
+[2.805s] running develop
+[3.099s] running egg_info
+[3.129s] writing imu_bmx160_driver.egg-info/PKG-INFO
+[3.129s] writing dependency_links to imu_bmx160_driver.egg-info/dependency_links.txt
+[3.130s] writing entry points to imu_bmx160_driver.egg-info/entry_points.txt
+[3.130s] writing requirements to imu_bmx160_driver.egg-info/requires.txt
+[3.130s] writing top-level names to imu_bmx160_driver.egg-info/top_level.txt
+[3.188s] reading manifest file 'imu_bmx160_driver.egg-info/SOURCES.txt'
+[3.189s] writing manifest file 'imu_bmx160_driver.egg-info/SOURCES.txt'
+[3.223s] running build_ext
+[3.224s] Creating /home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/lib/python3.12/site-packages/imu-bmx160-driver.egg-link (link to .)
+[3.226s] Installing imu_bmx160_driver_node script to /home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/bin
+[3.226s] 
+[3.227s] Installed /home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver
+[3.227s] running symlink_data
+[3.228s] symbolically linking /home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver/resource/imu_bmx160_driver -> /home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/ament_index/resource_index/packages
+[3.228s] symbolically linking /home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver/package.xml -> /home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/imu_bmx160_driver
+[3.228s] creating /home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/imu_bmx160_driver/config
+[3.229s] symbolically linking /home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver/config/params.yaml -> /home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/share/imu_bmx160_driver/config
+[3.482s] Invoked command in '/home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver' returned '0': PYTHONPATH=/home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/pdas/UAV_NAV_ROS/install/imu_bmx160_driver/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/pdas/UAV_NAV_ROS/build/imu_bmx160_driver/build --no-deps symlink_data

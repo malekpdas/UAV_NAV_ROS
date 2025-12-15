@@ -1,0 +1,7 @@
+Metadata-Version: 2.1
+Name: ekf2-estimator
+Version: 0.0.1
+Summary: PX4-faithful EKF2 Estimator (Python)
+Maintainer: User
+Maintainer-email: user@example.com
+License: MIT

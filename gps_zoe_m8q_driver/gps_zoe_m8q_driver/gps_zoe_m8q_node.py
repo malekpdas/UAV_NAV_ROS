@@ -3,6 +3,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import NavSatFix, NavSatStatus
 from geometry_msgs.msg import TwistWithCovarianceStamped
 from .ubx_i2c import UbxI2C
+from .ubx_nav_pvt import UbxNavPvt
 
 class GpsZoeM8qNode(Node):
     def __init__(self):
@@ -10,25 +11,28 @@ class GpsZoeM8qNode(Node):
         
         self.declare_parameter('i2c_bus', 1)
         self.declare_parameter('i2c_address', 0x42)
-        self.declare_parameter('update_rate', 5.0) # Hz
+        self.declare_parameter('update_rate', 10.0) # Hz
         self.declare_parameter('frame_id', 'gps_link')
         
         self.i2c_bus = self.get_parameter('i2c_bus').value
         self.i2c_address = self.get_parameter('i2c_address').value
         self.rate = self.get_parameter('update_rate').value
         self.frame_id = self.get_parameter('frame_id').value
+        self.update_rate = self.get_parameter('update_rate').value
         
-        self.ubx = UbxI2C(self.i2c_bus, self.i2c_address)
+        self.ubx = UbxI2C(self.i2c_bus, self.i2c_address, self.get_logger())
         if not self.ubx.open():
             self.get_logger().error("Could not open I2C bus for GPS")
             return
             
-        self.ubx.configure(rate_hz=int(self.rate))
+        self.ubx.configure(rate_hz=int(self.update_rate))
+        self.get_logger().info("GPS Driver Initialized - Waiting for fix...")
         
         self.fix_pub = self.create_publisher(NavSatFix, '/gps/fix', 10)
         self.vel_pub = self.create_publisher(TwistWithCovarianceStamped, '/gps/vel', 10)
         
-        self.timer = self.create_timer(0.1, self.timer_callback) # Run fast to drain buffer? 
+        self.timer_period = 1.0 / self.update_rate
+        self.timer = self.create_timer(self.timer_period, self.timer_callback) # Run fast to drain buffer? 
         # Actually UBX update is driven by device, we should poll frequently.
         
         self.buffer = b''
@@ -36,9 +40,12 @@ class GpsZoeM8qNode(Node):
     def timer_callback(self):
         data = self.ubx.read_packet()
         if data:
-            msgs, self.buffer = self.ubx.parse_stream(data, self.buffer)
+            msgs, self.buffer= self.ubx.parse_stream(data, self.buffer)
             for m in msgs:
                 self.publish_pvt(m)
+        else:
+            self.get_logger().warn("No data from GPS - I2C Empty", throttle_duration_sec=2.0)
+            pass
                 
     def publish_pvt(self, pvt):
         now = self.get_clock().now().to_msg()

@@ -1,0 +1,17 @@
+[3.294s] Invoking command in '/home/pdas/UAV_NAV_ROS/build/ekf2_estimator': PYTHONPATH=/home/pdas/UAV_NAV_ROS/build/ekf2_estimator/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/pdas/UAV_NAV_ROS/build/ekf2_estimator/build --no-deps symlink_data
+[3.896s] running develop
+[4.205s] running egg_info
+[4.239s] writing ekf2_estimator.egg-info/PKG-INFO
+[4.240s] writing dependency_links to ekf2_estimator.egg-info/dependency_links.txt
+[4.240s] writing entry points to ekf2_estimator.egg-info/entry_points.txt
+[4.240s] writing requirements to ekf2_estimator.egg-info/requires.txt
+[4.240s] writing top-level names to ekf2_estimator.egg-info/top_level.txt
+[4.310s] reading manifest file 'ekf2_estimator.egg-info/SOURCES.txt'
+[4.316s] writing manifest file 'ekf2_estimator.egg-info/SOURCES.txt'
+[4.388s] running build_ext
+[4.389s] Creating /home/pdas/UAV_NAV_ROS/install/ekf2_estimator/lib/python3.12/site-packages/ekf2-estimator.egg-link (link to .)
+[4.392s] Installing ekf2_node script to /home/pdas/UAV_NAV_ROS/install/ekf2_estimator/lib/ekf2_estimator
+[4.393s] 
+[4.394s] Installed /home/pdas/UAV_NAV_ROS/build/ekf2_estimator
+[4.394s] running symlink_data
+[4.710s] Invoked command in '/home/pdas/UAV_NAV_ROS/build/ekf2_estimator' returned '0': PYTHONPATH=/home/pdas/UAV_NAV_ROS/build/ekf2_estimator/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/pdas/UAV_NAV_ROS/install/ekf2_estimator/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/pdas/UAV_NAV_ROS/build/ekf2_estimator/build --no-deps symlink_data

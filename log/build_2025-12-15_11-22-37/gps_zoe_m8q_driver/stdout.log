@@ -1,0 +1,15 @@
+running develop
+running egg_info
+writing gps_zoe_m8q_driver.egg-info/PKG-INFO
+writing dependency_links to gps_zoe_m8q_driver.egg-info/dependency_links.txt
+writing entry points to gps_zoe_m8q_driver.egg-info/entry_points.txt
+writing requirements to gps_zoe_m8q_driver.egg-info/requires.txt
+writing top-level names to gps_zoe_m8q_driver.egg-info/top_level.txt
+reading manifest file 'gps_zoe_m8q_driver.egg-info/SOURCES.txt'
+writing manifest file 'gps_zoe_m8q_driver.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/lib/python3.12/site-packages/gps-zoe-m8q-driver.egg-link (link to .)
+Installing gps_zoe_m8q_node script to /home/pdas/UAV_NAV_ROS/install/gps_zoe_m8q_driver/bin
+
+Installed /home/pdas/UAV_NAV_ROS/build/gps_zoe_m8q_driver
+running symlink_data

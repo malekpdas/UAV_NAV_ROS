@@ -1,0 +1,15 @@
+source;share/imu_bmx160_driver/hook/path.ps1
+source;share/imu_bmx160_driver/hook/path.dsv
+source;share/imu_bmx160_driver/hook/path.sh
+source;share/imu_bmx160_driver/hook/pythonpath.ps1
+source;share/imu_bmx160_driver/hook/pythonpath.dsv
+source;share/imu_bmx160_driver/hook/pythonpath.sh
+source;share/imu_bmx160_driver/hook/pythonscriptspath.ps1
+source;share/imu_bmx160_driver/hook/pythonscriptspath.dsv
+source;share/imu_bmx160_driver/hook/pythonscriptspath.sh
+source;share/imu_bmx160_driver/hook/ament_prefix_path.ps1
+source;share/imu_bmx160_driver/hook/ament_prefix_path.dsv
+source;share/imu_bmx160_driver/hook/ament_prefix_path.sh
+source;../../build/imu_bmx160_driver/share/imu_bmx160_driver/hook/pythonpath_develop.ps1
+source;../../build/imu_bmx160_driver/share/imu_bmx160_driver/hook/pythonpath_develop.dsv
+source;../../build/imu_bmx160_driver/share/imu_bmx160_driver/hook/pythonpath_develop.sh
