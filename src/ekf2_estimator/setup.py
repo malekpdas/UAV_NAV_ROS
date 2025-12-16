@@ -2,7 +2,7 @@ from setuptools import setup
 import os
 from glob import glob
 
-package_name = 'bmx160_ros'
+package_name = 'ekf2_estimator'
 
 setup(
     name=package_name,
@@ -19,13 +19,12 @@ setup(
     zip_safe=True,
     maintainer='user',
     maintainer_email='user@todo.todo',
-    description='ROS2 driver for BMX160 IMU/Magnetometer',
+    description='PX4 EKF2-grade estimator for ROS 2',
     license='TODO',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'bmx160_node = bmx160_ros.bmx160_node:main',
-            'mag_cal_node = bmx160_ros.mag_cal_node:main',
+            'ekf_node = ekf2_estimator.ekf_node:main',
         ],
     },
 )

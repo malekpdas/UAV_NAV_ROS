@@ -1,0 +1,34 @@
+/ekf2_node:
+  ros__parameters:
+    # Frame definition
+    map_frame: "map"
+    odom_frame: "odom"
+    base_link_frame: "base_link"
+    
+    # Process Noise (Continuous)
+    gyro_noise_density: 0.001       # rad/s/sqrt(Hz) (from BMX160 spec or tuning)
+    accel_noise_density: 0.02       # m/s^2/sqrt(Hz)
+    gyro_bias_random_walk: 5.0e-3   # rad/s^2/sqrt(Hz)
+    accel_bias_random_walk: 5.0e-3  # m/s^3/sqrt(Hz)
+    mag_bias_random_walk: 5.0e-3    # Tesla/s/sqrt(Hz)
+    
+    # Measurement Noise (if sensor cov is missing)
+    gps_pos_noise: 0.1  # m
+    gps_vel_noise: 0.05  # m/s
+    mag_heading_noise: 0.05 # rad
+    
+    # Innovation Gates (Normalized Innovation Squared threshold, typically 3-5 sigma -> NIS ~9-25)
+    # Using NIS threshold directly. Chi-square 3-DOF 99% is ~11.3, 1-DOF is ~6.6
+    # PX4 default is often ~3.0-5.0 sigma. 
+    # Let's set high to start.
+    gate_pos_nis: 1e9
+    gate_vel_nis: 1e9
+    gate_mag_nis: 1e9
+    gate_yaw_nis: 1e9 # GPS Yaw
+    
+    # Logic
+    yaw_speed_threshold: 2.0 # m/s (min speed for GPS yaw)
+    
+    # Reference Field (NED) - Normalized
+    # User must align this with True North. Constant for now.
+    mag_ref_ned: [0.64917977, -0.09156606, 0.75510349]

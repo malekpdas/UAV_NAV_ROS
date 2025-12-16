@@ -3,17 +3,34 @@
     bus: 1
     rate_hz: 100.0
     frame_id: "imu_link"
-    bias_removal: false
+    bias_removal: true
     bias_duration_sec: 2.0
-    mag_bias: [0.0, 0.0, 0.0]
+
+    imu_rotation_transformation: [1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0]
+
     # Manual Biases (used if bias_removal is False)
-    accel_bias: [-0.85459606, -0.65057519, 0.35121882]
-    gyro_bias: [-0.00061568, 0.00086435, 0.0006237]
+    accel_bias: [-0.25452765, -0.38855447,  0.35369623] 
+    gyro_bias:  [-0.00070459,  0.00077812,  0.00065445]
     
     # Sensor Variances (diagonal elements of covariance matrix)
     accel_variance: [0.01, 0.01, 0.01] 
     gyro_variance: [0.001, 0.001, 0.001]
-    mag_variance: [0.000001, 0.000001, 0.000001]
+    mag_variance: [0.09, 0.09, 0.09]
     
-    # Default identity matrix 3x3 flattened
-    mag_transform: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+    # Desk-side
+    # mag_bias: [169.91680407, 93.27657267,  -45.15207483]
+    # mag_transform: [ 3.06836518e-03, -5.75769067e-05, -9.25605428e-06,
+    #                 -5.75769067e-05,  3.29787471e-03, -4.12948119e-05,
+    #                 -9.25605428e-06, -4.12948119e-05,  1.42000298e-02]
+    
+    # home desk
+    mag_bias: [177.16126221, 73.58547909,  -44.97179773]
+    mag_transform: [3.41475054e-03,  8.23766647e-06, -3.41350111e-05,
+                    8.23766647e-06,  3.48231409e-03, -2.03525374e-05,
+                    3.41350111e-05, -2.03525374e-05,  1.55694192e-02]
+
+    # # PT in hangar
+    # mag_bias: [176.34180115,  87.11669005, -45.542678]
+    # mag_transform: [ 3.79543795e-03, -1.50361740e-05,  1.10568647e-05,
+    #                 -1.50361740e-05,  3.98408231e-03, -3.71578058e-05,
+    #                  1.10568647e-05, -3.71578058e-05,  1.51214688e-02]

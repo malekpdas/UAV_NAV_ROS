@@ -4,7 +4,7 @@ from rclpy.node import Node
 from rcl_interfaces.msg import ParameterEvent
 from geometry_msgs.msg import Vector3
 from sensor_msgs.msg import Imu, MagneticField
-from bmx160_ros.bmx160_lib import BMX160
+from bmx160_ros.bmx160_lib import BMX160, GyroRange, AccelRange
 
 class BMX160Node(Node):
     def __init__(self):
@@ -22,12 +22,18 @@ class BMX160Node(Node):
         # Sensor Variance Parameters
         self.declare_parameter('accel_variance', [0.001, 0.001, 0.001])
         self.declare_parameter('gyro_variance', [0.0001, 0.0001, 0.0001])
-        self.declare_parameter('mag_variance', [1e-6, 1e-6, 1e-6])
+        self.declare_parameter('mag_variance', [1e-3, 1e-3, 1e-3])
         
         # Magnetometer Calibration Parameters
         self.declare_parameter('mag_bias', [0.0, 0.0, 0.0])
         # Default identity matrix for 3x3 transform, flattened
         self.declare_parameter('mag_transform', [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0])
+        
+        # IMU Rotation (Mounting)
+        self.declare_parameter('imu_rotation_transformation', [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0])
+
+        # IMU Rotation
+        self._imu_rot = np.array(self.get_parameter('imu_rotation_transformation').value).reshape(3, 3)
 
         self.bus = self.get_parameter('bus').value
         self.rate_hz = self.get_parameter('rate_hz').value
@@ -39,6 +45,16 @@ class BMX160Node(Node):
         self.imu = BMX160(self.bus)
         if self.imu.begin():
             self.get_logger().info('✅ BMX160 init OK')
+    
+            # Configure gyro range (±500°/s is good for most applications)
+            self.imu.set_gyro_range(GyroRange.DPS_500)
+            
+            # Configure accel range (±4g is good for most applications)
+            self.imu.set_accel_range(AccelRange.G_4)
+            
+            self.get_logger().info(f'✅ Gyro configured: {GyroRange.DPS_500} sensitivity')
+            self.get_logger().info(f'✅ Accel configured: {AccelRange.G_4} sensitivity')
+
         else:
             self.get_logger().error('❌ BMX160 init FAILED (check I2C)')
             raise RuntimeError('BMX160 init failed')
@@ -67,6 +83,7 @@ class BMX160Node(Node):
         # Magnetometer Calibration (Loaded from params initially)
         self._mag_bias = np.array(self.get_parameter('mag_bias').value)
         self._mag_transform = np.array(self.get_parameter('mag_transform').value).reshape(3, 3)
+        
 
         # Parameter Callback
         self.sub_params = self.create_subscription(
@@ -93,25 +110,6 @@ class BMX160Node(Node):
             # Raw Data
             # Magnetometer: uT
             mx, my, mz = float(d[0]), float(d[1]), float(d[2])
-            # Gyro: rad/s (d[3..5] are in rad/s from lib? limit check)
-            # wait, lib says gyroRange is sensitivity. 
-            # Looking at lib:
-            # gyrox *= self.gyroRange
-            # If sensitivity is e.g. 0.0076220 dps/LSB? No, LSB is raw. 
-            # Original code: gx = float(d[3]), gy... 
-            # Original code comment: "Gyro: dps -> rad/s" BUT the library usage in original code was:
-            # gx = float(d[3]) which implies d[3] is already scaled?
-            # Library `get_all_data`: computes `gyrox *= self.gyroRange`. 
-            # Variable `_BMX160_GYRO_SENSITIVITY_250DPS = (0.0076220)`. 
-            # If this is dps/LSB, then the output is in dps.
-            # Original code: `msg.raw_angular_velocity = Vector3(x=gx, y=gy, z=gz)`
-            # AND `calib_gyro = ...`
-            # Original code comment says "Gyro: dps -> rad/s" BUT it does NOT perform conversion in `tick` unless the library does it.
-            # Let's check library again. 0.0076 is typical for 250dps range (250/32768 ~= 0.0076). So it is dps.
-            # **CRITICAL FIX**: Standard message expects rad/s. I must multiply by deg2rad.
-            
-            # Accel:
-            # `accelx *= self.accelRange * 9.8` -> This is m/s^2.
             
             # Mapping
             ax_ms2, ay_ms2, az_ms2 = float(d[6]), float(d[7]), float(d[8])
@@ -133,12 +131,14 @@ class BMX160Node(Node):
                     
                     if len(accel_data) > 0:
                         self._gyro_bias = np.mean(gyro_data, axis=0)
-                        
+
                         # Accel bias: assume Z is Gravity (9.80665)
                         # We want readings to be [0, 0, +g] when level.
                         # measured = true + bias => bias = measured - true
-                        avg_accel = np.mean(accel_data, axis=0)
-                        self._accel_bias = avg_accel - np.array([0.0, 0.0, 9.80665])
+                        
+                        gravity = self._imu_rot @ np.array([0.0, 0.0, 9.80665])
+                        a = accel_data + gravity
+                        self._accel_bias = np.mean(a, axis=0)
                         
                         self.get_logger().info(f'Calibration Done. Gyro Bias: {self._gyro_bias}, Accel Bias: {self._accel_bias}')
                     else:
@@ -153,22 +153,29 @@ class BMX160Node(Node):
             imu_msg.header.stamp = self.get_clock().now().to_msg()
             imu_msg.header.frame_id = self.frame_id
 
-            # Apply bias removal
+            # Apply bias removal (Sensor Frame)
             ax_calib = ax_ms2 - self._accel_bias[0]
             ay_calib = ay_ms2 - self._accel_bias[1]
             az_calib = az_ms2 - self._accel_bias[2]
-
+            
             gx_calib = gx_rad - self._gyro_bias[0]
             gy_calib = gy_rad - self._gyro_bias[1]
             gz_calib = gz_rad - self._gyro_bias[2]
-
-            imu_msg.linear_acceleration.x = ax_calib
-            imu_msg.linear_acceleration.y = ay_calib
-            imu_msg.linear_acceleration.z = az_calib
             
-            imu_msg.angular_velocity.x = gx_calib
-            imu_msg.angular_velocity.y = gy_calib
-            imu_msg.angular_velocity.z = gz_calib
+            # Apply Rotation (Mounting -> Body)
+            accel_vec = np.array([ax_calib, ay_calib, az_calib])
+            gyro_vec = np.array([gx_calib, gy_calib, gz_calib])
+            
+            accel_body = self._imu_rot @ accel_vec
+            gyro_body = self._imu_rot @ gyro_vec
+
+            imu_msg.linear_acceleration.x = accel_body[0]
+            imu_msg.linear_acceleration.y = accel_body[1]
+            imu_msg.linear_acceleration.z = accel_body[2]
+            
+            imu_msg.angular_velocity.x = gyro_body[0]
+            imu_msg.angular_velocity.y = gyro_body[1]
+            imu_msg.angular_velocity.z = gyro_body[2]
             
             # Set covariance
             imu_msg.orientation_covariance[0] = -1.0 # Orientation not provided
@@ -185,23 +192,18 @@ class BMX160Node(Node):
             
             # Calibration Logic from user request
             B = np.array([mx, my, mz])
-            # Bcal = (B - mag_bias) @ mag_transform.T
-            # Original code: Bcal = (B - self._mag_bias) @ self._mag_cov.T
-            # Note: The original code variable `_mag_cov` was loaded from parameter `imu.mag_cov`.
-            # I renamed it `_mag_transform` to be more descriptive of its usage (soft iron / scaling).
             
-            Bcal = (B - self._mag_bias) @ self._mag_transform.T
-            
-            # Converting uT to Tesla for standard message?
-            # Standard sensor_msgs/MagneticField is in Tesla.
-            # BMX160 outputs uT.
-            # Default is 1e-6.
-            
-            mag_msg.magnetic_field.x = Bcal[0] * 1e-6
-            mag_msg.magnetic_field.y = Bcal[1] * 1e-6
-            mag_msg.magnetic_field.z = Bcal[2] * 1e-6
+            # Apply Rotation (Mounting -> Body)
+            B_body = self._imu_rot @ B
 
-            
+            # Soft Iron / Bias (Sensor Frame)
+            B_bias = self._imu_rot @ self._mag_bias
+            B_calib = (B_body - B_bias) @ self._mag_transform.T
+
+            mag_msg.magnetic_field.x = B_calib[0]
+            mag_msg.magnetic_field.y = B_calib[1]
+            mag_msg.magnetic_field.z = B_calib[2]
+
             self.pub_mag.publish(mag_msg)
 
         except Exception as e:
@@ -217,6 +219,10 @@ class BMX160Node(Node):
                 if len(changed.value.double_array_value) == 9:
                     self._mag_transform = np.array(changed.value.double_array_value).reshape(3, 3)
                     self.get_logger().info(f"Updated mag_transform parameters")
+            elif changed.name == "imu_rotation_transformation":
+                 if len(changed.value.double_array_value) == 9:
+                    self._imu_rot = np.array(changed.value.double_array_value).reshape(3, 3)
+                    self.get_logger().info(f"Updated imu_rotation_transformation")
             elif changed.name == "accel_bias":
                 if len(changed.value.double_array_value) == 3:
                      self._accel_bias = np.array(changed.value.double_array_value)
