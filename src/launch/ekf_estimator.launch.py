@@ -38,7 +38,7 @@ def generate_launch_description():
                     PathJoinSubstitution([
                         FindPackageShare('ekf2_estimator'),
                         'launch',
-                        'ekf2.launch.py'
+                        'ekf_estimator.launch.py'
                     ])
                 ])
             )

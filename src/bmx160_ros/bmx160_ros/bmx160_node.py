@@ -2,7 +2,7 @@ import rclpy
 import numpy as np
 from rclpy.node import Node
 from rcl_interfaces.msg import ParameterEvent
-from geometry_msgs.msg import Vector3
+from scipy.spatial.transform import Rotation as R
 from sensor_msgs.msg import Imu, MagneticField
 from bmx160_ros.bmx160_lib import BMX160, GyroRange, AccelRange
 
@@ -23,6 +23,7 @@ class BMX160Node(Node):
         self.declare_parameter('accel_variance', [0.001, 0.001, 0.001])
         self.declare_parameter('gyro_variance', [0.0001, 0.0001, 0.0001])
         self.declare_parameter('mag_variance', [1e-3, 1e-3, 1e-3])
+        self.declare_parameter('mag_declination_angle', 0.0)
         
         # Magnetometer Calibration Parameters
         self.declare_parameter('mag_bias', [0.0, 0.0, 0.0])
@@ -40,6 +41,9 @@ class BMX160Node(Node):
         self.frame_id = self.get_parameter('frame_id').value
         self.bias_removal = self.get_parameter('bias_removal').value
         self.bias_duration_sec = self.get_parameter('bias_duration_sec').value
+
+        self.mag_dec_angle = self.get_parameter('mag_declination_angle').value
+        self._mag_dec_rot = R.from_euler('xyz', [0, 0, self.mag_dec_angle], degrees=True).as_matrix()
 
         # Initialize Sensor
         self.imu = BMX160(self.bus)
@@ -200,9 +204,11 @@ class BMX160Node(Node):
             B_bias = self._imu_rot @ self._mag_bias
             B_calib = (B_body - B_bias) @ self._mag_transform.T
 
-            mag_msg.magnetic_field.x = B_calib[0]
-            mag_msg.magnetic_field.y = B_calib[1]
-            mag_msg.magnetic_field.z = B_calib[2]
+            B_true_north = self._mag_dec_rot.T @ B_calib
+
+            mag_msg.magnetic_field.x = B_true_north[0]
+            mag_msg.magnetic_field.y = B_true_north[1]
+            mag_msg.magnetic_field.z = B_true_north[2]
 
             self.pub_mag.publish(mag_msg)
 
@@ -243,6 +249,9 @@ class BMX160Node(Node):
                 if len(changed.value.double_array_value) == 3:
                      self._mag_cov = np.diag(changed.value.double_array_value).flatten()
                      self.get_logger().info("Updated mag_variance")
+            elif changed.name == "mag_declination_angle":
+                self._mag_cov = changed.value.double_value
+                self.get_logger().info("Updated mag_declination_angle")
 
     def destroy_node(self):
         super().destroy_node()
