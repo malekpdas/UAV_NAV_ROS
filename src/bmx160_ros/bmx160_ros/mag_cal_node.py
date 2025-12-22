@@ -23,7 +23,7 @@ import numpy.linalg as la
 import matplotlib.pyplot as plt
 from collections import deque
 from scipy.optimize import least_squares
-import os
+
 
 # ===================== User Parameters =====================
 MAX_SAMPLES = int(5e4)

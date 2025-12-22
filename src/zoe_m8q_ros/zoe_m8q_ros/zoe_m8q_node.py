@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+ROS2 Node for the ZOE-M8Q GPS module using UBX protocol.
+"""
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import NavSatFix, NavSatStatus

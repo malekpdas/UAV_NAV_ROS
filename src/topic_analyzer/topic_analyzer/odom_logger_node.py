@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+Node for logging Odometry, Position, and Velocity data to CSV.
+"""
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy

@@ -10,7 +10,7 @@ Supports separated measurement updates:
 
 import numpy as np
 
-from .utils import rotate_vector
+
 
 
 class LPFilter:

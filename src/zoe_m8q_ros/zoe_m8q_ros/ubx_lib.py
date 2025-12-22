@@ -1,3 +1,6 @@
+"""
+Library for parsing UBX protocol messages from u-blox GPS receivers.
+"""
 import time
 import struct
 from dataclasses import dataclass

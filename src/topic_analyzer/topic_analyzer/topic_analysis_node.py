@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+"""
+Node for comparing GPS and Odometry data with visualization.
+"""
 import rclpy
 from rclpy.node import Node
 

@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+Node to plot real-time orientation (roll, pitch, yaw) from Odometry data.
+"""
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry

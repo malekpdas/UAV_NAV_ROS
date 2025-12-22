@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 ROS2 Node for IMU/GPS integration using a Linear Kalman Filter.
 
@@ -49,19 +50,12 @@ class IMUGPSFusionNode(Node):
         self.kf = LinearKalmanFilter(self.params['kalman_filter'])
         self.kf_initialized = False
         
-        # Simple integration state (for comparison)
-        # self.state = np.zeros(6)  # [pn, pe, pd, vn, ve, vd]
         self.last_imu_time = None
         self.origin = None
-        # self.current_a_ned = np.zeros(3)
         self.current_gyro = np.zeros(3)
-        # self.current_euler = np.zeros(3)
         
         self.latest_mag = None
         self.latest_gps_vel = None
-        # self.last_gps_vel = None
-        # self.last_gps_t = None
-        # self.last_published_time = None
 
         # ROS2 Publishers
         self.odom_pub = self.create_publisher(

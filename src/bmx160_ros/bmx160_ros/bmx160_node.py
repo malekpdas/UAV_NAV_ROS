@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+ROS2 Node for interfacing with the Bosch BMX160 9-axis IMU.
+"""
 import rclpy
 import numpy as np
 from rclpy.node import Node
