@@ -1,415 +1,466 @@
+"""
+ROS2 Node for IMU/GPS integration using a Linear Kalman Filter.
+
+Architecture:
+- IMU measurements (cb_imu): Prediction step at high rate (~100Hz)
+- GPS velocity (cb_gps_vel): Velocity update when available (~5-10Hz)
+- GPS position (cb_gps_fix): Position update when available (~1-10Hz)
+
+This separated update approach allows asynchronous sensor fusion.
+"""
+
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Imu, MagneticField, NavSatFix
-from geometry_msgs.msg import TwistWithCovarianceStamped, PoseStamped, AccelWithCovarianceStamped
+from geometry_msgs.msg import TwistWithCovarianceStamped, TransformStamped
 from nav_msgs.msg import Odometry
-from std_msgs.msg import Float64
-from tf2_ros import TransformBroadcaster
-from geometry_msgs.msg import TransformStamped
+import imufusion
 import numpy as np
+from tf2_ros import TransformBroadcaster
 
-from .ekf_core import HybridEstimator
-from .utils import lla_to_ned, quat_to_rot_mat, rotate_vector, quat_conjugate
+from .ekf_core import LinearKalmanFilter, RobustLPFilter
 
-class HybridEKFNode(Node):
+
+class IMUGPSFusionNode(Node):
+    """
+    ROS2 Node for IMU/GPS integration using a Linear Kalman Filter.
+    """
+    
     def __init__(self):
-        super().__init__('ekf2_node')
+        super().__init__('imu_gps_fusion_node')
         
-        # Parameters
+        # Declare and load ROS2 parameters
+        self.declare_all_parameters()
         self.load_parameters()
         
-        # State
-        self.estimator = HybridEstimator(dt_pred=0.01)
-        self.estimator.Q_accel = self.accel_noise**2
-        self.estimator.Q_gb = self.gyro_bias_rw**2
-        self.estimator.Q_ab = self.accel_bias_rw**2
-        self.estimator.Q_mb = self.mag_bias_rw**2
+        # AHRS Setup
+        self.offset = imufusion.Offset(self.params['ahrs']['offset_samples'])
+        self.ahrs = imufusion.Ahrs()
+        self.ahrs.settings = imufusion.Settings(
+            imufusion.CONVENTION_NED,
+            self.params['ahrs']['gain'],
+            self.params['ahrs']['gyro_range'],
+            self.params['ahrs']['accel_rejection'],
+            self.params['ahrs']['mag_rejection'],
+            self.params['ahrs']['rejection_timeout']
+        )
+
+        # Kalman Filter for position/velocity estimation with bias
+        self.kf = LinearKalmanFilter(self.params['kalman_filter'])
+        self.kf_initialized = False
         
-        # Configure AHRS
-        self.estimator.set_ahrs_settings(
-            gain=float(self.ahrs_gain),
-            accel_rejection=float(self.ahrs_accel_rejection),
-            mag_rejection=float(self.ahrs_mag_rejection)
+        # Simple integration state (for comparison)
+        # self.state = np.zeros(6)  # [pn, pe, pd, vn, ve, vd]
+        self.last_imu_time = None
+        self.origin = None
+        # self.current_a_ned = np.zeros(3)
+        self.current_gyro = np.zeros(3)
+        # self.current_euler = np.zeros(3)
+        
+        self.latest_mag = None
+        self.latest_gps_vel = None
+        # self.last_gps_vel = None
+        # self.last_gps_t = None
+        # self.last_published_time = None
+
+        # ROS2 Publishers
+        self.odom_pub = self.create_publisher(
+            Odometry,
+            self.params['topics']['odometry'],
+            10
         )
         
-        # Initialization State
-        self.origin_set = False
-        self.origin_lla = None
-        self.initialized = False
+        if self.params['topics']['publish_acceleration']:
+            self.accel_pub = self.create_publisher(
+                Imu,
+                self.params['topics']['filtered_imu'],
+                10
+            )
         
-        # Sensor Data Buffer (for synchronization)
-        self.latest_mag = None
-        self.latest_gyro = None
-        self.latest_accel = None
-        
-        # Publishers
-        self.pub_odom = self.create_publisher(Odometry, 'odom', 10)
-        self.pub_accel = self.create_publisher(AccelWithCovarianceStamped, 'accel/filtered', 10)
-        self.pub_heading_est = self.create_publisher(Float64, 'heading/estimated', 10)
-        self.pub_heading_gps = self.create_publisher(Float64, 'heading/gps', 10)
+        # TF Broadcaster
         self.tf_broadcaster = TransformBroadcaster(self)
-        
-        # Subscriptions
-        self.create_subscription(Imu, '/imu/data', self.cb_imu, 10)
-        self.create_subscription(MagneticField, '/imu/mag', self.cb_mag, 10)
-        self.create_subscription(NavSatFix, '/gps/fix', self.cb_gps_fix, 10)
-        self.create_subscription(TwistWithCovarianceStamped, '/gps/vel', self.cb_gps_vel, 10)
-        
-        self.last_imu_time = 0.0
-        self.get_logger().info("🚀 Hybrid EKF+AHRS Node Started. Waiting for GPS origin...")
 
-    def load_parameters(self):
+        # ROS2 Subscriptions
+        self.create_subscription(
+            Imu, 
+            self.params['topics']['imu'], 
+            self.cb_imu, 
+            10
+        )
+        self.create_subscription(
+            MagneticField, 
+            self.params['topics']['mag'], 
+            self.cb_mag, 
+            10
+        )
+        self.create_subscription(
+            NavSatFix, 
+            self.params['topics']['gps_fix'], 
+            self.cb_gps_fix, 
+            10
+        )
+        self.create_subscription(
+            TwistWithCovarianceStamped, 
+            self.params['topics']['gps_vel'], 
+            self.cb_gps_vel, 
+            10
+        )
+
+        # Low-pass filters
+        self.lp_filter_acc = RobustLPFilter(alpha=self.params['filters']['lowpass_alpha_acc'])
+        
+        self.get_logger().info('IMU/GPS Fusion Node initialized')
+        self.log_parameters()
+
+    def declare_all_parameters(self):
+        """Declare all ROS2 parameters with default values."""
+        
         # Frame IDs
         self.declare_parameter('map_frame', 'map')
         self.declare_parameter('odom_frame', 'odom')
         self.declare_parameter('base_link_frame', 'base_link')
         
-        # Noise Parameters
-        self.declare_parameter('gyro_noise_density', 0.001)
-        self.declare_parameter('accel_noise_density', 0.02)
-        self.declare_parameter('gyro_bias_random_walk', 1.0e-5)
-        self.declare_parameter('accel_bias_random_walk', 1.0e-4)
-        self.declare_parameter('mag_bias_random_walk', 1.0e-5)
+        # Topics
+        self.declare_parameter('topics.imu', '/imu/data')
+        self.declare_parameter('topics.mag', '/imu/mag')
+        self.declare_parameter('topics.gps_fix', '/gps/fix')
+        self.declare_parameter('topics.gps_vel', '/gps/vel')
+        self.declare_parameter('topics.odometry', '/ekf/odometry')
+        self.declare_parameter('topics.filtered_imu', '/ekf/filtered_imu')
+        self.declare_parameter('topics.publish_acceleration', False)
         
-        # AHRS Parameters
-        self.declare_parameter('ahrs_gain', 0.5)
-        self.declare_parameter('ahrs_accel_rejection', 10.0)
-        self.declare_parameter('ahrs_mag_rejection', 10.0)
+        # AHRS
+        self.declare_parameter('ahrs.offset_samples', 100)
+        self.declare_parameter('ahrs.gain', 0.5)
+        self.declare_parameter('ahrs.gyro_range', 500.0)
+        self.declare_parameter('ahrs.accel_rejection', 10.0)
+        self.declare_parameter('ahrs.mag_rejection', 10.0)
+        self.declare_parameter('ahrs.rejection_timeout', 500)
         
-        # Gate Thresholds
-        self.declare_parameter('gate_pos_nis', 25.0)
-        self.declare_parameter('gate_vel_nis', 25.0)
-        self.declare_parameter('gate_heading_nis', 9.0)
+        # Kalman Filter - Initial Uncertainties
+        self.declare_parameter('kalman_filter.initial_pos_uncertainty', 100.0)
+        self.declare_parameter('kalman_filter.initial_vel_uncertainty', 100.0)
+        self.declare_parameter('kalman_filter.initial_bias_uncertainty', 1.0)
         
-        # GPS Heading
-        self.declare_parameter('yaw_speed_threshold', 2.0)
-        self.declare_parameter('gps_heading_noise', 0.1)
+        # Kalman Filter - Process Noise
+        self.declare_parameter('kalman_filter.process_noise_pos', 0.5)
+        self.declare_parameter('kalman_filter.process_noise_vel', 0.5)
+        self.declare_parameter('kalman_filter.process_noise_bias', 0.001)
         
-        # Magnetometer Reference
-        self.declare_parameter('mag_ref_ned', [1.0, 0.0, 0.0])
+        # Kalman Filter - Measurement Noise
+        self.declare_parameter('kalman_filter.measurement_noise_pos', 25.0)
+        self.declare_parameter('kalman_filter.measurement_noise_vel', 0.25)
+        
+        # Filters
+        self.declare_parameter('filters.lowpass_alpha_acc', 0.9)
+        
+        # Earth Model
+        self.declare_parameter('earth.gravity', 9.8066)
+        self.declare_parameter('earth.radius', 6378137.0)
+        self.declare_parameter('earth.flattening', 0.0033528106647474805)
 
-        # Load values
-        self.map_frame = self.get_parameter('map_frame').value
-        self.odom_frame = self.get_parameter('odom_frame').value
-        self.base_frame = self.get_parameter('base_link_frame').value
-        
-        self.gyro_noise = self.get_parameter('gyro_noise_density').value
-        self.accel_noise = self.get_parameter('accel_noise_density').value
-        self.gyro_bias_rw = self.get_parameter('gyro_bias_random_walk').value
-        self.accel_bias_rw = self.get_parameter('accel_bias_random_walk').value
-        self.mag_bias_rw = self.get_parameter('mag_bias_random_walk').value
-        
-        self.ahrs_gain = self.get_parameter('ahrs_gain').value
-        self.ahrs_accel_rejection = self.get_parameter('ahrs_accel_rejection').value
-        self.ahrs_mag_rejection = self.get_parameter('ahrs_mag_rejection').value
-        
-        self.gate_pos = self.get_parameter('gate_pos_nis').value
-        self.gate_vel = self.get_parameter('gate_vel_nis').value
-        self.gate_heading = self.get_parameter('gate_heading_nis').value
-        
-        self.yaw_speed_thresh = self.get_parameter('yaw_speed_threshold').value
-        self.gps_heading_noise = self.get_parameter('gps_heading_noise').value
-        
-        self.mag_ref = np.array(self.get_parameter('mag_ref_ned').value)
-        if np.linalg.norm(self.mag_ref) > 0:
-            self.mag_ref = self.mag_ref / np.linalg.norm(self.mag_ref)  # Normalize
-        
-        self.get_logger().info(f"AHRS Gain: {self.ahrs_gain}, Accel Rejection: {self.ahrs_accel_rejection}°")
-        self.get_logger().info(f"Mag Reference (NED): {self.mag_ref}")
+    def load_parameters(self):
+        """Load all ROS2 parameters into a nested dictionary structure."""
+        self.params = {
+            'frames': {
+                'map': self.get_parameter('map_frame').value,
+                'odom': self.get_parameter('odom_frame').value,
+                'base_link': self.get_parameter('base_link_frame').value,
+            },
+            'topics': {
+                'imu': self.get_parameter('topics.imu').value,
+                'mag': self.get_parameter('topics.mag').value,
+                'gps_fix': self.get_parameter('topics.gps_fix').value,
+                'gps_vel': self.get_parameter('topics.gps_vel').value,
+                'odometry': self.get_parameter('topics.odometry').value,
+                'filtered_imu': self.get_parameter('topics.filtered_imu').value,
+                'publish_acceleration': self.get_parameter('topics.publish_acceleration').value,
+            },
+            'ahrs': {
+                'offset_samples': self.get_parameter('ahrs.offset_samples').value,
+                'gain': self.get_parameter('ahrs.gain').value,
+                'gyro_range': self.get_parameter('ahrs.gyro_range').value,
+                'accel_rejection': self.get_parameter('ahrs.accel_rejection').value,
+                'mag_rejection': self.get_parameter('ahrs.mag_rejection').value,
+                'rejection_timeout': self.get_parameter('ahrs.rejection_timeout').value,
+            },
+            'kalman_filter': {
+                'initial_pos_uncertainty': self.get_parameter('kalman_filter.initial_pos_uncertainty').value,
+                'initial_vel_uncertainty': self.get_parameter('kalman_filter.initial_vel_uncertainty').value,
+                'initial_bias_uncertainty': self.get_parameter('kalman_filter.initial_bias_uncertainty').value,
+                'process_noise_pos': self.get_parameter('kalman_filter.process_noise_pos').value,
+                'process_noise_vel': self.get_parameter('kalman_filter.process_noise_vel').value,
+                'process_noise_bias': self.get_parameter('kalman_filter.process_noise_bias').value,
+                'measurement_noise_pos': self.get_parameter('kalman_filter.measurement_noise_pos').value,
+                'measurement_noise_vel': self.get_parameter('kalman_filter.measurement_noise_vel').value,
+            },
+            'filters': {
+                'lowpass_alpha_acc': self.get_parameter('filters.lowpass_alpha_acc').value,
+            },
+            'earth': {
+                'gravity': self.get_parameter('earth.gravity').value,
+                'radius': self.get_parameter('earth.radius').value,
+                'flattening': self.get_parameter('earth.flattening').value,
+            }
+        }
+
+    def log_parameters(self):
+        """Log key parameters for debugging."""
+        self.get_logger().info('=== Configuration ===')
+        self.get_logger().info(f"Frames: {self.params['frames']['odom']} -> {self.params['frames']['base_link']}")
+        self.get_logger().info(f"IMU Topic: {self.params['topics']['imu']}")
+        self.get_logger().info(f"GPS Fix Topic: {self.params['topics']['gps_fix']}")
+        self.get_logger().info(f"GPS Vel Topic: {self.params['topics']['gps_vel']}")
+        self.get_logger().info(f"Odometry Topic: {self.params['topics']['odometry']}")
+        self.get_logger().info(f"Publish Filtered Accel: {self.params['topics']['publish_acceleration']}")
+        self.get_logger().info(f"AHRS Gain: {self.params['ahrs']['gain']}")
+        self.get_logger().info(f"KF Process Noise (pos): {self.params['kalman_filter']['process_noise_pos']}")
+        self.get_logger().info(f"KF Measurement Noise (pos): {self.params['kalman_filter']['measurement_noise_pos']}")
+
+    def msg_to_sec(self, stamp):
+        """Convert ROS timestamp to seconds."""
+        return stamp.sec + stamp.nanosec * 1e-9
 
     def cb_mag(self, msg):
-        """Magnetometer Callback - Buffer for synchronization"""
-        mag = np.array([msg.magnetic_field.x, msg.magnetic_field.y, msg.magnetic_field.z])
+        """Magnetometer callback."""
+        self.latest_mag = np.array([
+            msg.magnetic_field.x, 
+            msg.magnetic_field.y, 
+            msg.magnetic_field.z
+        ])
+
+    def cb_gps_vel(self, msg: TwistWithCovarianceStamped):
+        """Callback for GPS velocity - updates KF with velocity measurement."""
+        # Convert to NED frame
+        gps_vel = np.array([
+            msg.twist.twist.linear.y,
+            msg.twist.twist.linear.x,
+            -msg.twist.twist.linear.z
+        ])
+        self.latest_gps_vel = gps_vel
+
+        # Extract velocity covariance
+        R = msg.twist.covariance
+        R = np.array(R).reshape(6, 6)[:3, :3]
+        R_vel = np.maximum(R, np.eye(3) * 0.1)  # (m/s)²
         
-        # Normalize magnetometer reading
-        mag_norm = np.linalg.norm(mag)
-        if mag_norm > 0:
-            self.latest_mag = mag / mag_norm
-        else:
-            self.get_logger().warn("Zero magnetometer reading", throttle_duration_sec=1.0)
+        # Update Kalman Filter with velocity measurement
+        if self.kf_initialized:
+            self.kf.update_velocity(gps_vel, R_vel)
 
     def cb_imu(self, msg):
-        """IMU Callback - Main Prediction Loop"""
-        t = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9
+        """IMU callback - runs prediction step at high rate."""
+        if self.latest_mag is None:
+            return
+            
+        t = self.msg_to_sec(msg.header.stamp)
         
+        if self.last_imu_time is None:
+            self.last_imu_time = t
+            return
+
+        dt = t - self.last_imu_time
+        if dt <= 0:
+            return
+
         # Extract IMU data
-        self.latest_gyro = np.array([
+        gyro = np.degrees([
             msg.angular_velocity.x,
             msg.angular_velocity.y,
             msg.angular_velocity.z
         ])
-        self.latest_accel = np.array([
+        accel = np.array([
             msg.linear_acceleration.x,
             msg.linear_acceleration.y,
             msg.linear_acceleration.z
         ])
+
+        # Apply low-pass filters
+        accel = self.lp_filter_acc.update(accel)
         
-        # Wait for origin
-        if not self.origin_set:
-            self.get_logger().warn("Waiting for GPS to set origin...", throttle_duration_sec=3.0)
-            return
+        # Store raw gyro for bias estimation
+        self.current_gyro = gyro.copy()
         
-        # Wait for magnetometer
-        if self.latest_mag is None:
-            self.get_logger().warn("Waiting for magnetometer data...", throttle_duration_sec=3.0)
-            return
+        # Update AHRS
+        self.ahrs.update(gyro, accel, self.latest_mag, dt)
         
-        # Initialize timestamp
-        if self.last_imu_time == 0.0:
-            self.last_imu_time = t
-            self.initialized = True
-            self.get_logger().info("✅ Estimator initialized and running")
-            return
+        # Get Earth Acceleration
+        self.current_a_ned = (
+            self.ahrs.earth_acceleration + 
+            np.array([0, 0, self.params['earth']['gravity']])
+        )
         
-        # Calculate dt
-        dt = t - self.last_imu_time
-        if dt <= 0 or dt > 0.5:  # Sanity check
-            self.get_logger().warn(f"Invalid dt={dt:.4f}s, resetting")
-            self.last_imu_time = t
-            return
+        # Kalman Filter Prediction Step
+        if self.kf_initialized:
+            self.kf.predict(self.current_a_ned, dt)
         
         self.last_imu_time = t
         
-        # Prediction Step
-        try:
-            self.estimator.predict(
-                self.latest_gyro,
-                self.latest_accel,
-                self.latest_mag,
-                dt
-            )
-        except Exception as e:
-            self.get_logger().error(f"Prediction error: {e}")
-            return
-        
-        # Check AHRS flags
-        flags = self.estimator.get_flags()
-        if flags['initialising']:
-            self.get_logger().info("AHRS Initializing...", throttle_duration_sec=1.0)
-        
-        # Publish
-        self.publish_odometry(msg.header.stamp, self.latest_accel)
-        self.publish_heading()
+        # Publish odometry and TF
+        self.publish_odometry(msg.header.stamp)
 
-    def cb_gps_fix(self, msg):
-        """GPS Position Callback"""
-        if msg.status.status < 0:
-            self.get_logger().warn(f"GPS No Fix (Status {msg.status.status})", throttle_duration_sec=2.0)
+    def cb_gps_fix(self, msg: NavSatFix):
+        """GPS position callback - updates KF with position measurement and logs data."""
+        if np.isnan(msg.latitude) or self.latest_gps_vel is None:
             return
-        
-        lat = msg.latitude
-        lon = msg.longitude
-        alt = msg.altitude
-        
-        # Set origin on first valid fix
-        if not self.origin_set:
-            self.origin_lla = [lat, lon, alt]
-            self.origin_set = True
-            self.get_logger().info(f"🌍 Origin Set: Lat={lat:.6f}, Lon={lon:.6f}, Alt={alt:.1f}m")
+            
+        if self.origin is None:
+            # Initialize origin and states
+            self.origin = [msg.latitude, msg.longitude, msg.altitude]
+            
+            # Initialize Kalman Filter
+            self.kf.initialize(np.zeros(3), self.latest_gps_vel)
+            self.kf_initialized = True
+            
+            self.last_gps_vel = self.latest_gps_vel
+            
+            self.get_logger().info('Filter initialized with first GPS fix')
             return
-        
-        if not self.initialized:
-            return
-        
-        # Convert to NED
-        pos_ned = lla_to_ned(lat, lon, alt, 
-                             self.origin_lla[0], 
-                             self.origin_lla[1], 
-                             self.origin_lla[2])
-        
-        # Position covariance
-        if msg.position_covariance[0] > 0:
-            cov = np.diag([
-                msg.position_covariance[0],
-                msg.position_covariance[4],
-                msg.position_covariance[8]
-            ])
-        else:
-            cov = np.eye(3) * 1.0  # Default 1m std
-        
-        # Update
-        success, nis = self.estimator.update_gps_pos_ned(pos_ned, cov, self.gate_pos)
-        if not success:
-            self.estimator.faults['gps_pos'] += 1
-            self.get_logger().warn(
-                f"GPS Pos Rejected | NIS={nis:.1f} | Faults={self.estimator.faults['gps_pos']}",
-                throttle_duration_sec=1.0
-            )
-        else:
-            if self.estimator.faults['gps_pos'] > 0:
-                self.get_logger().info(f"GPS Pos Accepted | NIS={nis:.1f}")
-            self.estimator.faults['gps_pos'] = 0
 
-    def cb_gps_vel(self, msg):
-        """GPS Velocity Callback"""
-        if not self.initialized:
+        # GPS position in NED
+        pos_gps = self.lla_to_ned(msg.latitude, msg.longitude, msg.altitude)
+        
+        # Extract position covariance
+        R = np.array(msg.position_covariance).reshape(3, 3)
+        R_pos = np.maximum(R, np.eye(3) * 0.5)   # meters²
+        
+        # Kalman Filter Position Update (separate from velocity update)
+        if self.kf_initialized:
+            self.kf.update_position(pos_gps, R_pos)
+
+    def publish_odometry(self, stamp):
+        """Publish odometry message and TF transforms."""
+        if not self.kf_initialized:
             return
         
-        # Extract velocity (assumed NED frame)
-        vel_ned = np.array([
-            msg.twist.twist.linear.x,
-            msg.twist.twist.linear.y,
-            msg.twist.twist.linear.z
-        ])
+        # Get state from Kalman Filter
+        pos = self.kf.get_position()
+        vel = self.kf.get_velocity()
         
-        # Velocity covariance
-        cov_full = np.array(msg.twist.covariance).reshape(6, 6)
-        cov = cov_full[0:3, 0:3]
-        
-        if cov[0, 0] <= 0:
-            cov = np.eye(3) * 0.1  # Default 0.1 m/s std
-        
-        # Update velocity
-        success, nis = self.estimator.update_gps_vel_ned(vel_ned, cov, self.gate_vel)
-        if not success:
-            self.estimator.faults['gps_vel'] += 1
-            self.get_logger().warn(
-                f"GPS Vel Rejected | NIS={nis:.1f}",
-                throttle_duration_sec=1.0
-            )
-        else:
-            self.estimator.faults['gps_vel'] = 0
-        
-        # GPS Heading Update (from velocity)
-        speed_2d = np.linalg.norm(vel_ned[0:2])
-        if speed_2d > self.yaw_speed_thresh:
-            heading_gps = np.arctan2(vel_ned[1], vel_ned[0])
-            
-            # Publish GPS heading for comparison
-            heading_msg = Float64()
-            heading_msg.data = np.rad2deg(heading_gps)
-            self.pub_heading_gps.publish(heading_msg)
-            
-            # Heading noise scales with velocity uncertainty
-            sigma_v = np.sqrt(max(cov[0, 0], cov[1, 1]))
-            sigma_heading = max(sigma_v / speed_2d, self.gps_heading_noise)
-            
-            success_h, nis_h = self.estimator.update_gps_heading(
-                heading_gps, 
-                self.gate_heading, 
-                sigma_heading
-            )
-            
-            if not success_h:
-                self.estimator.faults['gps_heading'] += 1
-                if self.estimator.faults['gps_heading'] % 10 == 0:
-                    self.get_logger().warn(
-                        f"GPS Heading Rejected | NIS={nis_h:.1f} | Faults={self.estimator.faults['gps_heading']}",
-                        throttle_duration_sec=2.0
-                    )
-            else:
-                self.estimator.faults['gps_heading'] = 0
-
-    def publish_heading(self):
-        """Publish estimated heading for diagnostics"""
-        euler = self.estimator.get_euler()  # Returns [roll, pitch, yaw] in degrees
-        heading_msg = Float64()
-        heading_msg.data = float(euler[2])  # Yaw in degrees
-        self.pub_heading_est.publish(heading_msg)
-
-    def publish_odometry(self, stamp, raw_accel):
-        """Publish Odometry and TF"""
-        # Get state
-        pos = self.estimator.x[0:3]
-        vel = self.estimator.x[3:6]
-        q = self.estimator.get_quaternion()
-        
-        # Create Odometry message
+        # Create odometry message
         odom = Odometry()
         odom.header.stamp = stamp
-        odom.header.frame_id = self.odom_frame
-        odom.child_frame_id = self.base_frame
+        odom.header.frame_id = self.params['frames']['odom']
+        odom.child_frame_id = self.params['frames']['base_link']
         
-        # Position
-        odom.pose.pose.position.x = float(pos[0])
-        odom.pose.pose.position.y = float(pos[1])
-        odom.pose.pose.position.z = float(pos[2])
+        # Position (NED)
+        odom.pose.pose.position.x = pos[0]  # (North)
+        odom.pose.pose.position.y = pos[1]  # (East)
+        odom.pose.pose.position.z = pos[2]  # (Down)
         
-        # Orientation
-        odom.pose.pose.orientation.w = float(q[0])
-        odom.pose.pose.orientation.x = float(q[1])
-        odom.pose.pose.orientation.y = float(q[2])
-        odom.pose.pose.orientation.z = float(q[3])
+        # Position covariance (from Kalman Filter)
+        P = self.kf.get_covariance()
+        odom.pose.covariance[0]  = P[0, 0]  # x (North)
+        odom.pose.covariance[7]  = P[1, 1]  # y (East)
+        odom.pose.covariance[14] = P[2, 2]  # z (Down)
         
-        # Velocity (convert NED to Body frame)
-        q_inv = quat_conjugate(q)
-        v_body = rotate_vector(vel, q_inv)
+        # Orientation from AHRS (quaternion)
+        q = self.ahrs.quaternion
         
-        odom.twist.twist.linear.x = float(v_body[0])
-        odom.twist.twist.linear.y = float(v_body[1])
-        odom.twist.twist.linear.z = float(v_body[2])
+        odom.pose.pose.orientation.x = q.x
+        odom.pose.pose.orientation.y = q.y
+        odom.pose.pose.orientation.z = q.z
+        odom.pose.pose.orientation.w = q.w
         
-        # Covariance
-        P = self.estimator.P
-        R_nb = quat_to_rot_mat(q)  # NED to Body
-        R_bn = R_nb.T  # Body to NED
+        # Velocity (NED)
+        odom.twist.twist.linear.x = vel[0]  # North
+        odom.twist.twist.linear.y = vel[1]  # East
+        odom.twist.twist.linear.z = vel[2]  # Down
         
-        # Pose covariance (in NED frame)
-        pose_cov = np.zeros((6, 6))
-        pose_cov[0:3, 0:3] = P[0:3, 0:3]  # Position
-        # Attitude uncertainty from AHRS (approximate)
-        pose_cov[3:6, 3:6] = np.eye(3) * (np.radians(2.0))**2  # ~2 degree std
-        odom.pose.covariance = pose_cov.flatten().tolist()
+        # Velocity covariance
+        odom.twist.covariance[0]  = P[3, 3]  # vx (North)
+        odom.twist.covariance[7]  = P[4, 4]  # vy (East)
+        odom.twist.covariance[14] = P[5, 5]  # vz (Down)
         
-        # Twist covariance (in Body frame)
-        P_vel_ned = P[3:6, 3:6]
-        P_vel_body = R_nb @ P_vel_ned @ R_nb.T
+        # Angular velocity from gyroscope (convert to rad/s, NED)
+        gyro_rad = np.radians(self.current_gyro)
+        odom.twist.twist.angular.x = float(gyro_rad[0])  # Roll rate
+        odom.twist.twist.angular.y = float(gyro_rad[1])  # Pitch rate
+        odom.twist.twist.angular.z = float(gyro_rad[2])  # Yaw rate
         
-        twist_cov = np.zeros((6, 6))
-        twist_cov[0:3, 0:3] = P_vel_body
-        twist_cov[3:6, 3:6] = P[6:9, 6:9]  # Gyro bias
-        odom.twist.covariance = twist_cov.flatten().tolist()
+        # Publish odometry
+        self.odom_pub.publish(odom)
         
-        self.pub_odom.publish(odom)
+        # Publish TF: odom -> base_link
+        self.publish_tf(stamp, pos, q)
         
-        # TF: map -> odom (identity for now)
-        t_map = TransformStamped()
-        t_map.header.stamp = stamp
-        t_map.header.frame_id = self.map_frame
-        t_map.child_frame_id = self.odom_frame
-        t_map.transform.rotation.w = 1.0
-        self.tf_broadcaster.sendTransform(t_map)
-        
-        # TF: odom -> base_link
-        t_base = TransformStamped()
-        t_base.header.stamp = stamp
-        t_base.header.frame_id = self.odom_frame
-        t_base.child_frame_id = self.base_frame
-        t_base.transform.translation.x = pos[0]
-        t_base.transform.translation.y = pos[1]
-        t_base.transform.translation.z = pos[2]
-        t_base.transform.rotation.w = q[0]
-        t_base.transform.rotation.x = q[1]
-        t_base.transform.rotation.y = q[2]
-        t_base.transform.rotation.z = q[3]
-        self.tf_broadcaster.sendTransform(t_base)
-        
-        # Filtered Acceleration (Body frame, gravity removed)
-        accel_msg = AccelWithCovarianceStamped()
-        accel_msg.header.stamp = stamp
-        accel_msg.header.frame_id = self.base_frame
-        
-        g_ned = np.array([0.0, 0.0, -9.80665])
-        g_body = rotate_vector(g_ned, q_inv)
-        
-        ba = self.estimator.x[9:12]
-        a_linear_body = (raw_accel - ba) - g_body
-        
-        accel_msg.accel.accel.linear.x = a_linear_body[0]
-        accel_msg.accel.accel.linear.y = a_linear_body[1]
-        accel_msg.accel.accel.linear.z = a_linear_body[2]
-        
-        # Covariance
-        accel_cov = np.zeros((6, 6))
-        accel_cov[0:3, 0:3] = P[9:12, 9:12]  # Accel bias uncertainty
-        accel_msg.accel.covariance = accel_cov.flatten().tolist()
-        
-        self.pub_accel.publish(accel_msg)
+        # Optionally publish filtered acceleration
+        if self.params['topics']['publish_acceleration']:
+            self.publish_filtered_imu(stamp)
 
+    def publish_tf(self, stamp, pos_ned, q):
+        """Publish TF transform from odom to base_link."""
+        t = TransformStamped()
+        t.header.stamp = stamp
+        t.header.frame_id = self.params['frames']['odom']
+        t.child_frame_id = self.params['frames']['base_link']
+        
+        # Position (NED)
+        t.transform.translation.x = pos_ned[0]  # North
+        t.transform.translation.y = pos_ned[1]  # East
+        t.transform.translation.z = pos_ned[2]  # Down
+        
+        # Orientation (already in NED from publish_odometry)
+        t.transform.rotation.x = q.x
+        t.transform.rotation.y = q.y
+        t.transform.rotation.z = q.z
+        t.transform.rotation.w = q.w
+        
+        self.tf_broadcaster.sendTransform(t)
 
-def main(args=None):
-    rclpy.init(args=args)
-    node = HybridEKFNode()
+    def publish_filtered_imu(self, stamp):
+        """Publish filtered IMU data with gravity-removed acceleration."""
+        imu_msg = Imu()
+        imu_msg.header.stamp = stamp
+        imu_msg.header.frame_id = self.params['frames']['base_link']
+        
+        # Linear acceleration (gravity already removed by AHRS, convert NED to ENU)
+        accel_ned = (
+            self.ahrs.earth_acceleration + 
+            np.array([0, 0, self.params['earth']['gravity']])
+        ) - self.kf.x[6:9]
+        imu_msg.linear_acceleration.x = float(accel_ned[0])  # North
+        imu_msg.linear_acceleration.y = float(accel_ned[1])  # East
+        imu_msg.linear_acceleration.z = float(accel_ned[2])  # Down
+        
+        # Angular velocity (convert from deg/s to rad/s)
+        gyro_rad = np.radians(self.current_gyro)
+        imu_msg.angular_velocity.x = float(gyro_rad[0])  # Roll rate
+        imu_msg.angular_velocity.y = float(gyro_rad[1])  # Pitch rate
+        imu_msg.angular_velocity.z = float(gyro_rad[2])  # Yaw rate
+        
+        # Orientation from AHRS
+        q = self.ahrs.quaternion
+        
+        imu_msg.orientation.x = q.x
+        imu_msg.orientation.y = q.y
+        imu_msg.orientation.z = q.z
+        imu_msg.orientation.w = q.w
+        
+        self.accel_pub.publish(imu_msg)
+
+    def lla_to_ned(self, lat, lon, alt):
+        """Convert latitude, longitude, altitude to local NED coordinates."""
+        R = self.params['earth']['radius']
+        f = self.params['earth']['flattening']
+        e2 = 2*f - f**2
+        
+        lat_rad, lon_rad = np.radians(lat), np.radians(lon)
+        lat0_rad = np.radians(self.origin[0])
+        lon0_rad = np.radians(self.origin[1])
+        
+        N = R / np.sqrt(1 - e2 * np.sin(lat0_rad)**2)
+        M = R * (1 - e2) / (1 - e2 * np.sin(lat0_rad)**2)**1.5
+        
+        return np.array([
+            (lat_rad - lat0_rad) * (M + self.origin[2]),
+            (lon_rad - lon0_rad) * (N + self.origin[2]) * np.cos(lat0_rad),
+            -(alt - self.origin[2])
+        ])
+
+def main():
+    rclpy.init()
+    node = IMUGPSFusionNode()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

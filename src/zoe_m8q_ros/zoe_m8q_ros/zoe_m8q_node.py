@@ -121,33 +121,11 @@ class ZoeM8QNode(Node):
         # 2. TwistWithCovarianceStamped (Velocity)
         vel_msg = TwistWithCovarianceStamped()
         vel_msg.header.stamp = timestamp
-        vel_msg.header.frame_id = self.frame_id # Velocity in body frame? No, NAV-PVT is NED.
-        # But Twist message usually expects body frame if it's cmd_vel, but this is sensing.
-        # For sensor data, typically it's in the frame specified in header.
-        # If frame_id is "gps_link" (attached to body), but velocity is reported in NED (World).
-        # We should clarify frame. Usually GPS velocity is Ground Speed (NED).
-        # To be strictly correct per common ROS usage:
-        # If we publish in `gps_link`, we imply body-relative velocity IF it's a body frame.
-        # However, GPS reports Absolute Velocity.
-        # Let's publish as is (NED components mapped to x,y,z if we assume ENU world alignment? No that's complex without TF).
-        # Standard: Publish linear x/y/z as North/East/Down velocity components?
-        # Actually TwistWithCovarianceStamped is often used for EKF. 
-        # Robot_localization expects twist in `base_link` (body) OR `odom` frame.
-        # Since we don't know the orientation of the vehicle vs North, we can't easily transform NED velocity to Body velocity without IMU fusion here.
-        # BUT: The user asked for "publish 2d velocity". 
-        # NAV-PVT gives velN, velE, velD.
-        # I will map: linear.x = velE, linear.y = velN, linear.z = -velD (ENU convention)
-        # AND I will use a different frame_id?? No, standard practice for GPS vel is often just setting it, let EKF handle it or use `gps_link` but warn it is ENU.
-        # Actually better: Map to ENU and assume the consumer knows it's Ground ENU velocity.
+        vel_msg.header.frame_id = self.frame_id
         
-        # Convert NED to ENU:
-        # East = East
-        # North = North
-        # Up = -Down
-        
-        vel_msg.twist.twist.linear.x = float(data.velE) # East
-        vel_msg.twist.twist.linear.y = float(data.velN) # North
-        vel_msg.twist.twist.linear.z = -float(data.velD) # Up
+        vel_msg.twist.twist.linear.x = float(data.velN) # North
+        vel_msg.twist.twist.linear.y = float(data.velE) # East
+        vel_msg.twist.twist.linear.z = float(data.velD) # Down
         
         # Covariance
         # data.sAcc is speed accuracy (m/s)

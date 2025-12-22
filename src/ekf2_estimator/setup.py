@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'ekf_node = ekf2_estimator.ekf_node:main',
+            'ekf2_node = ekf2_estimator.ekf2_node:main',
             'plot_orientation = ekf2_estimator.plot_orientation:main',
         ],
     },

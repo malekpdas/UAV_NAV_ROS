@@ -13,8 +13,8 @@
     gyro_bias:  [-0.00667298,  0.00397193,  0.00581356]
     
     # Sensor Variances (diagonal elements of covariance matrix)
-    accel_variance: [0.01, 0.01, 0.01] 
-    gyro_variance: [0.001, 0.001, 0.001]
+    accel_variance: [0.1, 0.1, 0.1]
+    gyro_variance: [0.0001, 0.0001, 0.0001]
     mag_variance: [0.001, 0.001, 0.001]
 
     mag_declination_angle: -8.03 # degress

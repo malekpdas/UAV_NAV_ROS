@@ -1,66 +1,41 @@
-# Hybrid EKF+AHRS Configuration
-
 /ekf2_node:
   ros__parameters:
-    # Frame IDs
+    # Frame IDs (already in your launch file)
     map_frame: 'map'
     odom_frame: 'odom'
     base_link_frame: 'base_link'
     
-    # ========================================
-    # AHRS (Madgwick) Parameters
-    # ========================================
-    # Higher gain = faster convergence but more noise
-    # Lower gain = slower convergence but smoother
-    ahrs_gain: 0.5
+    topics:
+      imu: '/imu/data'
+      mag: '/imu/mag'
+      gps_fix: '/gps/fix'
+      gps_vel: '/gps/vel'
+      odometry: '/ekf/odom'
+      filtered_imu: '/ekf/filtered_imu'
+      publish_acceleration: true
     
-    # Acceleration rejection threshold (degrees)
-    # Rejects accel updates when device acceleration exceeds this
-    # Typical: 10-20 degrees
-    ahrs_accel_rejection: 10.0
+    ahrs:
+      offset_samples: 100
+      gain: 0.05
+      gyro_range: 500.0
+      accel_rejection: 10.0
+      mag_rejection: 10.0
+      rejection_timeout: 500
     
-    # Magnetic rejection threshold (degrees)
-    # Rejects mag updates when magnetic disturbance detected
-    # Typical: 10-20 degrees
-    ahrs_mag_rejection: 10.0
+    kalman_filter:
+      initial_pos_uncertainty: 25.0
+      initial_vel_uncertainty: 1.0
+      initial_bias_uncertainty: 0.01
+      process_noise_pos: 0.1
+      process_noise_vel: 0.01
+      process_noise_bias: 0.001
+      measurement_noise_pos: 25.0
+      measurement_noise_vel: 0.25
     
-    # ========================================
-    # EKF Noise Parameters
-    # ========================================
+    filters:
+      lowpass_alpha_acc: 0.98
     
-    # Gyroscope bias random walk (rad/s²/√Hz)
-    gyro_bias_random_walk: 1.0e-3
-    
-    # Accelerometer bias random walk (m/s³/√Hz)
-    accel_bias_random_walk: 5.0e-3
-    
-    # Magnetometer bias random walk (uT/√Hz or 1/√Hz)
-    mag_bias_random_walk: 1.0e-3
-    
-    # ========================================
-    # Innovation Gate Thresholds (NIS)
-    # ========================================
-    # Chi-squared thresholds for outlier rejection
-    # 3 DOF: 11.3 (99%), 9.35 (97.5%), 7.81 (95%)
-    gate_pos_nis: 1e9    # Position (3-DOF)
-    gate_vel_nis: 1e9    # Velocity (3-DOF)
-    gate_heading_nis: 1e9 # Heading (1-DOF, ~99.7%)
-    
-    # ========================================
-    # GPS Heading Parameters
-    # ========================================
-    # Minimum ground speed for GPS heading update (m/s)
-    yaw_speed_threshold: 20.0
-    
-    # Base GPS heading noise (rad)
-    gps_heading_noise: 0.1
-    
-    # ========================================
-    # Magnetometer Reference
-    # ========================================
-    # True North magnetic field vector in NED frame
-    # This should be the normalized local magnetic field
-    # Example for Northern Hemisphere:
-    # - Magnetic declination: ~10° East → [cos(10°), sin(10°), 0]
-    # - With inclination: adjust Z component
-    mag_ref_ned: [0.64917977, -0.09156606, 0.75510349]
+    earth:
+      gravity: 9.8066
+      radius: 6378137.0
+      flattening: 0.0033528106647474805

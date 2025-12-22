@@ -133,8 +133,6 @@ class UbxNavPvt:
             self.tAcc = struct.unpack('<I', payload[12:16])[0]
             self.nano = struct.unpack('<i', payload[16:20])[0]
             self.fixType = payload[20]
-            self.flags = payload[21]
-            self.flags2 = payload[22]
             self.numSV = payload[23]
             
             # Position (convert from 1e-7 degrees and mm)

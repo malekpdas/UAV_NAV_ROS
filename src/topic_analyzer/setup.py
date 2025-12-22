@@ -24,7 +24,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'topic_analysis_node = topic_analyzer.topic_analysis_node:main'
+            'topic_analysis_node = topic_analyzer.topic_analysis_node:main',
+            'odom_logger_node = topic_analyzer.odom_logger_node:main'
         ],
     },
 )

@@ -37,9 +37,9 @@ def lla_to_ned(lat, lon, alt, lat0, lon0, alt0):
     # NED coordinates (small angle approximation valid for <100km)
     north = dlat * (N * (1 - f)**2 + alt0)
     east = dlon * (N + alt0) * np.cos(lat0_rad)
-    down = -dalt
+    down = dalt
     
-    return np.array([north, east, down])
+    return np.array([east, north, down])
 
 
 def ned_to_lla(north, east, down, lat0, lon0, alt0):
