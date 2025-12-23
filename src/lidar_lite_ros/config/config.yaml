@@ -1,0 +1,33 @@
+lidar_lite_node:
+  ros__parameters:
+    # --- ROS Node Parameters ---
+    i2c_bus: 1
+    frequency: 100.0  # Target publishing frequency (Hz)
+    frame_id: "lidar_link"
+    min_range: 0.05
+    max_range: 40.0
+
+    # --- Hardware Performance Presets ---
+    # These presets automatically configure internal registers.
+    # Options: "balanced", "high_speed", "high_accuracy", "long_range"
+    preset: "high_speed"
+
+    # --- Advanced Manual Overrides (Decimal) ---
+    # Set to -1 to use the value from the selected preset.
+    
+    # sig_count_val (0-255): Number of integrated pulses. 
+    # Default: 128 (for 70% reflective target)
+    sig_count_val: -1
+
+    # acq_config_reg: 
+    # 8: Standard mode (Quick-termination disabled)
+    # 0: High Speed mode (Quick-termination enabled)
+    acq_config_reg: -1
+    
+    # threshold_bypass: 
+    # 0: Standard thresholding
+    # 128: Automatic thresholding (Improved detection for weak signals)
+    threshold_bypass: -1
+
+    # ref_count_val: Number of pulses for internal reference sensors.
+    ref_count_val: -1
