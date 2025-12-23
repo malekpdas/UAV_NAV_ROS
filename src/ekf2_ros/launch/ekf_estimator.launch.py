@@ -9,7 +9,7 @@ def generate_launch_description():
     config = os.path.join(
         get_package_share_directory('ekf2_ros'),
         'config',
-        'ekf2_params.yaml'
+        'config.yaml'
     )
 
     return LaunchDescription([

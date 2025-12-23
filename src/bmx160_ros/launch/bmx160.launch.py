@@ -9,7 +9,7 @@ def generate_launch_description():
     config = os.path.join(
         get_package_share_directory('bmx160_ros'),
         'config',
-        'bmx160.yaml'
+        'config.yaml'
     )
 
     return LaunchDescription([

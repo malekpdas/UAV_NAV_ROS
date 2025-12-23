@@ -9,7 +9,7 @@ def generate_launch_description():
     config = os.path.join(
         get_package_share_directory('zoe_m8q_ros'),
         'config',
-        'zoe_m8q.yaml'
+        'config.yaml'
     )
 
     return LaunchDescription([
