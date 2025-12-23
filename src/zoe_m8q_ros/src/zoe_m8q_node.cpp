@@ -45,9 +45,8 @@ public:
         pub_fix_ = this->create_publisher<sensor_msgs::msg::NavSatFix>("gps/fix", 10);
         pub_vel_ = this->create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>("gps/vel", 10);
 
-        // Timer
-        double period = 1.0 / rate_hz_;
-        timer_ = this->create_wall_timer(std::chrono::duration<double>(period), std::bind(&ZoeM8QNode::tick, this));
+        // Timer (Poll at 100Hz to prevent buffer fill and reduce bus contention)
+        timer_ = this->create_wall_timer(10ms, std::bind(&ZoeM8QNode::tick, this));
     }
 
 private:

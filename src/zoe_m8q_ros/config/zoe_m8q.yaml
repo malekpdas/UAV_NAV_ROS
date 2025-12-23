@@ -1,7 +1,7 @@
 /zoe_m8q_node:
   ros__parameters:
     bus: 1
-    rate_hz: 10.0 # 1-15 Hz for ZOE-M8Q
+    rate_hz: 10.0 # 1-10 Hz for ZOE-M8Q
     frame_id: "gps_link"
     debug: false
     

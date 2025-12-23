@@ -28,6 +28,9 @@ private:
     bool writeUbx(uint8_t msgClass, uint8_t msgId, const std::vector<uint8_t>& payload);
     void readBus();
     std::vector<ubx::NavPvt> parseBuffer();
+
+    bool writeRegister(uint8_t reg, uint8_t value);
+    bool readRegisters(uint8_t reg, uint8_t* data, size_t len);
 };
 
 } // namespace zoe_m8q_ros
