@@ -9,7 +9,7 @@ from geometry_msgs.msg import TwistWithCovarianceStamped
 from smbus2 import SMBus
 import time
 import numpy as np
-from zoe_m8q_ros.ubx_lib import (
+from zoe_m8q_ros.zoe_m8q_lib import (
     set_rate_hz, enable_nav_pvt_only, read_chunk, parse_ubx_stream,
     NAVPVTParser
 )

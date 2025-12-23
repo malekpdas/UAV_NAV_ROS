@@ -7,7 +7,7 @@ from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
     config = os.path.join(
-        get_package_share_directory('ekf2_estimator'),
+        get_package_share_directory('ekf2_ros'),
         'config',
         'ekf2_params.yaml'
     )
@@ -18,9 +18,9 @@ def generate_launch_description():
         DeclareLaunchArgument('base_link_frame', default_value='base_link'),
 
         Node(
-            package='ekf2_estimator',
+            package='ekf2_ros',
             executable='ekf_node',
-            name='ekf2_node',
+            name='ekf_node',
             output='screen',
             parameters=[config, {
                 'map_frame': LaunchConfiguration('map_frame'),

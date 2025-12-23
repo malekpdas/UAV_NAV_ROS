@@ -19,7 +19,7 @@ def generate_launch_description():
         Node(
             package='zoe_m8q_ros',
             executable='zoe_m8q_node',
-            name='gps_zoe_m8q',
+            name='zoe_m8q_node',
             output='screen',
             parameters=[config, {
                 'bus': LaunchConfiguration('bus'),

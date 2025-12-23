@@ -20,15 +20,16 @@ import numpy as np
 from tf2_ros import TransformBroadcaster
 
 from .ekf_core import LinearKalmanFilter, RobustLPFilter
+from .utils import lla_to_ned, msg_to_sec
 
 
-class IMUGPSFusionNode(Node):
+class EkfNode(Node):
     """
     ROS2 Node for IMU/GPS integration using a Linear Kalman Filter.
     """
     
     def __init__(self):
-        super().__init__('imu_gps_fusion_node')
+        super().__init__('ekf_node')
         
         # Declare and load ROS2 parameters
         self.declare_all_parameters()
@@ -212,8 +213,8 @@ class IMUGPSFusionNode(Node):
         self.get_logger().info(f"KF Measurement Noise (pos): {self.params['kalman_filter']['measurement_noise_pos']}")
 
     def msg_to_sec(self, stamp):
-        """Convert ROS timestamp to seconds."""
-        return stamp.sec + stamp.nanosec * 1e-9
+        """DEPRECATED: Use utils.msg_to_sec instead."""
+        return msg_to_sec(stamp)
 
     def cb_mag(self, msg):
         """Magnetometer callback."""
@@ -247,7 +248,7 @@ class IMUGPSFusionNode(Node):
         if self.latest_mag is None:
             return
             
-        t = self.msg_to_sec(msg.header.stamp)
+        t = msg_to_sec(msg.header.stamp)
         
         if self.last_imu_time is None:
             self.last_imu_time = t
@@ -312,7 +313,10 @@ class IMUGPSFusionNode(Node):
             return
 
         # GPS position in NED
-        pos_gps = self.lla_to_ned(msg.latitude, msg.longitude, msg.altitude)
+        pos_gps = lla_to_ned(
+            msg.latitude, msg.longitude, msg.altitude,
+            self.origin[0], self.origin[1], self.origin[2]
+        )
         
         # Extract position covariance
         R = np.array(msg.position_covariance).reshape(3, 3)
@@ -434,27 +438,12 @@ class IMUGPSFusionNode(Node):
         self.accel_pub.publish(imu_msg)
 
     def lla_to_ned(self, lat, lon, alt):
-        """Convert latitude, longitude, altitude to local NED coordinates."""
-        R = self.params['earth']['radius']
-        f = self.params['earth']['flattening']
-        e2 = 2*f - f**2
-        
-        lat_rad, lon_rad = np.radians(lat), np.radians(lon)
-        lat0_rad = np.radians(self.origin[0])
-        lon0_rad = np.radians(self.origin[1])
-        
-        N = R / np.sqrt(1 - e2 * np.sin(lat0_rad)**2)
-        M = R * (1 - e2) / (1 - e2 * np.sin(lat0_rad)**2)**1.5
-        
-        return np.array([
-            (lat_rad - lat0_rad) * (M + self.origin[2]),
-            (lon_rad - lon0_rad) * (N + self.origin[2]) * np.cos(lat0_rad),
-            -(alt - self.origin[2])
-        ])
+        """DEPRECATED: Use utils.lla_to_ned instead."""
+        return lla_to_ned(lat, lon, alt, self.origin[0], self.origin[1], self.origin[2])
 
 def main():
     rclpy.init()
-    node = IMUGPSFusionNode()
+    node = EkfNode()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

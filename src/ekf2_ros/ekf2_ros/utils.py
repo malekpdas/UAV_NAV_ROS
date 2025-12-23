@@ -4,42 +4,49 @@ Utility functions for Hybrid EKF+AHRS Estimator
 import numpy as np
 
 
-def lla_to_ned(lat, lon, alt, lat0, lon0, alt0):
+def lla_to_ned(lat: float, lon: float, alt: float, lat0: float, lon0: float, alt0: float) -> np.ndarray:
     """
-    Convert Lat/Lon/Alt to NED coordinates relative to origin
+    Convert Latitude, Longitude, Altitude to local NED (North, East, Down) coordinates.
+    Uses WGS84 ellipsoid model.
     
     Args:
-        lat, lon, alt: Current position
-        lat0, lon0, alt0: Origin position
+        lat, lon, alt: Current position (deg, deg, m)
+        lat0, lon0, alt0: Origin position (deg, deg, m)
     
     Returns:
         np.array: [North, East, Down] in meters
     """
-    # Earth parameters (WGS84)
-    R_earth = 6378137.0  # Equatorial radius (m)
-    f = 1.0 / 298.257223563  # Flattening
+    # WGS84 ellipsoid constants
+    R = 6378137.0  # Equatorial radius (m)
+    f = 1 / 298.257223563  # Flattening
+    e2 = 2*f - f**2
     
-    # Convert to radians
-    lat_rad = np.radians(lat)
-    lon_rad = np.radians(lon)
-    lat0_rad = np.radians(lat0)
-    lon0_rad = np.radians(lon0)
+    lat_rad, lon_rad = np.radians(lat), np.radians(lon)
+    lat0_rad, lon0_rad = np.radians(lat0), np.radians(lon0)
     
     # Radius of curvature in prime vertical
-    sin_lat0 = np.sin(lat0_rad)
-    N = R_earth / np.sqrt(1 - (2*f - f**2) * sin_lat0**2)
+    N = R / np.sqrt(1 - e2 * np.sin(lat0_rad)**2)
+    # Radius of curvature in meridian
+    M = R * (1 - e2) / (1 - e2 * np.sin(lat0_rad)**2)**1.5
     
-    # Differences
-    dlat = lat_rad - lat0_rad
-    dlon = lon_rad - lon0_rad
-    dalt = alt - alt0
+    north = (lat_rad - lat0_rad) * (M + alt0)
+    east = (lon_rad - lon0_rad) * (N + alt0) * np.cos(lat0_rad)
+    down = -(alt - alt0)
     
-    # NED coordinates (small angle approximation valid for <100km)
-    north = dlat * (N * (1 - f)**2 + alt0)
-    east = dlon * (N + alt0) * np.cos(lat0_rad)
-    down = dalt
+    return np.array([north, east, down])
+
+
+def msg_to_sec(stamp) -> float:
+    """
+    Convert ROS timestamp message to float seconds.
     
-    return np.array([east, north, down])
+    Args:
+        stamp: ROS2 builtin_interfaces.msg.Time
+    
+    Returns:
+        float: Seconds since epoch
+    """
+    return stamp.sec + stamp.nanosec * 1e-9
 
 
 def ned_to_lla(north, east, down, lat0, lon0, alt0):

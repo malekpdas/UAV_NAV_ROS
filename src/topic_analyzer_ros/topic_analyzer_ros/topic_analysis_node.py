@@ -30,9 +30,9 @@ def quat_to_euler(q):
     yaw = math.atan2(siny_cosp, cosy_cosp)
     return roll, pitch, yaw
 
-class OdomGpsComparator(Node):
+class TopicAnalysisNode(Node):
     def __init__(self):
-        super().__init__('odom_gps_comparator')
+        super().__init__('topic_analysis_node')
 
         # Data storage - no window trimming, keeps everything until end
         self.data = {
@@ -183,7 +183,7 @@ class OdomGpsComparator(Node):
 
 def main():
     rclpy.init()
-    node = OdomGpsComparator()
+    node = TopicAnalysisNode()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'topic_analyzer'
+package_name = 'topic_analyzer_ros'
 
 setup(
     name=package_name,
@@ -24,8 +24,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'topic_analysis_node = topic_analyzer.topic_analysis_node:main',
-            'odom_logger_node = topic_analyzer.odom_logger_node:main'
+            'topic_analysis_node = topic_analyzer_ros.topic_analysis_node:main',
+            'odom_logger_node = topic_analyzer_ros.odom_logger_node:main',
         ],
     },
 )

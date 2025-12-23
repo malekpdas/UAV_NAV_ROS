@@ -142,7 +142,7 @@ def mag_calibrate_nonlinear(M):
 class MagCalNode(Node):
 
     def __init__(self):
-        super().__init__('mag_motioncal_nonlinear')
+        super().__init__('mag_cal_node')
 
         self.sub = self.create_subscription(
             MagneticField,

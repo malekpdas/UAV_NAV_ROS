@@ -9,9 +9,9 @@ from nav_msgs.msg import Odometry
 import csv
 import os
 
-class FullOdomLogger(Node):
+class OdomLoggerNode(Node):
     def __init__(self):
-        super().__init__('full_odom_logger')
+        super().__init__('odom_logger_node')
 
         # Robust QoS (Reliable)
         qos = QoSProfile(
@@ -72,7 +72,7 @@ class FullOdomLogger(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = FullOdomLogger()
+    node = OdomLoggerNode()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

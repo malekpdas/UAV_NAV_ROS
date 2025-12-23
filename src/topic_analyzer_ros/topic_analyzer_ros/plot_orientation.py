@@ -13,7 +13,7 @@ from scipy.spatial.transform import Rotation as R
 class OdomOrientationPlotter(Node):
     def __init__(self):
         super().__init__('odom_orientation_plotter')
-        self.subscription = self.create_subscription(Odometry, '/odom', self.odom_callback, 10)
+        self.subscription = self.create_subscription(Odometry, '/ekf/odom', self.odom_callback, 10)
         
         # Plotting Setup
         plt.ion()
