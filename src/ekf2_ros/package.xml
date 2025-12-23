@@ -7,12 +7,15 @@
   <maintainer email="user@todo.todo">user</maintainer>
   <license>TODO</license>
 
-  <depend>rclpy</depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>tf2_ros</depend>
-  <depend>tf_transformations</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>eigen3</depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
@@ -20,6 +23,6 @@
   <test_depend>python3-pytest</test_depend>
 
   <export>
-    <build_type>ament_python</build_type>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>
