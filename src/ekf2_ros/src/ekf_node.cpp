@@ -236,7 +236,7 @@ private:
         current_gyro_ = {msg->angular_velocity.x, msg->angular_velocity.y, msg->angular_velocity.z};
         last_imu_time_ = t;
 
-        publish_odometry(msg->header.stamp);
+        publish_odometry();
     }
 
     void cb_gps_fix(const sensor_msgs::msg::NavSatFix::SharedPtr msg) {
@@ -273,8 +273,10 @@ private:
         }
     }
 
-    void publish_odometry(const rclcpp::Time& stamp) {
+    void publish_odometry() {
         if (!kf_initialized_) return;
+
+        auto timestamp = this->now();
         
         Eigen::Vector3d pos = kf_->get_position();
         Eigen::Vector3d vel = kf_->get_velocity();
@@ -282,7 +284,7 @@ private:
         FusionQuaternion q = FusionAhrsGetQuaternion(&ahrs_);
 
         nav_msgs::msg::Odometry odom;
-        odom.header.stamp = stamp;
+        odom.header.stamp = timestamp;
         odom.header.frame_id = params_.frame_odom;
         odom.child_frame_id = params_.frame_base;
 
@@ -315,7 +317,7 @@ private:
 
         // TF
         geometry_msgs::msg::TransformStamped t;
-        t.header.stamp = stamp;
+        t.header.stamp = timestamp;
         t.header.frame_id = params_.frame_odom;
         t.child_frame_id = params_.frame_base;
         t.transform.translation.x = pos(0);
