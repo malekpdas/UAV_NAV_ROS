@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'topic_analyzer_ros'
+package_name = 'debug_ros'
 
 setup(
     name=package_name,
@@ -24,9 +24,9 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'topic_analysis_node = topic_analyzer_ros.topic_analysis_node:main',
-            'odom_logger_node = topic_analyzer_ros.odom_logger_node:main',
-            'plot_orientation = topic_analyzer_ros.plot_orientation:main',
+            'topic_analysis_node = debug_ros.topic_analysis_node:main',
+            'odom_logger_node = debug_ros.odom_logger_node:main',
+            'plot_orientation = debug_ros.plot_orientation:main',
         ],
     },
 )
