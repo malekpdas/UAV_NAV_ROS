@@ -19,7 +19,7 @@ def generate_launch_description():
         Node(
             package='bmx160_ros',
             executable='bmx160_node',
-            name='bmx160_node',
+            name='imu_bmx160',
             output='screen',
             parameters=[config, {
                 'bus': LaunchConfiguration('bus'),

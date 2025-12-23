@@ -26,6 +26,7 @@ setup(
         'console_scripts': [
             'topic_analysis_node = topic_analyzer_ros.topic_analysis_node:main',
             'odom_logger_node = topic_analyzer_ros.odom_logger_node:main',
+            'plot_orientation = topic_analyzer_ros.plot_orientation:main',
         ],
     },
 )
