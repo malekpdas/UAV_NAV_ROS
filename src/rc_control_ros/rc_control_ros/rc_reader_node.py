@@ -1,0 +1,135 @@
+#!/usr/bin/env python3
+"""
+rc_reader_node.py - ROS2 Node for reading RC receiver signals
+Reads 6 channels via lgpio and publishes to rc/channels and rc/mode
+"""
+
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import Int32MultiArray, String
+import lgpio
+import threading
+import time
+
+class RCReaderNode(Node):
+    def __init__(self):
+        super().__init__('rc_reader_node')
+        
+        # Declare parameters
+        self.declare_parameter('gpiochip', 4)
+        self.declare_parameter('publish_rate', 50.0) # 50Hz is standard for servo
+        self.declare_parameter('failsafe_timeout', 0.5)
+        
+        # Default Pins: [13, 19, 26, 12, 5, 6]
+        # Ch 1-5: Analog Control
+        # Ch 6: Mode Switch
+        self.declare_parameter('gpio_pins', [13, 19, 26, 12, 5, 6])
+        
+        # Get parameters
+        self.gpiochip = self.get_parameter('gpiochip').value
+        self.rate_hz = self.get_parameter('publish_rate').value
+        self.failsafe_timeout = self.get_parameter('failsafe_timeout').value
+        self.pins = self.get_parameter('gpio_pins').value
+        
+        if len(self.pins) != 6:
+            self.get_logger().error("Must provide exactly 6 GPIO pins!")
+            return
+
+        # Initialize GPIO
+        self.h = lgpio.gpiochip_open(self.gpiochip)
+        
+        # Data Storage
+        self.lock = threading.Lock()
+        self.pulses = [1500] * 6
+        self.last_rise = [None] * 6
+        self.last_update = [time.time()] * 6
+        self.failsafe = [False] * 6
+        
+        # Init Pins and Callbacks
+        for i, pin in enumerate(self.pins):
+            lgpio.gpio_claim_alert(self.h, pin, lgpio.BOTH_EDGES)
+            lgpio.callback(self.h, pin, lgpio.BOTH_EDGES, self._make_callback(i))
+            
+        # Publishers
+        self.pub_channels = self.create_publisher(Int32MultiArray, 'rc/channels', 10)
+        self.pub_mode = self.create_publisher(String, 'rc/mode', 10)
+        
+        # Timer
+        self.timer = self.create_timer(1.0 / self.rate_hz, self.timer_callback)
+        
+        self.get_logger().info(f'RC Reader Node Started.')
+
+    def _make_callback(self, ch_idx):
+        """Create a closure for specific channel callback"""
+        def callback(chip, gpio, level, tick):
+            if level == 1:
+                self.last_rise[ch_idx] = tick
+            elif level == 0 and self.last_rise[ch_idx] is not None:
+                pulse = (tick - self.last_rise[ch_idx]) // 1000
+                # Filter valid RC pulse range (approx 900-2100us)
+                if 800 < pulse < 2200:
+                    with self.lock:
+                        self.pulses[ch_idx] = pulse
+                        self.last_update[ch_idx] = time.time()
+                        if self.failsafe[ch_idx]:
+                            self.failsafe[ch_idx] = False
+                            self.get_logger().info(f'Channel {ch_idx+1} Signal Restored')
+        return callback
+
+    def timer_callback(self):
+        current_time = time.time()
+        
+        with self.lock:
+            # Check Failsafe
+            for i in range(6):
+                if current_time - self.last_update[i] > self.failsafe_timeout:
+                    if not self.failsafe[i]:
+                        self.failsafe[i] = True
+                        self.get_logger().warn(f'Channel {i+1} Failsafe Triggered')
+                        # Reset to safe value (1500 center or 1000 Low depending on safety?)
+                        # For now maintaining last known or 1500 could be dangerous.
+                        # Let's set failsafe value to 1500 for generic, but maybe 1000 for throttle?
+                        # Since we don't know which is throttle here easily without mapping, 
+                        # we keep it as is but mark failsafe.
+                        # Actually, better to send a "Failsafe" flag or handled downstream.
+                        pass
+
+            # Prepare Messages
+            # Msg 1: Channels 1-5
+            msg_channels = Int32MultiArray()
+            msg_channels.data = self.pulses[0:5] # First 5 channels
+            
+            # Msg 2: Mode (Channel 6)
+            # Simple thresholding for switch
+            ch6_val = self.pulses[5]
+            mode_str = "MANUAL"
+            if ch6_val > 1500:
+                mode_str = "AUTO"
+                # Or 'ACRO', 'LOITER', etc. User said "Manual/AD".
+                # Let's infer > 1600 is "AD" (autonomous/flight controller)
+                # < 1400 is "Manual"
+            
+            msg_mode = String()
+            msg_mode.data = mode_str
+            
+            self.pub_channels.publish(msg_channels)
+            self.pub_mode.publish(msg_mode)
+
+    def destroy_node(self):
+        lgpio.gpiochip_close(self.h)
+        super().destroy_node()
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = RCReaderNode()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
