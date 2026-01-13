@@ -1,0 +1,29 @@
+/bno085_node:
+  ros__parameters:
+    bus: 1
+    i2c_addr: 0x4A # 74 decimal
+    rate_hz: 100.0
+    frame_id: "imu_link"
+    
+    # Calibration / Correction (Raw Mode)
+    bias_removal: true
+    bias_duration_sec: 2.0
+    
+    # Sensor Biases (filled by calibration or manual tuning)
+    accel_bias: [0.0, 0.0, 0.0]
+    gyro_bias: [0.0, 0.0, 0.0]
+    mag_bias: [0.0, 0.0, 0.0]
+    
+    # Magnetometer Soft Iron Transform (3x3 flattened)
+    mag_transform: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+    
+    # IMU Mounting Rotation (3x3 flattened)
+    imu_rotation_transformation: [1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0]
+    
+    mag_declination_angle: 0.0
+    
+    # Variances
+    accel_variance: [0.01, 0.01, 0.01]
+    gyro_variance: [0.001, 0.001, 0.001]
+    mag_variance: [0.001, 0.001, 0.001]
+    # orientation_variance not needed as we don't publish orientation in raw mode
