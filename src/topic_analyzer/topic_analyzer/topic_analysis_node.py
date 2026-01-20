@@ -49,12 +49,18 @@ class OdomGpsComparator(Node):
             'roll': [], 'pitch': [], 'yaw': []
         }
 
+        # Parameters
+        self.declare_parameter('sub_topics.gps_fix', '/gps/fix')
+        self.declare_parameter('sub_topics.gps_vel', '/gps/vel')
+        self.declare_parameter('sub_topics.odometry', '/ekf/odom')
+        self.declare_parameter('sub_topics.filtered_imu', '/ekf/filtered_imu')
+
         self.gps_origin = None
 
-        self.create_subscription(NavSatFix, '/gps/fix', self.cb_gps_fix, 10)
-        self.create_subscription(TwistWithCovarianceStamped, '/gps/vel', self.cb_gps_vel, 10)
-        self.create_subscription(Odometry, '/ekf/odom', self.cb_odom, 10)
-        self.create_subscription(Imu, '/ekf/filtered_imu', self.cb_imu, 50)
+        self.create_subscription(NavSatFix, self.get_parameter('sub_topics.gps_fix').value, self.cb_gps_fix, 10)
+        self.create_subscription(TwistWithCovarianceStamped, self.get_parameter('sub_topics.gps_vel').value, self.cb_gps_vel, 10)
+        self.create_subscription(Odometry, self.get_parameter('sub_topics.odometry').value, self.cb_odom, 10)
+        self.create_subscription(Imu, self.get_parameter('sub_topics.filtered_imu').value, self.cb_imu, 50)
 
         self.get_logger().info('Data collection started. Press Ctrl+C to stop and plot.')
 

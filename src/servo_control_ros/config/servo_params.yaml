@@ -17,3 +17,7 @@ servo_controller_node:
     rc_ch_elevator: 1
     rc_ch_l_aileron: 0
     rc_ch_r_aileron: 4
+
+    sub_topics:
+      channels: "rc/channels"
+      mode: "rc/mode"

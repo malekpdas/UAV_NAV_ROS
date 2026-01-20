@@ -16,9 +16,10 @@ class LidarLiteNode(Node):
         # ROS Parameters
         self.declare_parameter('i2c_bus', 1)
         self.declare_parameter('frequency', 100.0) # Hz
-        self.declare_parameter('frame_id', 'lidar_link')
-        self.declare_parameter('min_range', 0.05)
         self.declare_parameter('max_range', 40.0)
+
+        # Topics
+        self.declare_parameter('pub_topics.range', 'lidar/range')
         
         # Hardware Config Parameters
         self.declare_parameter('preset', 'balanced')
@@ -61,7 +62,7 @@ class LidarLiteNode(Node):
                 self.get_logger().warn('Failed to apply some Lidar Lite settings.')
             
         # Publisher
-        self.pub_range = self.create_publisher(Range, 'lidar/range', 10)
+        self.pub_range = self.create_publisher(Range, self.get_parameter('pub_topics.range').value, 10)
         
         # Timer
         period = 1.0 / self.freq

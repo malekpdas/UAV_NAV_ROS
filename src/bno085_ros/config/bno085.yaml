@@ -27,3 +27,7 @@
     gyro_variance: [0.001, 0.001, 0.001]
     mag_variance: [0.001, 0.001, 0.001]
     # orientation_variance not needed as we don't publish orientation in raw mode
+
+    pub_topics:
+      imu: "imu/data"
+      mag: "imu/mag"

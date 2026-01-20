@@ -42,6 +42,10 @@ class BNO085Node(Node):
         # IMU Rotation (Mounting)
         self.declare_parameter('imu_rotation_transformation', [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0])
 
+        # Topics
+        self.declare_parameter('pub_topics.imu', 'imu/data')
+        self.declare_parameter('pub_topics.mag', 'imu/mag')
+
         self.bus = self.get_parameter('bus').value
         self.i2c_addr = self.get_parameter('i2c_addr').value
         self.rate_hz = self.get_parameter('rate_hz').value
@@ -73,8 +77,8 @@ class BNO085Node(Node):
             self.get_logger().error('❌ BNO085 init FAILED')
         
         # Publishers
-        self.pub_imu = self.create_publisher(Imu, 'imu/data', 10)
-        self.pub_mag = self.create_publisher(MagneticField, 'imu/mag', 10)
+        self.pub_imu = self.create_publisher(Imu, self.get_parameter('pub_topics.imu').value, 10)
+        self.pub_mag = self.create_publisher(MagneticField, self.get_parameter('pub_topics.mag').value, 10)
         
         # Internal Calibration State (Matches BMX160 behavior)
         self.calibrating = self.bias_removal

@@ -4,6 +4,8 @@ lidar_lite_node:
     i2c_bus: 1
     frequency: 100.0  # Target publishing frequency (Hz)
     frame_id: "lidar_link"
+    pub_topics:
+      range: "lidar/range"
     min_range: 0.05
     max_range: 40.0
 

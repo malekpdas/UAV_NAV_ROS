@@ -37,6 +37,10 @@ class BMX160Node(Node):
         # IMU Rotation (Mounting)
         self.declare_parameter('imu_rotation_transformation', [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0])
 
+        # Topics
+        self.declare_parameter('pub_topics.imu', 'imu/data')
+        self.declare_parameter('pub_topics.mag', 'imu/mag')
+
         # IMU Rotation
         self._imu_rot = np.array(self.get_parameter('imu_rotation_transformation').value).reshape(3, 3)
 
@@ -68,8 +72,8 @@ class BMX160Node(Node):
             raise RuntimeError('BMX160 init failed')
 
         # Publishers
-        self.pub_imu = self.create_publisher(Imu, 'imu/data', 10)
-        self.pub_mag = self.create_publisher(MagneticField, 'imu/mag', 10)
+        self.pub_imu = self.create_publisher(Imu, self.get_parameter('pub_topics.imu').value, 10)
+        self.pub_mag = self.create_publisher(MagneticField, self.get_parameter('pub_topics.mag').value, 10)
 
         # Calibration State
         self.calibrating = self.bias_removal

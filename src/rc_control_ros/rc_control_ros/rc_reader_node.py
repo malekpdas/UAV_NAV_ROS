@@ -21,9 +21,12 @@ class RCReaderNode(Node):
         self.declare_parameter('failsafe_timeout', 0.5)
         
         # Default Pins: [13, 19, 26, 12, 5, 6]
-        # Ch 1-5: Analog Control
         # Ch 6: Mode Switch
         self.declare_parameter('gpio_pins', [13, 19, 26, 12, 5, 6])
+
+        # Topics
+        self.declare_parameter('pub_topics.channels', 'rc/channels')
+        self.declare_parameter('pub_topics.mode', 'rc/mode')
         
         # Get parameters
         self.gpiochip = self.get_parameter('gpiochip').value
@@ -51,8 +54,8 @@ class RCReaderNode(Node):
             lgpio.callback(self.h, pin, lgpio.BOTH_EDGES, self._make_callback(i))
             
         # Publishers
-        self.pub_channels = self.create_publisher(Int32MultiArray, 'rc/channels', 10)
-        self.pub_mode = self.create_publisher(String, 'rc/mode', 10)
+        self.pub_channels = self.create_publisher(Int32MultiArray, self.get_parameter('pub_topics.channels').value, 10)
+        self.pub_mode = self.create_publisher(String, self.get_parameter('pub_topics.mode').value, 10)
         
         # Timer
         self.timer = self.create_timer(1.0 / self.rate_hz, self.timer_callback)

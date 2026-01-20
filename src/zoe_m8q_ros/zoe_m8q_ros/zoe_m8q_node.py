@@ -20,9 +20,11 @@ class ZoeM8QNode(Node):
 
         # Parameters
         self.declare_parameter('bus', 1)
-        self.declare_parameter('rate_hz', 10.0)
-        self.declare_parameter('frame_id', 'gps_link')
         self.declare_parameter('debug', False)
+
+        # Topics
+        self.declare_parameter('pub_topics.fix', 'gps/fix')
+        self.declare_parameter('pub_topics.vel', 'gps/vel')
         
         # Standard Deviations (Fallback)
         self.declare_parameter('pos_std', [4.0, 4.0, 10.0]) # m
@@ -37,8 +39,8 @@ class ZoeM8QNode(Node):
         self.vel_std = self.get_parameter('vel_std').value
 
         # Publishers
-        self.pub_fix = self.create_publisher(NavSatFix, 'gps/fix', 10)
-        self.pub_vel = self.create_publisher(TwistWithCovarianceStamped, 'gps/vel', 10)
+        self.pub_fix = self.create_publisher(NavSatFix, self.get_parameter('pub_topics.fix').value, 10)
+        self.pub_vel = self.create_publisher(TwistWithCovarianceStamped, self.get_parameter('pub_topics.vel').value, 10)
 
         # I2C Setup
         try:

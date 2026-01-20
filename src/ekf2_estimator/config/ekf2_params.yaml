@@ -5,14 +5,17 @@
     odom_frame: 'odom'
     base_link_frame: 'base_link'
     
-    topics:
+    sub_topics:
       imu: '/imu/data'
       mag: '/imu/mag'
       gps_fix: '/gps/fix'
       gps_vel: '/gps/vel'
+
+    pub_topics:
       odometry: '/ekf/odom'
       filtered_imu: '/ekf/filtered_imu'
-      publish_acceleration: true
+
+    publish_acceleration: true
     
     ahrs:
       offset_samples: 100

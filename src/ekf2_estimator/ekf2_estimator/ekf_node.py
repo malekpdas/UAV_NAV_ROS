@@ -60,14 +60,14 @@ class IMUGPSFusionNode(Node):
         # ROS2 Publishers
         self.odom_pub = self.create_publisher(
             Odometry,
-            self.params['topics']['odometry'],
+            self.params['pub_topics']['odometry'],
             10
         )
         
-        if self.params['topics']['publish_acceleration']:
+        if self.params['publish_acceleration']:
             self.accel_pub = self.create_publisher(
                 Imu,
-                self.params['topics']['filtered_imu'],
+                self.params['pub_topics']['filtered_imu'],
                 10
             )
         
@@ -77,25 +77,25 @@ class IMUGPSFusionNode(Node):
         # ROS2 Subscriptions
         self.create_subscription(
             Imu, 
-            self.params['topics']['imu'], 
+            self.params['sub_topics']['imu'], 
             self.cb_imu, 
             10
         )
         self.create_subscription(
             MagneticField, 
-            self.params['topics']['mag'], 
+            self.params['sub_topics']['mag'], 
             self.cb_mag, 
             10
         )
         self.create_subscription(
             NavSatFix, 
-            self.params['topics']['gps_fix'], 
+            self.params['sub_topics']['gps_fix'], 
             self.cb_gps_fix, 
             10
         )
         self.create_subscription(
             TwistWithCovarianceStamped, 
-            self.params['topics']['gps_vel'], 
+            self.params['sub_topics']['gps_vel'], 
             self.cb_gps_vel, 
             10
         )
@@ -115,13 +115,17 @@ class IMUGPSFusionNode(Node):
         self.declare_parameter('base_link_frame', 'base_link')
         
         # Topics
-        self.declare_parameter('topics.imu', '/imu/data')
-        self.declare_parameter('topics.mag', '/imu/mag')
-        self.declare_parameter('topics.gps_fix', '/gps/fix')
-        self.declare_parameter('topics.gps_vel', '/gps/vel')
-        self.declare_parameter('topics.odometry', '/ekf/odometry')
-        self.declare_parameter('topics.filtered_imu', '/ekf/filtered_imu')
-        self.declare_parameter('topics.publish_acceleration', False)
+        # Subscribed Topics
+        self.declare_parameter('sub_topics.imu', '/imu/data')
+        self.declare_parameter('sub_topics.mag', '/imu/mag')
+        self.declare_parameter('sub_topics.gps_fix', '/gps/fix')
+        self.declare_parameter('sub_topics.gps_vel', '/gps/vel')
+
+        # Published Topics
+        self.declare_parameter('pub_topics.odometry', '/ekf/odometry')
+        self.declare_parameter('pub_topics.filtered_imu', '/ekf/filtered_imu')
+
+        self.declare_parameter('publish_acceleration', False)
         
         # AHRS
         self.declare_parameter('ahrs.offset_samples', 100)
@@ -161,15 +165,17 @@ class IMUGPSFusionNode(Node):
                 'odom': self.get_parameter('odom_frame').value,
                 'base_link': self.get_parameter('base_link_frame').value,
             },
-            'topics': {
-                'imu': self.get_parameter('topics.imu').value,
-                'mag': self.get_parameter('topics.mag').value,
-                'gps_fix': self.get_parameter('topics.gps_fix').value,
-                'gps_vel': self.get_parameter('topics.gps_vel').value,
-                'odometry': self.get_parameter('topics.odometry').value,
-                'filtered_imu': self.get_parameter('topics.filtered_imu').value,
-                'publish_acceleration': self.get_parameter('topics.publish_acceleration').value,
+            'sub_topics': {
+                'imu': self.get_parameter('sub_topics.imu').value,
+                'mag': self.get_parameter('sub_topics.mag').value,
+                'gps_fix': self.get_parameter('sub_topics.gps_fix').value,
+                'gps_vel': self.get_parameter('sub_topics.gps_vel').value,
             },
+            'pub_topics': {
+                'odometry': self.get_parameter('pub_topics.odometry').value,
+                'filtered_imu': self.get_parameter('pub_topics.filtered_imu').value,
+            },
+            'publish_acceleration': self.get_parameter('publish_acceleration').value,
             'ahrs': {
                 'offset_samples': self.get_parameter('ahrs.offset_samples').value,
                 'gain': self.get_parameter('ahrs.gain').value,
@@ -205,8 +211,8 @@ class IMUGPSFusionNode(Node):
         self.get_logger().info(f"IMU Topic: {self.params['topics']['imu']}")
         self.get_logger().info(f"GPS Fix Topic: {self.params['topics']['gps_fix']}")
         self.get_logger().info(f"GPS Vel Topic: {self.params['topics']['gps_vel']}")
-        self.get_logger().info(f"Odometry Topic: {self.params['topics']['odometry']}")
-        self.get_logger().info(f"Publish Filtered Accel: {self.params['topics']['publish_acceleration']}")
+        self.get_logger().info(f"Odometry Topic: {self.params['pub_topics']['odometry']}")
+        self.get_logger().info(f"Publish Filtered Accel: {self.params['publish_acceleration']}")
         self.get_logger().info(f"AHRS Gain: {self.params['ahrs']['gain']}")
         self.get_logger().info(f"KF Process Noise (pos): {self.params['kalman_filter']['process_noise_pos']}")
         self.get_logger().info(f"KF Measurement Noise (pos): {self.params['kalman_filter']['measurement_noise_pos']}")
@@ -379,7 +385,7 @@ class IMUGPSFusionNode(Node):
         self.publish_tf(stamp, pos, q)
         
         # Optionally publish filtered acceleration
-        if self.params['topics']['publish_acceleration']:
+        if self.params['publish_acceleration']:
             self.publish_filtered_imu(stamp)
 
     def publish_tf(self, stamp, pos_ned, q):
