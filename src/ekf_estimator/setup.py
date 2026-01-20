@@ -2,7 +2,7 @@ from setuptools import setup
 import os
 from glob import glob
 
-package_name = 'ekf2_estimator'
+package_name = 'ekf_estimator'
 
 setup(
     name=package_name,
@@ -24,9 +24,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'ekf_node = ekf2_estimator.ekf_node:main',
+            'ekf_node = ekf_estimator.ekf_node:main',
 
-            'plot_orientation = ekf2_estimator.plot_orientation:main',
+            'plot_orientation = ekf_estimator.plot_orientation:main',
         ],
     },
 )

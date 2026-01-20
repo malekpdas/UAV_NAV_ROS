@@ -36,7 +36,7 @@ def generate_launch_description():
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([
                     PathJoinSubstitution([
-                        FindPackageShare('ekf2_estimator'),
+                        FindPackageShare('ekf_estimator'),
                         'launch',
                         'ekf_estimator.launch.py'
                     ])
