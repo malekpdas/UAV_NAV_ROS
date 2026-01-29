@@ -4,6 +4,15 @@ Driver library for Garmin Lidar Lite v3HP via I2C.
 import time
 import smbus2
 
+ACQ_COMMAND = 0x00
+STATUS_REG = 0x01
+SIG_COUNT_VAL = 0x02
+ACQ_CONFIG_REG = 0x04
+THRESHOLD_BYPASS = 0x1c
+REF_COUNT_VAL = 0x12
+FULL_DELAY_HIGH = 0x8f # Auto-increment read for 0x0f and 0x10
+DEFAULT_ADDRESS = 0x62
+
 class LidarLite:
     """
     Interface for Garmin Lidar Lite v3HP.
@@ -38,15 +47,7 @@ class LidarLite:
         }
     }
     
-    ACQ_COMMAND = 0x00
-    STATUS_REG = 0x01
-    SIG_COUNT_VAL = 0x02
-    ACQ_CONFIG_REG = 0x04
-    THRESHOLD_BYPASS = 0x1c
-    REF_COUNT_VAL = 0x12
-    FULL_DELAY_HIGH = 0x8f # Auto-increment read for 0x0f and 0x10
-    
-    def __init__(self, bus_id=1, address=0x62):
+    def __init__(self, bus_id=1, address=DEFAULT_ADDRESS):
         self.bus = smbus2.SMBus(bus_id)
         self.address = address
         self.connected = False
@@ -78,13 +79,13 @@ class LidarLite:
         success = True
         if settings:
             if 'sig_count_val' in settings:
-                success &= self.write_register(self.SIG_COUNT_VAL, settings['sig_count_val'])
+                success &= self.write_register(SIG_COUNT_VAL, settings['sig_count_val'])
             if 'acq_config_reg' in settings:
-                success &= self.write_register(self.ACQ_CONFIG_REG, settings['acq_config_reg'])
+                success &= self.write_register(ACQ_CONFIG_REG, settings['acq_config_reg'])
             if 'threshold_bypass' in settings:
-                success &= self.write_register(self.THRESHOLD_BYPASS, settings['threshold_bypass'])
+                success &= self.write_register(THRESHOLD_BYPASS, settings['threshold_bypass'])
             if 'ref_count_val' in settings:
-                success &= self.write_register(self.REF_COUNT_VAL, settings['ref_count_val'])
+                success &= self.write_register(REF_COUNT_VAL, settings['ref_count_val'])
                 
         return success
 
@@ -99,12 +100,12 @@ class LidarLite:
         try:
             # 1. Write 0x04 to register 0x00 to take distance measurement 
             # with receiver bias correction
-            self.bus.write_byte_data(self.address, self.ACQ_COMMAND, 0x04)
+            self.bus.write_byte_data(self.address, ACQ_COMMAND, 0x04)
             
             # 2. Wait for busy flag (bit 0) in status register to go low
             # Timeout after ~100ms
             for _ in range(100):
-                status = self.bus.read_byte_data(self.address, self.STATUS_REG)
+                status = self.bus.read_byte_data(self.address, STATUS_REG)
                 if not (status & 0x01): # Busy bit is 0
                     break
                 time.sleep(0.001)
@@ -115,7 +116,7 @@ class LidarLite:
             # 3. Read 2 bytes from 0x8f (High byte, Low byte of distance)
             # Note: v3HP reads from 0x8f for last measurement
             # Using read_i2c_block_data to read 2 bytes
-            val = self.bus.read_i2c_block_data(self.address, self.FULL_DELAY_HIGH, 2)
+            val = self.bus.read_i2c_block_data(self.address, FULL_DELAY_HIGH, 2)
             dist_cm = (val[0] << 8) | val[1]
             
             return dist_cm / 100.0 # Convert to meters

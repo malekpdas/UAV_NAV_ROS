@@ -1,0 +1,17 @@
+lidar_lite_node:
+  ros__parameters:
+    i2c_interface:
+      bus: 1
+      address: 0x62
+
+    frequency: 100.0
+    frame_id: "lidar_link"
+
+    sensor_config:
+      min_range: 0.05
+      max_range: 40.0
+      preset: "high_accuracy"
+      sig_count_val: -1
+      acq_config_reg: -1
+      threshold_bypass: -1
+      ref_count_val: -1
