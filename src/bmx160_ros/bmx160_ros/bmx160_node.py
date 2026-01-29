@@ -14,47 +14,11 @@ class BMX160Node(Node):
     def __init__(self):
         super().__init__('bmx160_node')
 
-        # Parameters
-        self.declare_parameter('bus', 1)
-        self.declare_parameter('rate_hz', 100.0)
-        self.declare_parameter('frame_id', 'imu_link')
-        self.declare_parameter('bias_removal', True)
-        self.declare_parameter('bias_duration_sec', 2.0)
-        self.declare_parameter('accel_bias', [0.0, 0.0, 0.0])
-        self.declare_parameter('gyro_bias', [0.0, 0.0, 0.0])
+        self.declare_config_parameters()
+        self.init_parameters()
         
-        # Sensor Variance Parameters
-        self.declare_parameter('accel_variance', [0.001, 0.001, 0.001])
-        self.declare_parameter('gyro_variance', [0.0001, 0.0001, 0.0001])
-        self.declare_parameter('mag_variance', [1e-3, 1e-3, 1e-3])
-        self.declare_parameter('mag_declination_angle', 0.0)
-        
-        # Magnetometer Calibration Parameters
-        self.declare_parameter('mag_bias', [0.0, 0.0, 0.0])
-        # Default identity matrix for 3x3 transform, flattened
-        self.declare_parameter('mag_transform', [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0])
-        
-        # IMU Rotation (Mounting)
-        self.declare_parameter('imu_rotation_transformation', [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0])
-
-        # Topics
-        self.declare_parameter('pub_topics.imu', 'imu/data')
-        self.declare_parameter('pub_topics.mag', 'imu/mag')
-
-        # IMU Rotation
-        self._imu_rot = np.array(self.get_parameter('imu_rotation_transformation').value).reshape(3, 3)
-
-        self.bus = self.get_parameter('bus').value
-        self.rate_hz = self.get_parameter('rate_hz').value
-        self.frame_id = self.get_parameter('frame_id').value
-        self.bias_removal = self.get_parameter('bias_removal').value
-        self.bias_duration_sec = self.get_parameter('bias_duration_sec').value
-
-        self.mag_dec_angle = self.get_parameter('mag_declination_angle').value
-        self._mag_dec_rot = R.from_euler('xyz', [0, 0, self.mag_dec_angle], degrees=True).as_matrix()
-
         # Initialize Sensor
-        self.imu = BMX160(self.bus)
+        self.imu = BMX160(self.i2c_bus, self.i2c_address)
         if self.imu.begin():
             self.get_logger().info('✅ BMX160 init OK')
     
@@ -66,14 +30,13 @@ class BMX160Node(Node):
             
             self.get_logger().info(f'✅ Gyro configured: {GyroRange.DPS_500} sensitivity')
             self.get_logger().info(f'✅ Accel configured: {AccelRange.G_4} sensitivity')
-
         else:
             self.get_logger().error('❌ BMX160 init FAILED (check I2C)')
             raise RuntimeError('BMX160 init failed')
 
         # Publishers
-        self.pub_imu = self.create_publisher(Imu, self.get_parameter('pub_topics.imu').value, 10)
-        self.pub_mag = self.create_publisher(MagneticField, self.get_parameter('pub_topics.mag').value, 10)
+        self.pub_imu = self.create_publisher(Imu, "imu_bmx160/data", 10)
+        self.pub_mag = self.create_publisher(MagneticField, "imu_bmx160/mag", 10)
 
         # Calibration State
         self.calibrating = self.bias_removal
@@ -83,35 +46,65 @@ class BMX160Node(Node):
         }
         self.calibration_end_time = None
         
-        # Biases
-        self._accel_bias = np.array(self.get_parameter('accel_bias').value)
-        self._gyro_bias = np.array(self.get_parameter('gyro_bias').value)
-
-        # Variances
-        self._accel_cov = np.diag(self.get_parameter('accel_variance').value).flatten()
-        self._gyro_cov = np.diag(self.get_parameter('gyro_variance').value).flatten()
-        self._mag_cov = np.diag(self.get_parameter('mag_variance').value).flatten()
-        
-        # Magnetometer Calibration (Loaded from params initially)
-        self._mag_bias = np.array(self.get_parameter('mag_bias').value)
-        self._mag_transform = np.array(self.get_parameter('mag_transform').value).reshape(3, 3)
-        
-
-        # Parameter Callback
-        self.sub_params = self.create_subscription(
-            ParameterEvent,
-            '/parameter_events',
-            self.on_param_event,
-            10
-        )
-
-        # Timer
-        period = 1.0 / self.rate_hz if self.rate_hz > 0 else 0.01
-        self.timer = self.create_timer(period, self.tick)
-        
         if self.calibrating:
              self.get_logger().info(f'⚠ Starting Bias Calibration ({self.bias_duration_sec}s). Keep vehicle LEVEL and STATIONARY.')
              self.calibration_end_time = self.get_clock().now().nanoseconds / 1e9 + self.bias_duration_sec
+        
+        # Timer
+        period = 1.0 / self.rate_hz if self.rate_hz > 0 else 0.01
+        self.timer = self.create_timer(period, self.tick)
+
+    def declare_config_parameters(self):
+        # Parameters
+        self.declare_parameter('i2c_interface.bus', 1)
+        self.declare_parameter('i2c_interface.address', 0x68)
+
+        self.declare_parameter('rate_hz', 100.0)
+        self.declare_parameter('frame_id', 'imu_link')
+        
+        # transformation
+        self.declare_parameter('imu_rotation_transformation', [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0])
+        self.declare_parameter('transformation.mag_decl', 0.0)
+
+        # Sensor Variance Parameters
+        self.declare_parameter('sensor_variance.accel', [0.001, 0.001, 0.001])
+        self.declare_parameter('sensor_variance.gyro', [0.0001, 0.0001, 0.0001])
+        self.declare_parameter('sensor_variance.mag', [1e-3, 1e-3, 1e-3])
+
+        # Sensor Calibration Parameters
+        self.declare_parameter('sensor_calibration.bias_removal', False)
+        self.declare_parameter('sensor_calibration.bias_duration_sec', 2.0)
+        self.declare_parameter('sensor_calibration.accel_bias', [0.0, 0.0, 0.0])
+        self.declare_parameter('sensor_calibration.gyro_bias', [0.0, 0.0, 0.0])
+        self.declare_parameter('sensor_calibration.mag_bias', [0.0, 0.0, 0.0])
+        self.declare_parameter('sensor_calibration.mag_transform', [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0])
+
+    def init_parameters(self):
+        # i2c connection
+        self.i2c_bus = self.get_parameter('i2c_interface.bus').value
+        self.i2c_address = self.get_parameter('i2c_interface.address').value
+
+        # imu rate
+        self.rate_hz = self.get_parameter('rate_hz').value
+        self.frame_id = self.get_parameter('frame_id').value
+
+        # Transformation        
+        self._imu_rot = np.array(self.get_parameter('imu_rotation_transformation').value).reshape(3, 3)
+        self.mag_dec_angle = self.get_parameter('transformation.mag_decl').value
+        self._mag_dec_rot = R.from_euler('xyz', [0, 0, self.mag_dec_angle], degrees=True).as_matrix()
+
+        # Sensor Covariances
+        self._accel_cov = np.diag(self.get_parameter('sensor_variance.accel').value).flatten()
+        self._gyro_cov = np.diag(self.get_parameter('sensor_variance.gyro').value).flatten()
+        self._mag_cov = np.diag(self.get_parameter('sensor_variance.mag').value).flatten()
+
+        # Sensor Calibration
+        self.bias_removal = self.get_parameter('sensor_calibration.bias_removal').value
+        self.bias_duration_sec = self.get_parameter('sensor_calibration.bias_duration_sec').value
+        self._accel_bias = np.array(self.get_parameter('sensor_calibration.accel_bias').value)
+        self._gyro_bias = np.array(self.get_parameter('sensor_calibration.gyro_bias').value)
+        self._mag_bias = np.array(self.get_parameter('sensor_calibration.mag_bias').value)
+        self._mag_transform = np.array(self.get_parameter('sensor_calibration.mag_transform').value).reshape(3, 3)
 
     def tick(self):
         try:
@@ -223,46 +216,10 @@ class BMX160Node(Node):
         except Exception as e:
             self.get_logger().warn(f'read/publish error: {e}')
 
-    def on_param_event(self, event):
-        for changed in event.changed_parameters:
-            if changed.name == "mag_bias":
-                if len(changed.value.double_array_value) == 3:
-                     self._mag_bias = np.array(changed.value.double_array_value)
-                     self.get_logger().info(f"Updated mag_bias: {self._mag_bias}")
-            elif changed.name == "mag_transform":
-                if len(changed.value.double_array_value) == 9:
-                    self._mag_transform = np.array(changed.value.double_array_value).reshape(3, 3)
-                    self.get_logger().info(f"Updated mag_transform parameters")
-            elif changed.name == "imu_rotation_transformation":
-                 if len(changed.value.double_array_value) == 9:
-                    self._imu_rot = np.array(changed.value.double_array_value).reshape(3, 3)
-                    self.get_logger().info(f"Updated imu_rotation_transformation")
-            elif changed.name == "accel_bias":
-                if len(changed.value.double_array_value) == 3:
-                     self._accel_bias = np.array(changed.value.double_array_value)
-                     self.get_logger().info(f"Updated accel_bias: {self._accel_bias}")
-            elif changed.name == "gyro_bias":
-                if len(changed.value.double_array_value) == 3:
-                     self._gyro_bias = np.array(changed.value.double_array_value)
-                     self.get_logger().info(f"Updated gyro_bias: {self._gyro_bias}")
-            elif changed.name == "accel_variance":
-                if len(changed.value.double_array_value) == 3:
-                     self._accel_cov = np.diag(changed.value.double_array_value).flatten()
-                     self.get_logger().info("Updated accel_variance")
-            elif changed.name == "gyro_variance":
-                if len(changed.value.double_array_value) == 3:
-                     self._gyro_cov = np.diag(changed.value.double_array_value).flatten()
-                     self.get_logger().info("Updated gyro_variance")
-            elif changed.name == "mag_variance":
-                if len(changed.value.double_array_value) == 3:
-                     self._mag_cov = np.diag(changed.value.double_array_value).flatten()
-                     self.get_logger().info("Updated mag_variance")
-            elif changed.name == "mag_declination_angle":
-                self._mag_cov = changed.value.double_value
-                self.get_logger().info("Updated mag_declination_angle")
-
-    def destroy_node(self):
-        super().destroy_node()
+    def destroy(self):
+        if self.timer:
+            self.timer.cancel()
+        self.destroy_node()
 
 def main(args=None):
     rclpy.init(args=args)
@@ -272,7 +229,7 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     finally:
-        node.destroy_node()
+        node.destroy()
         if rclpy.ok():
             rclpy.shutdown()
 
