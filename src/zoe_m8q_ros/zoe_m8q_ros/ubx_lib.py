@@ -9,7 +9,7 @@ from smbus2 import SMBus, i2c_msg
 
 # Constants
 I2C_BUS = 1
-GPS_ADDR = 0x42
+DEFAULT_GPS_ADDR = 0x42
 REG_STREAM = 0xFF
 READ_LEN = 128
 
@@ -254,7 +254,7 @@ def ubx_pack(cls_, id_, payload):
 
 def i2c_write(bus, data: bytes):
     for i in range(0, len(data), 32):
-        bus.write_i2c_block_data(GPS_ADDR, REG_STREAM, list(data[i:i+32]))
+        bus.write_i2c_block_data(DEFAULT_GPS_ADDR, REG_STREAM, list(data[i:i+32]))
         time.sleep(0.002)
 
 def set_rate_hz(bus, hz=1.0):
@@ -277,7 +277,7 @@ def enable_nav_pvt_only(bus):
     cfg_msg_rate(bus, 0x01, 0x07, 0x01)
 
 def read_chunk(bus, n=READ_LEN):
-    msg = i2c_msg.read(GPS_ADDR, n)
+    msg = i2c_msg.read(DEFAULT_GPS_ADDR, n)
     bus.i2c_rdwr(msg)
     return bytes(msg)
 

@@ -11,53 +11,61 @@ import time
 import numpy as np
 from zoe_m8q_ros.ubx_lib import (
     set_rate_hz, enable_nav_pvt_only, read_chunk, parse_ubx_stream,
-    NAVPVTParser
+    NAVPVTParser, DEFAULT_GPS_ADDR
 )
 
 class ZoeM8QNode(Node):
     def __init__(self):
         super().__init__('zoe_m8q_node')
 
-        # Parameters
-        self.declare_parameter('bus', 1)
-        self.declare_parameter('debug', False)
-
-        # Topics
-        self.declare_parameter('pub_topics.fix', 'gps/fix')
-        self.declare_parameter('pub_topics.vel', 'gps/vel')
-        
-        # Standard Deviations (Fallback)
-        self.declare_parameter('pos_std', [4.0, 4.0, 10.0]) # m
-        self.declare_parameter('vel_std', [0.5]) # m/s (speed accuracy)
-
-        self.bus_num = int(self.get_parameter('bus').value)
-        self.rate_hz = float(self.get_parameter('rate_hz').value)
-        self.frame_id = self.get_parameter('frame_id').value
-        self.debug = self.get_parameter('debug').value
-        
-        self.pos_std = self.get_parameter('pos_std').value
-        self.vel_std = self.get_parameter('vel_std').value
-
-        # Publishers
-        self.pub_fix = self.create_publisher(NavSatFix, self.get_parameter('pub_topics.fix').value, 10)
-        self.pub_vel = self.create_publisher(TwistWithCovarianceStamped, self.get_parameter('pub_topics.vel').value, 10)
+        self.declare_all_parameters()
+        self.load_parameters()
 
         # I2C Setup
         try:
+            DEFAULT_GPS_ADDR = self.address
             self.bus = SMBus(self.bus_num)
             set_rate_hz(self.bus, self.rate_hz)
             enable_nav_pvt_only(self.bus)
-            self.get_logger().info(f'✅ Configured GPS: {self.rate_hz} Hz, UBX-NAV-PVT only')
+            self.get_logger().info(f'✅ Configured GPS: {self.rate_hz} Hz, UBX-NAV-PVT only on bus {self.bus_num} at address 0x{self.address:02X}')
             time.sleep(0.25) # Wait for config to take effect
         except Exception as e:
-            self.get_logger().error(f'❌ Config error: {e}')
-            # Continue/Retry?
+            self.get_logger().error(f'❌ GPS Config error: {e}, on bus {self.bus_num} at address 0x{self.address:02X}')
+            self._ok = False
+            return
 
         self.buf = bytearray()
         
         # Timer
         period = 1.0 / self.rate_hz if self.rate_hz > 0 else 0.1
         self.timer = self.create_timer(period, self.tick)
+
+    def declare_all_parameters(self):
+        # Parameters
+        self.declare_parameter('i2c_interface.bus', 1)
+        self.declare_parameter('i2c_interface.address', DEFAULT_GPS_ADDR)
+        
+        self.declare_parameter('rate_hz', 10.0)
+        self.declare_parameter('frame_id', 'gps_link')
+
+        
+        # Sensor Variances (used if sensor accuracy is 0/invalid)
+        self.declare_parameter('sensor_variance.pos_std', [4.0, 4.0, 10.0]) # m
+        self.declare_parameter('sensor_variance.vel_std', [0.5]) # m/s (speed accuracy)
+
+    def load_parameters(self):
+        self.bus_num = int(self.get_parameter('i2c_interface.bus').value)
+        self.address = int(self.get_parameter('i2c_interface.address').value)
+
+        self.rate_hz = float(self.get_parameter('rate_hz').value)
+        self.frame_id = self.get_parameter('frame_id').value
+        
+        self.pos_std = self.get_parameter('sensor_variance.pos_std').value
+        self.vel_std = self.get_parameter('sensor_variance.vel_std').value
+
+        # Publishers
+        self.pub_fix = self.create_publisher(NavSatFix, '/gps_zoe_m8q/fix', 10)
+        self.pub_vel = self.create_publisher(TwistWithCovarianceStamped, '/gps_zoe_m8q/vel', 10)
 
     def tick(self):
         try:
@@ -153,22 +161,27 @@ class ZoeM8QNode(Node):
         if self.debug and data.fixType < 3:
              self.get_logger().warn(f"Bad Fix: {data.fixType}, Sats: {data.numSV}")
 
-    def shutdown(self):
-        if hasattr(self, 'timer'):
+    def destroy(self):
+        if self.timer is not None:
             self.timer.cancel()
-        if hasattr(self, 'bus'):
+        if self.bus is not None:
             self.bus.close()
-        self.destroy_node()
+        super().destroy_node()
 
 def main(args=None):
     rclpy.init(args=args)
     node = ZoeM8QNode()
+
+    if not getattr(node, '_ok', True):
+        rclpy.shutdown()
+        return
+
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
         pass
     finally:
-        node.shutdown()
+        node.destroy()
         if rclpy.ok():
             rclpy.shutdown()
 
