@@ -2,22 +2,33 @@
   ros__parameters:
     gpiochip: 4
     pwm_freq: 50
-    
-    # Pin Configuration (BCM/GPIO Numbers)
-    pin_rotor: 20    # ESC
-    pin_rudder: 25   # Rudder Servo
-    pin_elevator: 23 # Elevator Servo
-    pin_l_aileron: 24 # Left Aileron Servo
-    pin_r_aileron: 22 # Right Aileron Servo
-    
-    # Channel Mapping (Index in rc_channels array: 0-4)
-    # 0: Left Aileron, 1: Elevator, 2: Throttle, 3: Rudder, 4: Right Aileron
-    rc_ch_rotor: 2
-    rc_ch_rudder: 3
-    rc_ch_elevator: 1
-    rc_ch_l_aileron: 0
-    rc_ch_r_aileron: 4
 
+    # Topics
     sub_topics:
       channels: "rc/channels"
       mode: "rc/mode"
+    
+    Safety:
+      arming_duration: 1.0
+      esc_min_pulse: 1000
+      esc_max_pulse: 2000
+      servo_min_pulse: 1000
+      servo_max_pulse: 2000
+    
+    # Pin Configuration (BCM/GPIO Numbers)
+    gpio_pins: 
+      l_aileron: 24 # Left Aileron Servo
+      elevator: 23 # Elevator Servo
+      esc_rotor: 20    # ESC
+      rudder: 25   # Rudder Servo
+      r_aileron: 22 # Right Aileron Servo
+    
+    # Channel Mapping (Index in rc_channels array: 0-4)
+    # 0: Left Aileron, 1: Elevator, 2: Throttle, 3: Rudder, 4: Right Aileron
+    rc_channels:
+      l_aileron: 0
+      elevator: 1
+      rotor: 2
+      rudder: 3
+      r_aileron: 4
+    

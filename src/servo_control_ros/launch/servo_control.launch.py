@@ -12,7 +12,7 @@ def generate_launch_description():
             package='servo_control_ros',
             executable='servo_controller_node',
             name='servo_controller_node',
-            output='screen',
+            output='log',
             parameters=[config_file]
         )
     ])

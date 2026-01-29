@@ -12,106 +12,28 @@ class ServoControllerNode(Node):
     def __init__(self):
         super().__init__('servo_controller_node')
         
-        # --- 1. REAL-TIME SCHEDULING OPTIMIZATION ---
-        try:
-            # Use priority 80-90 for better stability (99 can cause system issues)
-            param = os.sched_param(85)
-            os.sched_setscheduler(0, os.SCHED_FIFO, param)
-            self.get_logger().info("RT: Process set to SCHED_FIFO with priority 85")
-        except PermissionError:
-            self.get_logger().warn("RT: Permission Denied. Run with sudo for real-time scheduling")
-        except Exception as e:
-            self.get_logger().warn(f"RT: Could not set real-time priority: {e}")
-        
-        # --- 2. PARAMETER DECLARATIONS ---
-        self.declare_parameter('pwm_freq', 50)
-        self.declare_parameter('gpiochip', 4)
-        self.declare_parameter('sub_topics.channels', 'rc/channels')
-        self.declare_parameter('sub_topics.mode', 'rc/mode')
-        
-        # Pin declarations
-        self.declare_parameter('pin_rotor', 20)
-        self.declare_parameter('pin_rudder', 24)
-        self.declare_parameter('pin_elevator', 25)
-        self.declare_parameter('pin_l_aileron', 23)
-        self.declare_parameter('pin_r_aileron', 22)
-        
-        # Channel mapping declarations
-        self.declare_parameter('rc_ch_rotor', 2)
-        self.declare_parameter('rc_ch_rudder', 3)
-        self.declare_parameter('rc_ch_elevator', 1)
-        self.declare_parameter('rc_ch_l_aileron', 0)
-        self.declare_parameter('rc_ch_r_aileron', 4)
-        
-        # Safety parameters
-        self.declare_parameter('arming_duration', 3.0)
-        self.declare_parameter('min_pulse_us', 1000)
-        self.declare_parameter('max_pulse_us', 2000)
-        self.declare_parameter('neutral_pulse_us', 1500)
-        self.declare_parameter('rotor_min_us', 1000)
-        
-        # Get parameters
-        self.gpiochip = self.get_parameter('gpiochip').value
-        self.pwm_freq = self.get_parameter('pwm_freq').value
-        self.arming_duration = self.get_parameter('arming_duration').value
-        self.min_pulse = self.get_parameter('min_pulse_us').value
-        self.max_pulse = self.get_parameter('max_pulse_us').value
-        self.neutral_pulse = self.get_parameter('neutral_pulse_us').value
-        self.rotor_min = self.get_parameter('rotor_min_us').value
+        self.declare_all_params()
+        self.load_parameters()
         
         # Pre-calculate PWM period for efficiency
         self.pwm_period_us = 1_000_000 / self.pwm_freq  # 20,000 us for 50Hz
 
-        # --- 3. PIN MAPPING ---
-        self.output_map = {
-            'rotor': {
-                'pin': self.get_parameter('pin_rotor').value,
-                'ch': self.get_parameter('rc_ch_rotor').value,
-                'val': None,  # Track last value for change detection
-                'safe': self.rotor_min
-            },
-            'rudder': {
-                'pin': self.get_parameter('pin_rudder').value,
-                'ch': self.get_parameter('rc_ch_rudder').value,
-                'val': None,
-                'safe': self.neutral_pulse
-            },
-            'elevator': {
-                'pin': self.get_parameter('pin_elevator').value,
-                'ch': self.get_parameter('rc_ch_elevator').value,
-                'val': None,
-                'safe': self.neutral_pulse
-            },
-            'l_aileron': {
-                'pin': self.get_parameter('pin_l_aileron').value,
-                'ch': self.get_parameter('rc_ch_l_aileron').value,
-                'val': None,
-                'safe': self.neutral_pulse
-            },
-            'r_aileron': {
-                'pin': self.get_parameter('pin_r_aileron').value,
-                'ch': self.get_parameter('rc_ch_r_aileron').value,
-                'val': None,
-                'safe': self.neutral_pulse
-            }
-        }
-
-        # --- 4. HARDWARE INIT ---
-        self.h = None
+        # --- GPIO Connection INIT ---
+        self.gpio_connection = None
         try:
-            self.h = lgpio.gpiochip_open(self.gpiochip)
+            self.gpio_connection = lgpio.gpiochip_open(self.gpiochip)
             self.get_logger().info(f"GPIO chip {self.gpiochip} opened successfully")
             
             # Configure all pins as outputs
-            for name, cfg in self.output_map.items():
-                lgpio.gpio_claim_output(self.h, cfg['pin'])
-                self.get_logger().info(f"Claimed GPIO pin {cfg['pin']} for {name}")
-                
+            for name, cfg in self.hw_map.items():
+                lgpio.gpio_claim_output(self.gpio_connection, cfg['pin'])
+                self.get_logger().info(f"Claimed GPIO pin {cfg['pin']} for {name}")  
         except Exception as e:
-            self.get_logger().error(f"GPIO Init Failed: {e}")
-            if self.h is not None:
-                lgpio.gpiochip_close(self.h)
-            sys.exit(1)
+            self.get_logger().fatal(f"GPIO Init Failed: {e}")
+            if self.gpio_connection is not None:
+                lgpio.gpiochip_close(self.gpio_connection)
+            self._ok = False
+            return
 
         # State variables
         self.is_armed = False
@@ -121,34 +43,141 @@ class ServoControllerNode(Node):
         # --- 5. SUBSCRIPTIONS ---
         self.create_subscription(
             Int32MultiArray,
-            self.get_parameter('sub_topics.channels').value,
+            self.channels_topics,
             self.rc_callback,
             1  # QoS depth of 1 for latest data only
         )
         self.create_subscription(
             String,
-            self.get_parameter('sub_topics.mode').value,
+            self.mode_topics,
             self.mode_callback,
-            10
+            1
         )
         
         # Create timer for watchdog (failsafe)
-        self.create_timer(0.5, self.watchdog_callback)
+        self._timer = self.create_timer(0.1, self.watchdog_callback)
 
         # Arm ESC sequence
         self.arm_esc()
         self.get_logger().info('Servo Controller Node Ready')
 
-    def set_pwm(self, pin, pulse_us):
+    def declare_all_params(self):
+        self.declare_parameter('gpiochip', 4)
+        self.declare_parameter('pwm_freq', 50)
+
+        # topics
+        self.declare_parameter('sub_topics.channels', 'rc/channels')
+        self.declare_parameter('sub_topics.mode', 'rc/mode')
+
+        # Safety parameters
+        self.declare_parameter('Safety.arming_duration', 5.0)
+        self.declare_parameter('Safety.esc_min_pulse', 1000)
+        self.declare_parameter('Safety.esc_max_pulse', 2000)
+        self.declare_parameter('Safety.servo_min_pulse', 1000)
+        self.declare_parameter('Safety.servo_max_pulse', 2000)
+        
+        # Pin Configuration
+        self.declare_parameter('gpio_pins.l_aileron', 24)
+        self.declare_parameter('gpio_pins.elevator', 23)
+        self.declare_parameter('gpio_pins.esc_rotor', 20)
+        self.declare_parameter('gpio_pins.rudder', 25)
+        self.declare_parameter('gpio_pins.r_aileron', 22)
+        
+        # Channel Mapping (Index in rc_channels array: 0-4)
+        self.declare_parameter('rc_channels.l_aileron', 0)
+        self.declare_parameter('rc_channels.elevator', 1)
+        self.declare_parameter('rc_channels.rotor', 2)
+        self.declare_parameter('rc_channels.rudder', 3)
+        self.declare_parameter('rc_channels.r_aileron', 4)
+
+    def load_parameters(self):        
+        # Get parameters
+        self.gpiochip = self.get_parameter('gpiochip').value
+        self.pwm_freq = self.get_parameter('pwm_freq').value
+
+        # topics
+        self.channels_topics = self.get_parameter('sub_topics.channels').value
+        self.mode_topics = self.get_parameter('sub_topics.mode').value
+
+        # Safety parameters
+        self.arming_duration = self.get_parameter('Safety.arming_duration').value
+        self.esc_min_pulse = self.get_parameter('Safety.esc_min_pulse').value
+        self.esc_max_pulse = self.get_parameter('Safety.esc_max_pulse').value
+        self.servo_min_pulse = self.get_parameter('Safety.servo_min_pulse').value
+        self.servo_max_pulse = self.get_parameter('Safety.servo_max_pulse').value
+        
+        # Pin Configuration
+        self.l_aileron_gpio_pin = self.get_parameter('gpio_pins.l_aileron').value
+        self.elevator_gpio_pin = self.get_parameter('gpio_pins.elevator').value
+        self.esc_rotor_gpio_pin = self.get_parameter('gpio_pins.esc_rotor').value
+        self.rudder_gpio_pin = self.get_parameter('gpio_pins.rudder').value
+        self.r_aileron_gpio_pin = self.get_parameter('gpio_pins.r_aileron').value
+        
+        # Channel Mapping (Index in rc_channels array: 0-4)
+        self.l_aileron_rc_channel = self.get_parameter('rc_channels.l_aileron').value
+        self.elevator_rc_channel = self.get_parameter('rc_channels.elevator').value
+        self.esc_rotor_rc_channel = self.get_parameter('rc_channels.rotor').value
+        self.rudder_rc_channel = self.get_parameter('rc_channels.rudder').value
+        self.r_aileron_rc_channel = self.get_parameter('rc_channels.r_aileron').value
+
+        # Full ESC and Servo Configuration
+        self.hw_map = {
+            'rotor': {
+                'pin': self.esc_rotor_gpio_pin,
+                'ch': self.esc_rotor_rc_channel,
+                'val': None,  # Track last value for change detection
+                'min': self.esc_min_pulse,
+                'max': self.esc_max_pulse,
+                'safe': min(self.esc_min_pulse, self.esc_max_pulse)
+            },
+            'rudder': {
+                'pin': self.rudder_gpio_pin,
+                'ch': self.rudder_rc_channel,
+                'val': None,
+                'min': self.servo_min_pulse,
+                'max': self.servo_max_pulse,
+                'safe': int((self.servo_min_pulse + self.servo_max_pulse) / 2)
+            },
+            'elevator': {
+                'pin': self.elevator_gpio_pin,
+                'ch': self.elevator_rc_channel,
+                'val': None,
+                'min': self.servo_min_pulse,
+                'max': self.servo_max_pulse,
+                'safe': int((self.servo_min_pulse + self.servo_max_pulse) / 2)
+            },
+            'l_aileron': {
+                'pin': self.l_aileron_gpio_pin,
+                'ch': self.l_aileron_rc_channel,
+                'val': None,
+                'min': self.servo_min_pulse,
+                'max': self.servo_max_pulse,
+                'safe': int((self.servo_min_pulse + self.servo_max_pulse) / 2)
+            },
+            'r_aileron': {
+                'pin': self.r_aileron_gpio_pin,
+                'ch': self.r_aileron_rc_channel,
+                'val': None,
+                'min': self.servo_min_pulse,
+                'max': self.servo_max_pulse,
+                'safe': int((self.servo_min_pulse + self.servo_max_pulse) / 2)
+            }
+        }
+
+    def set_pwm(self, cfg):
         """
         Set PWM signal with optimized duty cycle calculation.
         
         Args:
-            pin: GPIO pin number
-            pulse_us: Pulse width in microseconds (1000-2000)
+            cfg: Configuration dictionary
         """
-        if self.h is None:
-            return
+
+        pin = cfg['pin']
+        pulse_us = cfg['val']
+        min_pulse = cfg['min']
+        max_pulse = cfg['max']
+
+        pulse_us = max(min_pulse, min(max_pulse, pulse_us))
             
         try:
             # Calculate duty cycle percentage
@@ -156,9 +185,9 @@ class ServoControllerNode(Node):
             duty = (pulse_us / self.pwm_period_us) * 100.0
             
             # Clamp duty cycle to valid range
-            duty = max(0.0, min(100.0, duty))
+            duty = max(0, min(100.0, duty))
             
-            lgpio.tx_pwm(self.h, pin, self.pwm_freq, duty)
+            lgpio.tx_pwm(self.gpio_connection, pin, self.pwm_freq, duty)
         except Exception as e:
             self.get_logger().error(f"PWM set failed on pin {pin}: {e}")
 
@@ -169,9 +198,9 @@ class ServoControllerNode(Node):
         self.get_logger().info(f'Arming ESC: Sending safe signals for {self.arming_duration}s...')
         
         # Set all servos to safe positions
-        for name, cfg in self.output_map.items():
-            self.set_pwm(cfg['pin'], cfg['safe'])
+        for name, cfg in self.hw_map.items():
             cfg['val'] = cfg['safe']
+            self.set_pwm(cfg)
         
         # Wait for ESC to arm
         time.sleep(self.arming_duration)
@@ -211,7 +240,7 @@ class ServoControllerNode(Node):
         data = msg.data
         
         # Process each mapped output
-        for name, cfg in self.output_map.items():
+        for name, cfg in self.hw_map.items():
             ch_idx = cfg['ch']
             
             # Validate channel index
@@ -225,8 +254,8 @@ class ServoControllerNode(Node):
             
             # Only update if value has changed (reduces GPIO traffic)
             if pulse != cfg['val']:
-                self.set_pwm(cfg['pin'], pulse)
                 cfg['val'] = pulse
+                self.set_pwm(cfg)
                 # Reduce logging verbosity - only log at debug level
                 self.get_logger().debug(
                     f"{name}: {pulse}us (pin {cfg['pin']}, ch {ch_idx})"
@@ -243,58 +272,53 @@ class ServoControllerNode(Node):
         
         # If no RC data for 1 second, trigger failsafe
         if time_since_rc > 1.0:
-            self.get_logger().warn(
-                f'RC signal lost ({time_since_rc:.1f}s) - Activating failsafe'
-            )
+            self.get_logger().warn(f'RC signal lost ({time_since_rc:.1f}s) - Activating failsafe', throttle_duration_sec=1.0)
             self.set_safe_outputs()
 
     def set_safe_outputs(self):
         """Set all outputs to safe values."""
-        for name, cfg in self.output_map.items():
+        for name, cfg in self.hw_map.items():
             safe_val = cfg['safe']
             if cfg['val'] != safe_val:
-                self.set_pwm(cfg['pin'], safe_val)
                 cfg['val'] = safe_val
+                self.set_pwm(cfg)
                 self.get_logger().info(f"Set {name} to safe value: {safe_val}us")
 
-    def destroy_node(self):
+    def destroy(self):
         """Clean shutdown with safety measures."""
-        self.get_logger().info('Shutting down - Setting safe outputs...')
-        
-        if self.h is not None:
+        if self.gpio_connection is not None:
             try:
                 # Set all to safe values
                 self.set_safe_outputs()
-                
                 # Small delay to ensure commands are sent
                 time.sleep(0.1)
-                
                 # Release GPIO resources
-                lgpio.gpiochip_close(self.h)
-                self.get_logger().info('GPIO resources released')
+                lgpio.gpiochip_close(self.gpio_connection)
             except Exception as e:
                 self.get_logger().error(f"Error during shutdown: {e}")
-        
+
+        if self._timer is not None:
+            self._timer.cancel()
+
         super().destroy_node()
 
 
 def main(args=None):
     rclpy.init(args=args)
     node = ServoControllerNode()
-    
-    # Use single-threaded executor for deterministic behavior
-    executor = SingleThreadedExecutor()
-    executor.add_node(node)
+
+    if not getattr(node, '_ok', True):
+        rclpy.shutdown()
+        return
     
     try:
-        executor.spin()
+        rclpy.spin(node)
     except KeyboardInterrupt:
         pass
-    except Exception as e:
-        node.get_logger().error(f"Unexpected error: {e}")
     finally:
-        node.destroy_node()
-        rclpy.shutdown()
+        node.destroy()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == '__main__':
