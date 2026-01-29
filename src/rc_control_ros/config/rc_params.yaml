@@ -5,7 +5,7 @@ rc_reader_node:
     failsafe_timeout: 0.5
     # Pins: [13, 19, 26, 12, 5, 6]
     # Ch 1-5: Analog Control, Ch 6: Mode Switch
-    gpio_pins: [13, 19, 26, 12, 5, 6]
+    gpio_pins: [12, 19, 6, 26, 13, 5]
 
     pub_topics:
       channels: "rc/channels"

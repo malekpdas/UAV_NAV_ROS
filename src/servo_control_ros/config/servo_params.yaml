@@ -1,18 +1,18 @@
-servo_controller_node:
+/servo_controller_node:
   ros__parameters:
     gpiochip: 4
     pwm_freq: 50
     
     # Pin Configuration (BCM/GPIO Numbers)
     pin_rotor: 20    # ESC
-    pin_rudder: 22   # Rudder Servo
-    pin_elevator: 24 # Elevator Servo
-    pin_l_aileron: 23 # Left Aileron Servo
-    pin_r_aileron: 27 # Right Aileron Servo
+    pin_rudder: 25   # Rudder Servo
+    pin_elevator: 23 # Elevator Servo
+    pin_l_aileron: 24 # Left Aileron Servo
+    pin_r_aileron: 22 # Right Aileron Servo
     
     # Channel Mapping (Index in rc_channels array: 0-4)
     # 0: Left Aileron, 1: Elevator, 2: Throttle, 3: Rudder, 4: Right Aileron
-    rc_ch_rotor: 2  
+    rc_ch_rotor: 2
     rc_ch_rudder: 3
     rc_ch_elevator: 1
     rc_ch_l_aileron: 0
