@@ -14,25 +14,17 @@ class BNO085Node(Node):
     def __init__(self):
         super().__init__('bno085_node')
 
-        self.declare_config_parameters()
-        self.init_parameters()
-
-        self.get_logger().info(
-            f'Initializing BNO085 on bus {self.i2c_bus} at address 0x{self.i2c_addr:02X}'
-        )
+        self.declare_all_parameters()
+        self.load_parameters()
 
         self.imu = BNO085(self.i2c_bus, self.i2c_addr)
         if self.imu.begin():
-            self.get_logger().info(
-                f'✅ BNO085 init OK (Raw Mode) on bus {self.i2c_bus} at address 0x{self.i2c_addr:02X}'
-            )
+            self.get_logger().info(f'✅ BNO085 init OK on bus {self.i2c_bus} at address 0x{self.i2c_addr:02X}')
         else:
-            self.get_logger().error(
-                f'❌ BNO085 init FAILED on bus {self.i2c_bus} at address 0x{self.i2c_addr:02X}'
-            )
-            raise RuntimeError(
-                f'BNO085 init FAILED on bus {self.i2c_bus} at address 0x{self.i2c_addr:02X}'
-            )
+            self.get_logger().fatal(f'❌ BNO085 init FAILED on bus {self.i2c_bus} at address 0x{self.i2c_addr:02X}')
+            self._ok = False
+            return
+
         # Publishers
         self.pub_imu = self.create_publisher(Imu, "imu_bno085/data", 10)
         self.pub_mag = self.create_publisher(MagneticField, "imu_bno085/mag", 10)
@@ -50,7 +42,7 @@ class BNO085Node(Node):
         period = 1.0 / self.rate_hz
         self.timer = self.create_timer(period, self.tick)
 
-    def declare_config_parameters(self):
+    def declare_all_parameters(self):
         # i2c connection
         self.declare_parameter('i2c_interface.bus', 1)
         self.declare_parameter('i2c_interface.address', BNO085_I2C_ADDR_DEFAULT)
@@ -76,7 +68,7 @@ class BNO085Node(Node):
         self.declare_parameter('transformation.imu_rotation', [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0])
         self.declare_parameter('transformation.mag_decl', 0.0)
 
-    def init_parameters(self):
+    def load_parameters(self):
         # i2c connection
         self.i2c_bus = self.get_parameter('i2c_interface.bus').value
         self.i2c_addr = self.get_parameter('i2c_interface.address').value
@@ -221,9 +213,11 @@ class BNO085Node(Node):
             self.get_logger().warn(f'Error: {e}')
 
     def destroy(self):
+        if hasattr(self, 'imu'):
+            self.imu.close()
         if self.timer:
             self.timer.cancel()
-        self.destroy_node()
+        super().destroy_node()
 
 def main(args=None):
     rclpy.init(args=args)
