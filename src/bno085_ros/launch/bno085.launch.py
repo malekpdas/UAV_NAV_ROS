@@ -11,9 +11,9 @@ def generate_launch_description():
         Node(
             package='bno085_ros',
             executable='bno085_node',
-            name='bno085_node',
+            name='imu_bno085',
             output='screen',
             parameters=[config_file],
-            emulate_tty=True
+            # emulate_tty=True
         )
     ])

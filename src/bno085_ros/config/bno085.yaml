@@ -1,33 +1,30 @@
-/bno085_node:
+/imu_bno085:
   ros__parameters:
-    bus: 1
-    i2c_addr: 0x4A # 74 decimal
+    i2c_interface:
+      bus: 1
+      address: 0x4A
+
     rate_hz: 100.0
     frame_id: "imu_link"
     
-    # Calibration / Correction (Raw Mode)
-    bias_removal: true
-    bias_duration_sec: 2.0
-    
-    # Sensor Biases (filled by calibration or manual tuning)
-    accel_bias: [0.0, 0.0, 0.0]
-    gyro_bias: [0.0, 0.0, 0.0]
-    mag_bias: [0.0, 0.0, 0.0]
-    
-    # Magnetometer Soft Iron Transform (3x3 flattened)
-    mag_transform: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
-    
-    # IMU Mounting Rotation (3x3 flattened)
-    imu_rotation_transformation: [1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0]
-    
-    mag_declination_angle: 0.0
-    
-    # Variances
-    accel_variance: [0.01, 0.01, 0.01]
-    gyro_variance: [0.001, 0.001, 0.001]
-    mag_variance: [0.001, 0.001, 0.001]
-    # orientation_variance not needed as we don't publish orientation in raw mode
+    transformation:
+      imu_rotation: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0]
+      mag_decl: -8.03 # degress
 
-    pub_topics:
-      imu: "imu/data"
-      mag: "imu/mag"
+    # Manual Biases (used if bias_removal is False)
+    sensor_calibration:
+      bias_removal: false
+      bias_duration_sec: 2.0
+      accel_bias:     [-0.39987259,  0.06733226,  0.26389121]
+      gyro_bias:      [-0.00667298,  0.00397193,  0.00581356]
+      mag_bias:       [-33.4081157,  -47.47297767, -13.47426104]
+      mag_transform:  [3.51869606e-03, -5.66419805e-05,  7.32537405e-05,
+                      -5.66419805e-05,  3.65732366e-03,  5.86315147e-05,
+                      7.32537405e-05,  5.86315147e-05,  1.51149403e-02]
+
+
+    # Sensor Variances (diagonal elements of covariance matrix)
+    sensor_variance:
+      accel: [0.1, 0.1, 0.1]
+      gyro: [0.0001, 0.0001, 0.0001]
+      mag: [0.001, 0.001, 0.001]

@@ -88,7 +88,7 @@ class BNO085:
         }
         self._initialized = False
 
-    def begin(self, enable_arvr_stabilized_rv=True) -> bool:
+    def begin(self) -> bool:
         """Initialize the sensor with extended soft reset timing."""
         try:
             # Extended soft reset sequence (for boards without RST pin)
@@ -194,7 +194,7 @@ class BNO085:
         try:
             # Read 64 bytes to cover batched reports (Accel+Gyro+Mag = ~30 bytes + overhead)
             # 64 * 9bits / 100kHz ~= 5.8ms. Safe for 100Hz.
-            r = i2c_msg.read(self.i2c_addr, 64)
+            r = i2c_msg.read(self.i2c_addr, 32)
             self.i2cbus.i2c_rdwr(r)
             buf = list(r)
             
@@ -299,18 +299,33 @@ class BNO085:
         self.close()
 
 
+
 if __name__ == '__main__':
-    print("BNO085 Test")
-    imu = BNO085(1)
+    print("BNO085 Max Rate Test")
+    imu = BNO085(1, 0x4A)
+    
     if imu.begin():
         print("✅ BNO085 Initialized")
+        count = 0
+        start_time = time.time()
+        
         try:
             while True:
+                # Direct data grab without printing
                 d = imu.get_data()
-                q = d['quat']
-                a = d['accel']
-                print(f"Q: [{q[0]:.3f}, {q[1]:.3f}, {q[2]:.3f}, {q[3]:.3f}] | A: [{a[0]:.2f}, {a[1]:.2f}, {a[2]:.2f}]")
-                time.sleep(0.1)
+
+                count += 1
+                
+                # Calculate and print stats every 1 second
+                elapsed = time.time() - start_time
+                if elapsed >= 1.0:
+                    freq = count / elapsed
+                    print(f"Current Rate: {freq:.2f} Hz")
+                    count = 0
+                    start_time = time.time()
+
+                time.sleep(0.0001)  # Small delay to avoid busy loop
+                    
         except KeyboardInterrupt:
             print("\nStopped")
     else:
