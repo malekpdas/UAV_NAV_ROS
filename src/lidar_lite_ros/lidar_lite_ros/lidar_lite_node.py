@@ -117,7 +117,7 @@ class LidarLiteNode(Node):
         dist = self.lidar.read_distance()
         
         if dist is None:
-            self.get_logger().warn(f"Lidar Distance is None", throttle_duration_sec=5.0)
+            self.get_logger().warn(f"Lidar Distance is None", throttle_duration_sec=1.0)
             return
         
         filtered_dist = self.lpf.filter(dist)
