@@ -54,8 +54,8 @@ class RCReaderNode(Node):
             lgpio.callback(self.h, pin, lgpio.BOTH_EDGES, self._make_callback(i))
             
         # Publishers
-        self.pub_channels = self.create_publisher(Int32MultiArray, self.get_parameter('pub_topics.channels').value, 10)
-        self.pub_mode = self.create_publisher(String, self.get_parameter('pub_topics.mode').value, 10)
+        self.pub_channels = self.create_publisher(Int32MultiArray, 'rc/channels', 10)
+        self.pub_mode = self.create_publisher(String, 'rc/mode', 10)
         
         # Timer
         self.timer = self.create_timer(1.0 / self.rate_hz, self.timer_callback)
@@ -70,7 +70,7 @@ class RCReaderNode(Node):
             elif level == 0 and self.last_rise[ch_idx] is not None:
                 pulse = (tick - self.last_rise[ch_idx]) // 1000
                 # Filter valid RC pulse range (approx 900-2100us)
-                if 800 < pulse < 2200:
+                if 900 < pulse < 2100:
                     with self.lock:
                         self.pulses[ch_idx] = pulse
                         self.last_update[ch_idx] = time.time()
@@ -89,12 +89,6 @@ class RCReaderNode(Node):
                     if not self.failsafe[i]:
                         self.failsafe[i] = True
                         self.get_logger().warn(f'Channel {i+1} Failsafe Triggered')
-                        # Reset to safe value (1500 center or 1000 Low depending on safety?)
-                        # For now maintaining last known or 1500 could be dangerous.
-                        # Let's set failsafe value to 1500 for generic, but maybe 1000 for throttle?
-                        # Since we don't know which is throttle here easily without mapping, 
-                        # we keep it as is but mark failsafe.
-                        # Actually, better to send a "Failsafe" flag or handled downstream.
                         pass
 
             # Prepare Messages
@@ -108,9 +102,6 @@ class RCReaderNode(Node):
             mode_str = "MANUAL"
             if ch6_val > 1500:
                 mode_str = "AUTO"
-                # Or 'ACRO', 'LOITER', etc. User said "Manual/AD".
-                # Let's infer > 1600 is "AD" (autonomous/flight controller)
-                # < 1400 is "Manual"
             
             msg_mode = String()
             msg_mode.data = mode_str

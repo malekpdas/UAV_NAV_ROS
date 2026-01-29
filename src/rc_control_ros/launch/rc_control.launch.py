@@ -12,7 +12,7 @@ def generate_launch_description():
             package='rc_control_ros',
             executable='rc_reader_node',
             name='rc_reader_node',
-            output='screen',
+            output='log',
             parameters=[config_file]
         )
     ])
