@@ -14,13 +14,13 @@ class BMX160Node(Node):
     def __init__(self):
         super().__init__('bmx160_node')
 
-        self.declare_config_parameters()
-        self.init_parameters()
+        self.declare_all_parameters()
+        self.load_parameters()
         
         # Initialize Sensor
         self.imu = BMX160(self.i2c_bus, self.i2c_address)
         if self.imu.begin():
-            self.get_logger().info('✅ BMX160 init OK')
+            self.get_logger().info(f'✅ BMX160 init OK on bus {self.i2c_bus} at address 0x{self.i2c_addr:02X}')
     
             # Configure gyro range (±500°/s is good for most applications)
             self.imu.set_gyro_range(GyroRange.DPS_500)
@@ -31,8 +31,9 @@ class BMX160Node(Node):
             self.get_logger().info(f'✅ Gyro configured: {GyroRange.DPS_500} sensitivity')
             self.get_logger().info(f'✅ Accel configured: {AccelRange.G_4} sensitivity')
         else:
-            self.get_logger().error('❌ BMX160 init FAILED (check I2C)')
-            raise RuntimeError('BMX160 init failed')
+            self.get_logger().fatal(f'❌ BMX160 init FAILED on bus {self.i2c_bus} at address 0x{self.i2c_addr:02X}')
+            self._ok = False
+            return
 
         # Publishers
         self.pub_imu = self.create_publisher(Imu, "imu_bmx160/data", 10)
@@ -54,7 +55,7 @@ class BMX160Node(Node):
         period = 1.0 / self.rate_hz if self.rate_hz > 0 else 0.01
         self.timer = self.create_timer(period, self.tick)
 
-    def declare_config_parameters(self):
+    def declare_all_parameters(self):
         # Parameters
         self.declare_parameter('i2c_interface.bus', 1)
         self.declare_parameter('i2c_interface.address', 0x68)
@@ -79,7 +80,7 @@ class BMX160Node(Node):
         self.declare_parameter('sensor_calibration.mag_bias', [0.0, 0.0, 0.0])
         self.declare_parameter('sensor_calibration.mag_transform', [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0])
 
-    def init_parameters(self):
+    def load_parameters(self):
         # i2c connection
         self.i2c_bus = self.get_parameter('i2c_interface.bus').value
         self.i2c_address = self.get_parameter('i2c_interface.address').value
@@ -217,9 +218,11 @@ class BMX160Node(Node):
             self.get_logger().warn(f'read/publish error: {e}')
 
     def destroy(self):
+        if hasattr(self, 'imu'):
+            self.imu.close()
         if self.timer:
             self.timer.cancel()
-        self.destroy_node()
+        super().destroy_node()
 
 def main(args=None):
     rclpy.init(args=args)
