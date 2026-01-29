@@ -58,18 +58,9 @@ class IMUGPSFusionNode(Node):
         self.latest_gps_vel = None
 
         # ROS2 Publishers
-        self.odom_pub = self.create_publisher(
-            Odometry,
-            self.params['pub_topics']['odometry'],
-            10
-        )
-        
+        self.odom_pub = self.create_publisher(Odometry, '/ekf/odom', 10)
         if self.params['publish_acceleration']:
-            self.accel_pub = self.create_publisher(
-                Imu,
-                self.params['pub_topics']['filtered_imu'],
-                10
-            )
+            self.accel_pub = self.create_publisher(Imu, '/ekf/linear_acceleration', 10)
         
         # TF Broadcaster
         self.tf_broadcaster = TransformBroadcaster(self)
@@ -101,18 +92,17 @@ class IMUGPSFusionNode(Node):
         )
 
         # Low-pass filters
-        self.lp_filter_acc = RobustLPFilter(alpha=self.params['filters']['lowpass_alpha_acc'])
+        self.lp_filter_accel = RobustLPFilter(alpha=self.params['lp_filters']['accel_alpha'])
         
         self.get_logger().info('IMU/GPS Fusion Node initialized')
-        self.log_parameters()
 
     def declare_all_parameters(self):
         """Declare all ROS2 parameters with default values."""
         
         # Frame IDs
-        self.declare_parameter('map_frame', 'map')
-        self.declare_parameter('odom_frame', 'odom')
-        self.declare_parameter('base_link_frame', 'base_link')
+        self.declare_parameter('frames.map_frame', 'map')
+        self.declare_parameter('frames.odom_frame', 'odom')
+        self.declare_parameter('frames.base_link_frame', 'base_link')
         
         # Topics
         # Subscribed Topics
@@ -120,10 +110,6 @@ class IMUGPSFusionNode(Node):
         self.declare_parameter('sub_topics.mag', '/imu/mag')
         self.declare_parameter('sub_topics.gps_fix', '/gps/fix')
         self.declare_parameter('sub_topics.gps_vel', '/gps/vel')
-
-        # Published Topics
-        self.declare_parameter('pub_topics.odometry', '/ekf/odometry')
-        self.declare_parameter('pub_topics.filtered_imu', '/ekf/filtered_imu')
 
         self.declare_parameter('publish_acceleration', False)
         
@@ -149,8 +135,8 @@ class IMUGPSFusionNode(Node):
         self.declare_parameter('kalman_filter.measurement_noise_pos', 25.0)
         self.declare_parameter('kalman_filter.measurement_noise_vel', 0.25)
         
-        # Filters
-        self.declare_parameter('filters.lowpass_alpha_acc', 0.9)
+        # LP Filters
+        self.declare_parameter('lp_filters.accel_alpha', 0.9)
         
         # Earth Model
         self.declare_parameter('earth.gravity', 9.8066)
@@ -161,19 +147,15 @@ class IMUGPSFusionNode(Node):
         """Load all ROS2 parameters into a nested dictionary structure."""
         self.params = {
             'frames': {
-                'map': self.get_parameter('map_frame').value,
-                'odom': self.get_parameter('odom_frame').value,
-                'base_link': self.get_parameter('base_link_frame').value,
+                'map': self.get_parameter('frames.map_frame').value,
+                'odom': self.get_parameter('frames.odom_frame').value,
+                'base_link': self.get_parameter('frames.base_link_frame').value,
             },
             'sub_topics': {
                 'imu': self.get_parameter('sub_topics.imu').value,
                 'mag': self.get_parameter('sub_topics.mag').value,
                 'gps_fix': self.get_parameter('sub_topics.gps_fix').value,
                 'gps_vel': self.get_parameter('sub_topics.gps_vel').value,
-            },
-            'pub_topics': {
-                'odometry': self.get_parameter('pub_topics.odometry').value,
-                'filtered_imu': self.get_parameter('pub_topics.filtered_imu').value,
             },
             'publish_acceleration': self.get_parameter('publish_acceleration').value,
             'ahrs': {
@@ -194,8 +176,8 @@ class IMUGPSFusionNode(Node):
                 'measurement_noise_pos': self.get_parameter('kalman_filter.measurement_noise_pos').value,
                 'measurement_noise_vel': self.get_parameter('kalman_filter.measurement_noise_vel').value,
             },
-            'filters': {
-                'lowpass_alpha_acc': self.get_parameter('filters.lowpass_alpha_acc').value,
+            'lp_filters': {
+                'accel_alpha': self.get_parameter('lp_filters.accel_alpha').value,
             },
             'earth': {
                 'gravity': self.get_parameter('earth.gravity').value,
@@ -203,19 +185,6 @@ class IMUGPSFusionNode(Node):
                 'flattening': self.get_parameter('earth.flattening').value,
             }
         }
-
-    def log_parameters(self):
-        """Log key parameters for debugging."""
-        self.get_logger().info('=== Configuration ===')
-        self.get_logger().info(f"Frames: {self.params['frames']['odom']} -> {self.params['frames']['base_link']}")
-        self.get_logger().info(f"IMU Topic: {self.params['topics']['imu']}")
-        self.get_logger().info(f"GPS Fix Topic: {self.params['topics']['gps_fix']}")
-        self.get_logger().info(f"GPS Vel Topic: {self.params['topics']['gps_vel']}")
-        self.get_logger().info(f"Odometry Topic: {self.params['pub_topics']['odometry']}")
-        self.get_logger().info(f"Publish Filtered Accel: {self.params['publish_acceleration']}")
-        self.get_logger().info(f"AHRS Gain: {self.params['ahrs']['gain']}")
-        self.get_logger().info(f"KF Process Noise (pos): {self.params['kalman_filter']['process_noise_pos']}")
-        self.get_logger().info(f"KF Measurement Noise (pos): {self.params['kalman_filter']['measurement_noise_pos']}")
 
     def msg_to_sec(self, stamp):
         """Convert ROS timestamp to seconds."""
@@ -276,7 +245,7 @@ class IMUGPSFusionNode(Node):
         ])
 
         # Apply low-pass filters
-        accel = self.lp_filter_acc.update(accel)
+        accel = self.lp_filter_accel.update(accel)
         
         # Store raw gyro for bias estimation
         self.current_gyro = gyro.copy()

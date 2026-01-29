@@ -1,19 +1,15 @@
 /ekf2_node:
   ros__parameters:
-    # Frame IDs (already in your launch file)
-    map_frame: 'map'
-    odom_frame: 'odom'
-    base_link_frame: 'base_link'
+    frames:
+      map_frame: 'map'
+      odom_frame: 'odom'
+      base_link_frame: 'base_link'
     
     sub_topics:
       imu: '/imu/data'
       mag: '/imu/mag'
       gps_fix: '/gps/fix'
       gps_vel: '/gps/vel'
-
-    pub_topics:
-      odometry: '/ekf/odom'
-      filtered_imu: '/ekf/filtered_imu'
 
     publish_acceleration: true
     
@@ -35,8 +31,8 @@
       measurement_noise_pos: 25.0
       measurement_noise_vel: 0.25
     
-    filters:
-      lowpass_alpha_acc: 0.98
+    lp_filters:
+      accel_alpha: 0.98
     
     earth:
       gravity: 9.8066
