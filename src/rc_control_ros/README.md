@@ -1,21 +1,17 @@
-# RC Control ROS Package
+# rc_control_ros
 
-This package reads RC receiver signals via GPIO and publishes them to ROS2 topics.
+This package reads RC receiver signals via GPIO interrupts and publishes them as ROS2 topics.
 
-## Nodes: `rc_reader_node`
+## Nodes
 
-### Topics Published
-- `rc/channels` (`std_msgs/Int32MultiArray`): [Ch1, Ch2, Ch3, Ch4, Ch5]
-- `rc/mode` (`std_msgs/String`): "MANUAL" or "AUTO" based on Channel 6.
+### [rc_reader_node](Descriptor/rc_reader_node.yaml)
 
-### Parameters
-- `gpiochip` (int, default: 4): The GPIO chip number.
-- `publish_rate` (float, default: 50.0):Hz.
-- `gpio_pins` (int[], default: `[26, 19, 13, 6, 5, 12]`): 
-  - Pins for Channels 1-6 respectively.
-  - Channel 6 is used for Mode Switching.
+Reads 6 channels (Pulse Width) from an RC receiver and publishes to `rc/channels` and `rc/mode`.
+
+## Configuration
+
+- `config/rc_params.yaml`: GPIO pin definitions and publishing rate.
 
 ## Launch
-```bash
-ros2 launch rc_control_ros rc_control.launch.py
-```
+
+- `launch/rc_control.launch.py`: Launches the RC reader node.

@@ -1,0 +1,11 @@
+node_info:
+  pkg_name: "extra_nodes"
+  executable_name: "odom_logger_node"
+  node_default_id: "full_odom_logger"
+  default_config_file_path: ""
+  pub_topics: []
+  sub_topics:
+    - name: "/ekf/odom"
+      type: "nav_msgs/msg/Odometry"
+  services: []
+  actions: []

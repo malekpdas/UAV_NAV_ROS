@@ -1,0 +1,11 @@
+node_info:
+  pkg_name: "calibration"
+  executable_name: "mag_calibration"
+  node_default_id: "mag_cal"
+  default_config_file_path: "config/mag_cal_config.yaml"
+  pub_topics: []
+  sub_topics:
+    - name: "imu/mag"
+      type: "sensor_msgs/msg/MagneticField"
+  services: []
+  actions: []

@@ -1,0 +1,11 @@
+node_info:
+  pkg_name: "extra_nodes"
+  executable_name: "plot_orientation"
+  node_default_id: "odom_orientation_plotter"
+  default_config_file_path: ""
+  pub_topics: []
+  sub_topics:
+    - name: "/odom"
+      type: "nav_msgs/msg/Odometry"
+  services: []
+  actions: []

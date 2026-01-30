@@ -1,0 +1,21 @@
+node_info:
+  pkg_name: "ekf_estimator"
+  executable_name: "ekf_node"
+  node_default_id: "fusion_node"
+  default_config_file_path: "config/ekf_params.yaml"
+  pub_topics:
+    - name: "/ekf/odom"
+      type: "nav_msgs/msg/Odometry"
+    - name: "/ekf/linear_acceleration"
+      type: "sensor_msgs/msg/Imu"
+  sub_topics:
+    - name: "/imu/data"
+      type: "sensor_msgs/msg/Imu"
+    - name: "/imu/mag"
+      type: "sensor_msgs/msg/MagneticField"
+    - name: "/gps/fix"
+      type: "sensor_msgs/msg/NavSatFix"
+    - name: "/gps/vel"
+      type: "geometry_msgs/msg/TwistWithCovarianceStamped"
+  services: []
+  actions: []

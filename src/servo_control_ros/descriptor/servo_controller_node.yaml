@@ -1,0 +1,13 @@
+node_info:
+  pkg_name: "servo_control_ros"
+  executable_name: "servo_controller_node"
+  node_default_id: "servo_controller_node"
+  default_config_file_path: "config/servo_params.yaml"
+  pub_topics: []
+  sub_topics:
+    - name: "rc/channels"
+      type: "std_msgs/msg/Int32MultiArray"
+    - name: "rc/mode"
+      type: "std_msgs/msg/String"
+  services: []
+  actions: []

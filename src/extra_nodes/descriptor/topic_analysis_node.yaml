@@ -1,0 +1,17 @@
+node_info:
+  pkg_name: "extra_nodes"
+  executable_name: "topic_analysis_node"
+  node_default_id: "odom_gps_comparator"
+  default_config_file_path: ""
+  pub_topics: []
+  sub_topics:
+    - name: "/gps/fix"
+      type: "sensor_msgs/msg/NavSatFix"
+    - name: "/gps/vel"
+      type: "geometry_msgs/msg/TwistWithCovarianceStamped"
+    - name: "/ekf/odom"
+      type: "nav_msgs/msg/Odometry"
+    - name: "/ekf/filtered_imu"
+      type: "sensor_msgs/msg/Imu"
+  services: []
+  actions: []

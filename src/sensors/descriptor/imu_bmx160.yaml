@@ -1,0 +1,13 @@
+node_info:
+  pkg_name: "sensors"
+  executable_name: "imu_bmx160"
+  node_default_id: "bmx160_node"
+  default_config_file_path: "config/bmx160_config.yaml"
+  pub_topics:
+    - name: "imu_bmx160/data"
+      type: "sensor_msgs/msg/Imu"
+    - name: "imu_bmx160/mag"
+      type: "sensor_msgs/msg/MagneticField"
+  sub_topics: []
+  services: []
+  actions: []
