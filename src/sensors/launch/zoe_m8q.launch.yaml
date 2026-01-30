@@ -1,0 +1,8 @@
+launch:
+  - node:
+      pkg: sensors
+      exec: gps_zoe_m8q
+      name: gps_zoe_m8q
+      output: log
+      param:
+        - from: "$(find-pkg-share sensors)/config/zoe_m8q_config.yaml"

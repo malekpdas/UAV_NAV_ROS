@@ -1,0 +1,8 @@
+launch:
+  - node:
+      pkg: sensors
+      exec: lidar_lite_v3hp
+      name: lidar_lite_v3hp
+      output: log
+      param:
+        - from: "$(find-pkg-share sensors)/config/lite_v3hp_config.yaml"

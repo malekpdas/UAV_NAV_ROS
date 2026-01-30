@@ -1,0 +1,8 @@
+launch:
+  - node:
+      pkg: sensors
+      exec: imu_bmx160
+      name: imu_bmx160
+      output: log
+      param:
+        - from: "$(find-pkg-share sensors)/config/bmx160_config.yaml"
