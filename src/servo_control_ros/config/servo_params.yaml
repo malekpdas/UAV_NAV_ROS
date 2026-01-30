@@ -7,6 +7,8 @@
     sub_topics:
       channels: "rc/channels"
       mode: "rc/mode"
+      timeout_sec: 5.0
+      check_rate: 10.0
     
     Safety:
       arming_duration: 1.0

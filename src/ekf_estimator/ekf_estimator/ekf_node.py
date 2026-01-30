@@ -18,6 +18,7 @@ from nav_msgs.msg import Odometry
 import imufusion
 import numpy as np
 from tf2_ros import TransformBroadcaster
+import time
 
 from .ekf_core import LinearKalmanFilter, RobustLPFilter
 
@@ -33,21 +34,42 @@ class IMUGPSFusionNode(Node):
         # Declare and load ROS2 parameters
         self.declare_all_parameters()
         self.load_parameters()
+
+        topics = [
+            self.imu_topic,
+            self.mag_topic,
+            self.gps_fix_topic,
+            self.gps_vel_topic
+        ]
+        status, missing_topics = self.wait_for_topics(topics, self.timeout_sec, self.check_rate)
+        if not status:
+            self.get_logger().error(f'Topic(s) {missing_topics} not found, shutting down')
+            self._ok = False
+            return
         
         # AHRS Setup
-        self.offset = imufusion.Offset(self.params['ahrs']['offset_samples'])
+        self.offset = imufusion.Offset(self.ahrs_offset_samples)
         self.ahrs = imufusion.Ahrs()
         self.ahrs.settings = imufusion.Settings(
             imufusion.CONVENTION_NED,
-            self.params['ahrs']['gain'],
-            self.params['ahrs']['gyro_range'],
-            self.params['ahrs']['accel_rejection'],
-            self.params['ahrs']['mag_rejection'],
-            self.params['ahrs']['rejection_timeout']
+            self.ahrs_gain,
+            self.ahrs_gyro_range,
+            self.ahrs_accel_rejection,
+            self.ahrs_mag_rejection,
+            self.ahrs_rejection_timeout
         )
 
         # Kalman Filter for position/velocity estimation with bias
-        self.kf = LinearKalmanFilter(self.params['kalman_filter'])
+        self.kf = LinearKalmanFilter(
+            self.kf_initial_pos_uncertainty,
+            self.kf_initial_vel_uncertainty,
+            self.kf_initial_bias_uncertainty,
+            self.kf_process_noise_pos,
+            self.kf_process_noise_vel,
+            self.kf_process_noise_bias,
+            self.kf_measurement_noise_pos,
+            self.kf_measurement_noise_vel
+        )
         self.kf_initialized = False
         
         self.last_imu_time = None
@@ -59,7 +81,7 @@ class IMUGPSFusionNode(Node):
 
         # ROS2 Publishers
         self.odom_pub = self.create_publisher(Odometry, '/ekf/odom', 10)
-        if self.params['publish_acceleration']:
+        if self.publish_acceleration:
             self.accel_pub = self.create_publisher(Imu, '/ekf/linear_acceleration', 10)
         
         # TF Broadcaster
@@ -68,33 +90,56 @@ class IMUGPSFusionNode(Node):
         # ROS2 Subscriptions
         self.create_subscription(
             Imu, 
-            self.params['sub_topics']['imu'], 
+            self.imu_topic, 
             self.cb_imu, 
             10
         )
         self.create_subscription(
             MagneticField, 
-            self.params['sub_topics']['mag'], 
+            self.mag_topic, 
             self.cb_mag, 
             10
         )
         self.create_subscription(
             NavSatFix, 
-            self.params['sub_topics']['gps_fix'], 
+            self.gps_fix_topic, 
             self.cb_gps_fix, 
             10
         )
         self.create_subscription(
             TwistWithCovarianceStamped, 
-            self.params['sub_topics']['gps_vel'], 
+            self.gps_vel_topic, 
             self.cb_gps_vel, 
             10
         )
 
         # Low-pass filters
-        self.lp_filter_accel = RobustLPFilter(alpha=self.params['lp_filters']['accel_alpha'])
+        self.lp_filter_accel = RobustLPFilter(alpha=self.accel_alpha)
         
         self.get_logger().info('IMU/GPS Fusion Node initialized')
+
+    def wait_for_topics(self, topics, timeout_sec, rate_hz):
+        start = time.time()
+        period = 1.0 / rate_hz
+
+        while rclpy.ok():
+            
+            all_topics_ready = True
+            missing_topics = []
+
+            for topic in topics:
+                pubs = self.get_publishers_info_by_topic(topic)
+                if len(pubs) == 0:
+                    all_topics_ready = False
+                    missing_topics.append(topic)
+            
+            if all_topics_ready:
+                return True, missing_topics  # topic is being published
+
+            if time.time() - start > timeout_sec:
+                return False, missing_topics  # timeout
+
+            time.sleep(period)
 
     def declare_all_parameters(self):
         """Declare all ROS2 parameters with default values."""
@@ -110,6 +155,8 @@ class IMUGPSFusionNode(Node):
         self.declare_parameter('sub_topics.mag', '/imu/mag')
         self.declare_parameter('sub_topics.gps_fix', '/gps/fix')
         self.declare_parameter('sub_topics.gps_vel', '/gps/vel')
+        self.declare_parameter('timeout_sec', 5.0)
+        self.declare_parameter('check_rate', 10.0)
 
         self.declare_parameter('publish_acceleration', False)
         
@@ -145,46 +192,40 @@ class IMUGPSFusionNode(Node):
 
     def load_parameters(self):
         """Load all ROS2 parameters into a nested dictionary structure."""
-        self.params = {
-            'frames': {
-                'map': self.get_parameter('frames.map_frame').value,
-                'odom': self.get_parameter('frames.odom_frame').value,
-                'base_link': self.get_parameter('frames.base_link_frame').value,
-            },
-            'sub_topics': {
-                'imu': self.get_parameter('sub_topics.imu').value,
-                'mag': self.get_parameter('sub_topics.mag').value,
-                'gps_fix': self.get_parameter('sub_topics.gps_fix').value,
-                'gps_vel': self.get_parameter('sub_topics.gps_vel').value,
-            },
-            'publish_acceleration': self.get_parameter('publish_acceleration').value,
-            'ahrs': {
-                'offset_samples': self.get_parameter('ahrs.offset_samples').value,
-                'gain': self.get_parameter('ahrs.gain').value,
-                'gyro_range': self.get_parameter('ahrs.gyro_range').value,
-                'accel_rejection': self.get_parameter('ahrs.accel_rejection').value,
-                'mag_rejection': self.get_parameter('ahrs.mag_rejection').value,
-                'rejection_timeout': self.get_parameter('ahrs.rejection_timeout').value,
-            },
-            'kalman_filter': {
-                'initial_pos_uncertainty': self.get_parameter('kalman_filter.initial_pos_uncertainty').value,
-                'initial_vel_uncertainty': self.get_parameter('kalman_filter.initial_vel_uncertainty').value,
-                'initial_bias_uncertainty': self.get_parameter('kalman_filter.initial_bias_uncertainty').value,
-                'process_noise_pos': self.get_parameter('kalman_filter.process_noise_pos').value,
-                'process_noise_vel': self.get_parameter('kalman_filter.process_noise_vel').value,
-                'process_noise_bias': self.get_parameter('kalman_filter.process_noise_bias').value,
-                'measurement_noise_pos': self.get_parameter('kalman_filter.measurement_noise_pos').value,
-                'measurement_noise_vel': self.get_parameter('kalman_filter.measurement_noise_vel').value,
-            },
-            'lp_filters': {
-                'accel_alpha': self.get_parameter('lp_filters.accel_alpha').value,
-            },
-            'earth': {
-                'gravity': self.get_parameter('earth.gravity').value,
-                'radius': self.get_parameter('earth.radius').value,
-                'flattening': self.get_parameter('earth.flattening').value,
-            }
-        }
+        self.map_frame = self.get_parameter('frames.map_frame').value
+        self.odom_frame = self.get_parameter('frames.odom_frame').value
+        self.base_link_frame = self.get_parameter('frames.base_link_frame').value
+
+        self.imu_topic = self.get_parameter('sub_topics.imu').value
+        self.mag_topic = self.get_parameter('sub_topics.mag').value
+        self.gps_fix_topic = self.get_parameter('sub_topics.gps_fix').value
+        self.gps_vel_topic = self.get_parameter('sub_topics.gps_vel').value
+        self.timeout_sec = self.get_parameter('timeout_sec').value
+        self.check_rate = self.get_parameter('check_rate').value
+
+        self.publish_acceleration = self.get_parameter('publish_acceleration').value
+
+        self.ahrs_offset_samples = self.get_parameter('ahrs.offset_samples').value
+        self.ahrs_gain = self.get_parameter('ahrs.gain').value
+        self.ahrs_gyro_range = self.get_parameter('ahrs.gyro_range').value
+        self.ahrs_accel_rejection = self.get_parameter('ahrs.accel_rejection').value
+        self.ahrs_mag_rejection = self.get_parameter('ahrs.mag_rejection').value
+        self.ahrs_rejection_timeout = self.get_parameter('ahrs.rejection_timeout').value
+
+        self.kf_initial_pos_uncertainty = self.get_parameter('kalman_filter.initial_pos_uncertainty').value
+        self.kf_initial_vel_uncertainty = self.get_parameter('kalman_filter.initial_vel_uncertainty').value
+        self.kf_initial_bias_uncertainty = self.get_parameter('kalman_filter.initial_bias_uncertainty').value
+        self.kf_process_noise_pos = self.get_parameter('kalman_filter.process_noise_pos').value
+        self.kf_process_noise_vel = self.get_parameter('kalman_filter.process_noise_vel').value
+        self.kf_process_noise_bias = self.get_parameter('kalman_filter.process_noise_bias').value
+        self.kf_measurement_noise_pos = self.get_parameter('kalman_filter.measurement_noise_pos').value
+        self.kf_measurement_noise_vel = self.get_parameter('kalman_filter.measurement_noise_vel').value
+
+        self.lp_filter_accel_alpha = self.get_parameter('lp_filters.accel_alpha').value
+
+        self.earth_gravity = self.get_parameter('earth.gravity').value
+        self.earth_radius = self.get_parameter('earth.radius').value
+        self.earth_flattening = self.get_parameter('earth.flattening').value
 
     def msg_to_sec(self, stamp):
         """Convert ROS timestamp to seconds."""
@@ -256,7 +297,7 @@ class IMUGPSFusionNode(Node):
         # Get Earth Acceleration
         self.current_a_ned = (
             self.ahrs.earth_acceleration + 
-            np.array([0, 0, self.params['earth']['gravity']])
+            np.array([0, 0, self.gravity])
         )
         
         # Kalman Filter Prediction Step
@@ -309,8 +350,8 @@ class IMUGPSFusionNode(Node):
         # Create odometry message
         odom = Odometry()
         odom.header.stamp = stamp
-        odom.header.frame_id = self.params['frames']['odom']
-        odom.child_frame_id = self.params['frames']['base_link']
+        odom.header.frame_id = self.odom_frame
+        odom.child_frame_id = self.base_link_frame
         
         # Position (NED)
         odom.pose.pose.position.x = pos[0]  # (North)
@@ -354,15 +395,15 @@ class IMUGPSFusionNode(Node):
         self.publish_tf(stamp, pos, q)
         
         # Optionally publish filtered acceleration
-        if self.params['publish_acceleration']:
+        if self.publish_acceleration:
             self.publish_filtered_imu(stamp)
 
     def publish_tf(self, stamp, pos_ned, q):
         """Publish TF transform from odom to base_link."""
         t = TransformStamped()
         t.header.stamp = stamp
-        t.header.frame_id = self.params['frames']['odom']
-        t.child_frame_id = self.params['frames']['base_link']
+        t.header.frame_id = self.odom_frame
+        t.child_frame_id = self.base_link_frame
         
         # Position (NED)
         t.transform.translation.x = pos_ned[0]  # North
@@ -381,12 +422,12 @@ class IMUGPSFusionNode(Node):
         """Publish filtered IMU data with gravity-removed acceleration."""
         imu_msg = Imu()
         imu_msg.header.stamp = stamp
-        imu_msg.header.frame_id = self.params['frames']['base_link']
+        imu_msg.header.frame_id = self.base_link_frame
         
         # Linear acceleration (gravity already removed by AHRS, convert NED to ENU)
         accel_ned = (
             self.ahrs.earth_acceleration + 
-            np.array([0, 0, self.params['earth']['gravity']])
+            np.array([0, 0, self.gravity])
         ) - self.kf.x[6:9]
         imu_msg.linear_acceleration.x = float(accel_ned[0])  # North
         imu_msg.linear_acceleration.y = float(accel_ned[1])  # East
@@ -410,8 +451,8 @@ class IMUGPSFusionNode(Node):
 
     def lla_to_ned(self, lat, lon, alt):
         """Convert latitude, longitude, altitude to local NED coordinates."""
-        R = self.params['earth']['radius']
-        f = self.params['earth']['flattening']
+        R = self.radius
+        f = self.flattening
         e2 = 2*f - f**2
         
         lat_rad, lon_rad = np.radians(lat), np.radians(lon)

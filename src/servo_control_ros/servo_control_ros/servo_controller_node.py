@@ -9,11 +9,19 @@ import os
 import sys
 
 class ServoControllerNode(Node):
+    
     def __init__(self):
         super().__init__('servo_controller_node')
         
         self.declare_all_params()
         self.load_parameters()
+
+        topics = [self.channels_topics, self.mode_topics]
+        status, missing_topics = self.wait_for_topics(topics, self.timeout_sec, self.check_rate)
+        if not status:
+            self.get_logger().error(f'Topic(s) {missing_topics} not found, shutting down')
+            self._ok = False
+            return
         
         # Pre-calculate PWM period for efficiency
         self.pwm_period_us = 1_000_000 / self.pwm_freq  # 20,000 us for 50Hz
@@ -61,6 +69,29 @@ class ServoControllerNode(Node):
         self.arm_esc()
         self.get_logger().info('Servo Controller Node Ready')
 
+    def wait_for_topics(self, topics, timeout_sec, rate_hz):
+        start = time.time()
+        period = 1.0 / rate_hz
+
+        while rclpy.ok():
+            
+            all_topics_ready = True
+            missing_topics = []
+
+            for topic in topics:
+                pubs = self.get_publishers_info_by_topic(topic)
+                if len(pubs) == 0:
+                    all_topics_ready = False
+                    missing_topics.append(topic)
+            
+            if all_topics_ready:
+                return True, missing_topics  # topic is being published
+
+            if time.time() - start > timeout_sec:
+                return False, missing_topics  # timeout
+
+            time.sleep(period)
+       
     def declare_all_params(self):
         self.declare_parameter('gpiochip', 4)
         self.declare_parameter('pwm_freq', 50)
@@ -68,6 +99,8 @@ class ServoControllerNode(Node):
         # topics
         self.declare_parameter('sub_topics.channels', 'rc/channels')
         self.declare_parameter('sub_topics.mode', 'rc/mode')
+        self.declare_parameter('timeout_sec', 5.0)
+        self.declare_parameter('check_rate', 10.0)
 
         # Safety parameters
         self.declare_parameter('Safety.arming_duration', 5.0)
@@ -98,6 +131,8 @@ class ServoControllerNode(Node):
         # topics
         self.channels_topics = self.get_parameter('sub_topics.channels').value
         self.mode_topics = self.get_parameter('sub_topics.mode').value
+        self.timeout_sec = self.get_parameter('timeout_sec').value
+        self.check_rate = self.get_parameter('check_rate').value
 
         # Safety parameters
         self.arming_duration = self.get_parameter('Safety.arming_duration').value

@@ -5,7 +5,7 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     pkg_share = get_package_share_directory('ekf_estimator')
-    config = os.path.join(pkg_share, 'config', 'ekf_params.yaml')
+    config = os.path.join(pkg_share, 'config', 'ekf_config.yaml')
 
     return LaunchDescription([
         Node(

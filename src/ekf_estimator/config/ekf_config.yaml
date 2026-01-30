@@ -1,4 +1,4 @@
-/ekf2_node:
+/ekf_node:
   ros__parameters:
     frames:
       map_frame: 'map'
@@ -10,6 +10,8 @@
       mag: '/imu/mag'
       gps_fix: '/gps/fix'
       gps_vel: '/gps/vel'
+      timeout_sec: 5.0
+      check_rate: 10.0
 
     publish_acceleration: true
     

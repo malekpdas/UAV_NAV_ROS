@@ -23,6 +23,7 @@ import numpy.linalg as la
 import matplotlib.pyplot as plt
 from collections import deque
 from scipy.optimize import least_squares
+import time
 
 
 def unit(v):
@@ -137,6 +138,13 @@ class MagCalNode(Node):
         self.declare_all_parameters()
         self.load_parameters()
 
+        topics = [self.mag_topic]
+        status, missing_topics = self.wait_for_topics(topics, self.timeout_sec, self.check_rate)
+        if not status:
+            self.get_logger().error(f'Topic(s) {missing_topics} not found, shutting down')
+            self._ok = False
+            return
+
         self.sub = self.create_subscription(
             MagneticField,
             self.mag_topic,
@@ -155,8 +163,33 @@ class MagCalNode(Node):
         self.fig, self.axes = plt.subplots(1, 3, figsize=(12, 4))
         self.ax_xy, self.ax_xz, self.ax_yz = self.axes
 
+    def wait_for_topics(self, topics, timeout_sec, rate_hz):
+            start = time.time()
+            period = 1.0 / rate_hz
+
+            while rclpy.ok():
+                
+                all_topics_ready = True
+                missing_topics = []
+
+                for topic in topics:
+                    pubs = self.get_publishers_info_by_topic(topic)
+                    if len(pubs) == 0:
+                        all_topics_ready = False
+                        missing_topics.append(topic)
+                
+                if all_topics_ready:
+                    return True, missing_topics  # topic is being published
+
+                if time.time() - start > timeout_sec:
+                    return False, missing_topics  # timeout
+
+                time.sleep(period)
+                
     def declare_all_parameters(self):
         self.declare_parameter('topics.mag', 'imu/mag')
+        self.declare_parameter('timeout_sec', 5.0)
+        self.declare_parameter('check_rate', 10.0)
 
         self.declare_parameter('max_samples', 50000)
         self.declare_parameter('min_samples', 400)
@@ -166,6 +199,8 @@ class MagCalNode(Node):
 
     def load_parameters(self):
         self.mag_topic = self.get_parameter('topics.mag').value
+        self.timeout_sec = self.get_parameter('timeout_sec').value
+        self.check_rate = self.get_parameter('check_rate').value
 
         self.max_samples = self.get_parameter('max_samples').value
         self.min_samples = self.get_parameter('min_samples').value
@@ -300,6 +335,11 @@ class MagCalNode(Node):
 def main():
     rclpy.init()
     node = MagCalNode()
+
+    if not getattr(node, '_ok', True):
+        rclpy.shutdown()
+        return
+
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
