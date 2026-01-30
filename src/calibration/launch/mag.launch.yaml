@@ -1,0 +1,8 @@
+launch:
+  - node:
+      pkg: calibration
+      exec: mag_calibration
+      name: mag_calibration
+      output: log
+      param:
+        - from: "$(find-pkg-share calibration)/config/mag_cal_config.yaml"

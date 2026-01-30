@@ -1,0 +1,11 @@
+/mag_calibration:
+  ros__parameters:
+    max_samples: 50000
+    min_samples: 400
+    angular_bins: 6
+    gap_threshold_percent: 1.0
+    plot_every_n: 50
+
+    topics:
+      mag: /imu/mag
+      
