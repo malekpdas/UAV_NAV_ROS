@@ -1,17 +1,138 @@
 """
 Library for parsing UBX protocol messages from u-blox GPS receivers.
+Supports both I2C and UART interfaces.
 """
 import time
 import struct
 from dataclasses import dataclass
-from typing import Optional
-from smbus2 import SMBus, i2c_msg
+from typing import Optional, Union
+from abc import ABC, abstractmethod
+
+# I2C imports (optional - may not be available on all systems)
+try:
+    from smbus2 import SMBus, i2c_msg
+    I2C_AVAILABLE = True
+except ImportError:
+    I2C_AVAILABLE = False
+
+# UART imports
+try:
+    import serial
+    UART_AVAILABLE = True
+except ImportError:
+    UART_AVAILABLE = False
 
 # Constants
 I2C_BUS = 1
 DEFAULT_GPS_ADDR = 0x42
 REG_STREAM = 0xFF
 READ_LEN = 128
+
+# Default UART settings for ZOE-M8Q
+DEFAULT_UART_PORT = '/dev/ttyAMA0'  # RPi UART0 (GPIO 14/15)
+DEFAULT_UART_BAUD = 9600            # ZOE-M8Q default baud
+
+
+# =============================================================================
+# Interface Abstraction
+# =============================================================================
+
+class GPSInterface(ABC):
+    """Abstract base class for GPS communication interface."""
+    
+    @abstractmethod
+    def write(self, data: bytes) -> bool:
+        """Write data to GPS module."""
+        pass
+    
+    @abstractmethod
+    def read(self, n: int = READ_LEN) -> bytes:
+        """Read up to n bytes from GPS module."""
+        pass
+    
+    @abstractmethod
+    def close(self):
+        """Close the interface."""
+        pass
+
+
+class I2CInterface(GPSInterface):
+    """I2C interface for GPS communication."""
+    
+    def __init__(self, bus: int = I2C_BUS, address: int = DEFAULT_GPS_ADDR):
+        if not I2C_AVAILABLE:
+            raise ImportError("smbus2 not available for I2C communication")
+        self.address = address
+        self.bus = SMBus(bus)
+    
+    def write(self, data: bytes) -> bool:
+        try:
+            for i in range(0, len(data), 32):
+                self.bus.write_i2c_block_data(self.address, REG_STREAM, list(data[i:i+32]))
+                time.sleep(0.002)
+            return True
+        except Exception:
+            return False
+    
+    def read(self, n: int = READ_LEN) -> bytes:
+        try:
+            msg = i2c_msg.read(self.address, n)
+            self.bus.i2c_rdwr(msg)
+            return bytes(msg)
+        except Exception:
+            return b''
+    
+    def close(self):
+        try:
+            self.bus.close()
+        except Exception:
+            pass
+
+
+class UARTInterface(GPSInterface):
+    """UART interface for GPS communication."""
+    
+    def __init__(self, port: str = DEFAULT_UART_PORT, baudrate: int = DEFAULT_UART_BAUD):
+        if not UART_AVAILABLE:
+            raise ImportError("pyserial not available for UART communication")
+        self.serial = serial.Serial(
+            port=port,
+            baudrate=baudrate,
+            timeout=0.1,  # Non-blocking with short timeout
+            bytesize=serial.EIGHTBITS,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE
+        )
+        # Flush any stale data
+        self.serial.reset_input_buffer()
+    
+    def write(self, data: bytes) -> bool:
+        try:
+            self.serial.write(data)
+            self.serial.flush()
+            return True
+        except Exception:
+            return False
+    
+    def read(self, n: int = READ_LEN) -> bytes:
+        try:
+            # Read available data up to n bytes
+            available = self.serial.in_waiting
+            if available > 0:
+                return self.serial.read(min(available, n))
+            return b''
+        except Exception:
+            return b''
+    
+    def close(self):
+        try:
+            self.serial.close()
+        except Exception:
+            pass
+    
+    def set_baudrate(self, baudrate: int):
+        """Change UART baudrate (after GPS config)."""
+        self.serial.baudrate = baudrate
 
 @dataclass
 class NAVPVTData:
@@ -252,12 +373,92 @@ def ubx_pack(cls_, id_, payload):
     ck = ubx_ck(head[2:] + payload)
     return bytes(head + payload + [ck[0], ck[1]])
 
+
+# =============================================================================
+# Interface-agnostic configuration functions (NEW API)
+# =============================================================================
+
+def configure_rate(interface: GPSInterface, hz: float = 1.0):
+    """Set GPS measurement rate (works with any interface)."""
+    meas_ms = max(10, int(round(1000.0 / hz)))
+    payload = [
+        meas_ms & 0xFF, (meas_ms >> 8) & 0xFF,
+        0x01, 0x00,  # navRate = 1
+        0x01, 0x00   # timeRef = GPS
+    ]
+    interface.write(ubx_pack(0x06, 0x08, payload))
+
+def configure_msg_rate(interface: GPSInterface, cls_: int, id_: int, rate: int):
+    """Configure message rate (works with any interface)."""
+    interface.write(ubx_pack(0x06, 0x01, [cls_, id_, rate]))
+
+def configure_nav_pvt_only(interface: GPSInterface):
+    """Enable only NAV-PVT messages, disable NMEA (works with any interface)."""
+    # Disable NMEA messages
+    for mid in [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x07, 0x08, 0x09, 0x0D]:
+        configure_msg_rate(interface, 0xF0, mid, 0x00)
+        time.sleep(0.01)  # Small delay between commands
+    # Enable NAV-PVT
+    configure_msg_rate(interface, 0x01, 0x07, 0x01)
+
+
+def configure_uart_baudrate(interface: UARTInterface, new_baud: int = 115200):
+    """
+    Configure GPS module to use a higher UART baud rate.
+    
+    This sends CFG-PRT command to change GPS UART1 baud rate,
+    then switches local serial port to match.
+    
+    Common baud rates: 9600, 19200, 38400, 57600, 115200, 230400
+    For 15Hz+ you need at least 38400, 115200 recommended.
+    """
+    # UBX-CFG-PRT (0x06 0x00) - Configure UART1 port
+    # Payload: portID, reserved, txReady, mode, baudRate, inProtoMask, outProtoMask, flags, reserved2
+    port_id = 0x01  # UART1
+    tx_ready = 0x0000  # Disabled
+    mode = 0x000008D0  # 8N1 (8 data bits, no parity, 1 stop bit)
+    in_proto = 0x0007  # UBX + NMEA + RTCM
+    out_proto = 0x0001  # UBX only
+    flags = 0x0000
+    
+    payload = [
+        port_id,
+        0x00,  # reserved
+        tx_ready & 0xFF, (tx_ready >> 8) & 0xFF,
+        mode & 0xFF, (mode >> 8) & 0xFF, (mode >> 16) & 0xFF, (mode >> 24) & 0xFF,
+        new_baud & 0xFF, (new_baud >> 8) & 0xFF, (new_baud >> 16) & 0xFF, (new_baud >> 24) & 0xFF,
+        in_proto & 0xFF, (in_proto >> 8) & 0xFF,
+        out_proto & 0xFF, (out_proto >> 8) & 0xFF,
+        flags & 0xFF, (flags >> 8) & 0xFF,
+        0x00, 0x00  # reserved
+    ]
+    
+    # Send at current baud rate
+    interface.write(ubx_pack(0x06, 0x00, payload))
+    time.sleep(0.1)  # Wait for GPS to process
+    
+    # Switch local UART to new baud rate
+    interface.set_baudrate(new_baud)
+    time.sleep(0.1)  # Wait for connection to stabilize
+
+
+def read_from_interface(interface: GPSInterface, n: int = READ_LEN) -> bytes:
+    """Read data from interface (works with any interface)."""
+    return interface.read(n)
+
+
+# =============================================================================
+# Legacy I2C-specific functions (for backward compatibility)
+# =============================================================================
+
 def i2c_write(bus, data: bytes):
+    """Legacy: Direct I2C write (use GPSInterface.write instead)."""
     for i in range(0, len(data), 32):
         bus.write_i2c_block_data(DEFAULT_GPS_ADDR, REG_STREAM, list(data[i:i+32]))
         time.sleep(0.002)
 
 def set_rate_hz(bus, hz=1.0):
+    """Legacy: Set rate via I2C bus (use configure_rate instead)."""
     meas_ms = max(10, int(round(1000.0 / hz)))
     payload = [
         meas_ms & 0xFF, (meas_ms >> 8) & 0xFF,
@@ -267,9 +468,11 @@ def set_rate_hz(bus, hz=1.0):
     i2c_write(bus, ubx_pack(0x06, 0x08, payload))
 
 def cfg_msg_rate(bus, cls_, id_, rate):
+    """Legacy: Configure message rate via I2C (use configure_msg_rate instead)."""
     i2c_write(bus, ubx_pack(0x06, 0x01, [cls_, id_, rate]))
 
 def enable_nav_pvt_only(bus):
+    """Legacy: Enable NAV-PVT only via I2C (use configure_nav_pvt_only instead)."""
     # Disable NMEA
     for mid in [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x07, 0x08, 0x09, 0x0D]:
         cfg_msg_rate(bus, 0xF0, mid, 0x00)
@@ -277,9 +480,17 @@ def enable_nav_pvt_only(bus):
     cfg_msg_rate(bus, 0x01, 0x07, 0x01)
 
 def read_chunk(bus, n=READ_LEN):
-    msg = i2c_msg.read(DEFAULT_GPS_ADDR, n)
-    bus.i2c_rdwr(msg)
-    return bytes(msg)
+    """Legacy: Read chunk via I2C (use read_from_interface instead)."""
+    if I2C_AVAILABLE:
+        msg = i2c_msg.read(DEFAULT_GPS_ADDR, n)
+        bus.i2c_rdwr(msg)
+        return bytes(msg)
+    return b''
+
+
+# =============================================================================
+# UBX Stream Parser
+# =============================================================================
 
 def parse_ubx_stream(buf):
     """
@@ -309,3 +520,4 @@ def parse_ubx_stream(buf):
         else:
             i += 1
     return out, buf[i:] if i < L else bytearray()
+

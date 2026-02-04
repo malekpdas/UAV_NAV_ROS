@@ -1,9 +1,12 @@
 /gps_zoe_m8q:
   ros__parameters:
-    rate_hz: 10.0
+    # Interface: 'i2c' or 'uart' (hardware settings are hardcoded)
+    interface_type: "uart"
+
+    rate_hz: 18.0
     frame_id: "gps_link"
     
-    # Standard Deviation Defauts (used if sensor accuracy is 0/invalid)
+    # Standard Deviation Defaults (used if sensor accuracy is 0/invalid)
     sensor_variance:
       # Position: [lat, lon, alt] in meters
       pos_std: [4.0, 4.0, 10.0]
