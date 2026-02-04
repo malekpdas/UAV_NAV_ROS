@@ -1,4 +1,4 @@
-/ekf_node:
+/sensor_fusion:
   ros__parameters:
     frames:
       map_frame: 'map'

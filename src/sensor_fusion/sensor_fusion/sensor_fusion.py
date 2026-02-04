@@ -20,7 +20,8 @@ import numpy as np
 from tf2_ros import TransformBroadcaster
 import time
 
-from .ekf_core import LinearKalmanFilter, RobustLPFilter
+from sensor_fusion.lib.ekf_core import LinearKalmanFilter, RobustLPFilter
+from sensor_fusion.lib.utils import lla_to_ned
 
 
 class IMUGPSFusionNode(Node):
@@ -155,8 +156,8 @@ class IMUGPSFusionNode(Node):
         self.declare_parameter('sub_topics.mag', '/imu/mag')
         self.declare_parameter('sub_topics.gps_fix', '/gps/fix')
         self.declare_parameter('sub_topics.gps_vel', '/gps/vel')
-        self.declare_parameter('timeout_sec', 5.0)
-        self.declare_parameter('check_rate', 10.0)
+        self.declare_parameter('sub_topics.timeout_sec', 5.0)
+        self.declare_parameter('sub_topics.check_rate', 10.0)
 
         self.declare_parameter('publish_acceleration', False)
         
@@ -200,8 +201,8 @@ class IMUGPSFusionNode(Node):
         self.mag_topic = self.get_parameter('sub_topics.mag').value
         self.gps_fix_topic = self.get_parameter('sub_topics.gps_fix').value
         self.gps_vel_topic = self.get_parameter('sub_topics.gps_vel').value
-        self.timeout_sec = self.get_parameter('timeout_sec').value
-        self.check_rate = self.get_parameter('check_rate').value
+        self.timeout_sec = self.get_parameter('sub_topics.timeout_sec').value
+        self.check_rate = self.get_parameter('sub_topics.check_rate').value
 
         self.publish_acceleration = self.get_parameter('publish_acceleration').value
 
@@ -449,28 +450,14 @@ class IMUGPSFusionNode(Node):
         
         self.accel_pub.publish(imu_msg)
 
-    def lla_to_ned(self, lat, lon, alt):
-        """Convert latitude, longitude, altitude to local NED coordinates."""
-        R = self.radius
-        f = self.flattening
-        e2 = 2*f - f**2
-        
-        lat_rad, lon_rad = np.radians(lat), np.radians(lon)
-        lat0_rad = np.radians(self.origin[0])
-        lon0_rad = np.radians(self.origin[1])
-        
-        N = R / np.sqrt(1 - e2 * np.sin(lat0_rad)**2)
-        M = R * (1 - e2) / (1 - e2 * np.sin(lat0_rad)**2)**1.5
-        
-        return np.array([
-            (lat_rad - lat0_rad) * (M + self.origin[2]),
-            (lon_rad - lon0_rad) * (N + self.origin[2]) * np.cos(lat0_rad),
-            -(alt - self.origin[2])
-        ])
-
 def main():
     rclpy.init()
     node = IMUGPSFusionNode()
+
+    if not getattr(node, '_ok', True):
+        rclpy.shutdown()
+        return
+
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

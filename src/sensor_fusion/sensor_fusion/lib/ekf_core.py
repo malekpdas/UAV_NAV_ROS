@@ -10,9 +10,6 @@ Supports separated measurement updates:
 
 import numpy as np
 
-
-
-
 class LPFilter:
     """Low-pass filter for sensor data smoothing."""
     

@@ -4,14 +4,14 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 
 def generate_launch_description():
-    pkg_share = get_package_share_directory('ekf_estimator')
-    config = os.path.join(pkg_share, 'config', 'ekf_config.yaml')
+    pkg_share = get_package_share_directory('sensor_fusion')
+    config = os.path.join(pkg_share, 'config', 'sensor_fusion_config.yaml')
 
     return LaunchDescription([
         Node(
-            package='ekf_estimator',
-            executable='ekf_node',
-            name='ekf_node',
+            package='sensor_fusion',
+            executable='sensor_fusion',
+            name='sensor_fusion',
             output='log',
             parameters=[config],
         ),

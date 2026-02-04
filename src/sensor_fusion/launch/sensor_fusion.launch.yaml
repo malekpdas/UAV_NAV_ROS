@@ -1,0 +1,8 @@
+launch:
+  - node:
+      pkg: sensor_fusion
+      exec: sensor_fusion
+      name: sensor_fusion
+      output: log
+      param:
+        - from: "$(find-pkg-share sensor_fusion)/config/sensor_fusion_config.yaml"
