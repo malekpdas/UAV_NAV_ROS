@@ -87,6 +87,10 @@ class BNO085:
             'accuracy_status': 0
         }
         self._initialized = False
+        
+        # Sanity limits for data validation
+        self._accel_max = 78.5  # ~8g in m/s^2
+        self._gyro_max = 34.9   # ~2000 deg/s in rad/s
 
     def begin(self) -> bool:
         """Initialize the sensor with extended soft reset timing."""
@@ -169,11 +173,10 @@ class BNO085:
 
     def get_data(self):
         """Poll sensor and return latest data dictionary."""
-        # Poll up to 2 times to drain FIFO without blocking too long
-        for _ in range(2):
-            ch, data = self._read_packet()
-            if ch == CHANNEL_REPORTS and data:
-                self._parse_input_reports(data)
+        # Single poll per call - node timer handles rate
+        ch, data = self._read_packet()
+        if ch == CHANNEL_REPORTS and data:
+            self._parse_input_reports(data)
         return self.data
 
     # ========================================================================
@@ -192,19 +195,24 @@ class BNO085:
     def _read_packet(self):
         """Read SHTP packet, return (channel, payload) or (None, None)."""
         try:
-            # Read 64 bytes to cover batched reports (Accel+Gyro+Mag = ~30 bytes + overhead)
-            # 64 * 9bits / 100kHz ~= 5.8ms. Safe for 100Hz.
-            r = i2c_msg.read(self.i2c_addr, 32)
+            # Read 48 bytes (Accel+Gyro+Mag = ~34 bytes + overhead)
+            r = i2c_msg.read(self.i2c_addr, 48)
             self.i2cbus.i2c_rdwr(r)
             buf = list(r)
             
             length = ((buf[1] & 0x7F) << 8) | buf[0]
             channel = buf[2]
             
-            if length <= 4 or length > 128:
+            # Validate packet length
+            if length <= 4 or length > 48:
                 return None, None
             
-            return channel, buf[4:length]
+            # Ensure we have enough data
+            payload_len = min(length - 4, len(buf) - 4)
+            if payload_len <= 0:
+                return None, None
+            
+            return channel, buf[4:4 + payload_len]
         except:
             return None, None
 
@@ -239,11 +247,12 @@ class BNO085:
             # Accelerometer (0x01) - 10 bytes
             elif report_id == REPORT_ACCELEROMETER:
                 if i + 10 <= len(data):
-                    self.data['accel'] = [
-                        self._int16(data, i+4) * Q_POINT_8,
-                        self._int16(data, i+6) * Q_POINT_8,
-                        self._int16(data, i+8) * Q_POINT_8
-                    ]
+                    ax = self._int16(data, i+4) * Q_POINT_8
+                    ay = self._int16(data, i+6) * Q_POINT_8
+                    az = self._int16(data, i+8) * Q_POINT_8
+                    # Sanity check: reject corrupt data
+                    if abs(ax) < self._accel_max and abs(ay) < self._accel_max and abs(az) < self._accel_max:
+                        self.data['accel'] = [ax, ay, az]
                     i += 10
                 else:
                     break
@@ -251,11 +260,12 @@ class BNO085:
             # Gyroscope (0x02) - 10 bytes
             elif report_id == REPORT_GYROSCOPE:
                 if i + 10 <= len(data):
-                    self.data['gyro'] = [
-                        self._int16(data, i+4) * Q_POINT_9,
-                        self._int16(data, i+6) * Q_POINT_9,
-                        self._int16(data, i+8) * Q_POINT_9
-                    ]
+                    gx = self._int16(data, i+4) * Q_POINT_9
+                    gy = self._int16(data, i+6) * Q_POINT_9
+                    gz = self._int16(data, i+8) * Q_POINT_9
+                    # Sanity check: reject corrupt data
+                    if abs(gx) < self._gyro_max and abs(gy) < self._gyro_max and abs(gz) < self._gyro_max:
+                        self.data['gyro'] = [gx, gy, gz]
                     i += 10
                 else:
                     break
