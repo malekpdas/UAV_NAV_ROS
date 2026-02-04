@@ -17,11 +17,11 @@ class BNO085Node(Node):
         self.declare_all_parameters()
         self.load_parameters()
 
-        self.imu = BNO085(self.i2c_bus, self.i2c_addr)
+        self.imu = BNO085(1, BNO085_I2C_ADDR_DEFAULT)
         if self.imu.begin():
-            self.get_logger().info(f'✅ BNO085 init OK on bus {self.i2c_bus} at address 0x{self.i2c_addr:02X}')
+            self.get_logger().info(f'✅ BNO085 init OK on bus {1} at address 0x{BNO085_I2C_ADDR_DEFAULT:02X}')
         else:
-            self.get_logger().fatal(f'❌ BNO085 init FAILED on bus {self.i2c_bus} at address 0x{self.i2c_addr:02X}')
+            self.get_logger().fatal(f'❌ BNO085 init FAILED on bus {1} at address 0x{BNO085_I2C_ADDR_DEFAULT:02X}')
             self._ok = False
             return
 
@@ -43,10 +43,6 @@ class BNO085Node(Node):
         self.timer = self.create_timer(period, self.tick)
 
     def declare_all_parameters(self):
-        # i2c connection
-        self.declare_parameter('i2c_interface.bus', 1)
-        self.declare_parameter('i2c_interface.address', BNO085_I2C_ADDR_DEFAULT)
-        
         # imu
         self.declare_parameter('rate_hz', 100.0)
         self.declare_parameter('frame_id', 'imu_link')
@@ -69,10 +65,6 @@ class BNO085Node(Node):
         self.declare_parameter('transformation.mag_decl', 0.0)
 
     def load_parameters(self):
-        # i2c connection
-        self.i2c_bus = self.get_parameter('i2c_interface.bus').value
-        self.i2c_addr = self.get_parameter('i2c_interface.address').value
-
         # imu
         self.rate_hz = self.get_parameter('rate_hz').value
         self.frame_id = self.get_parameter('frame_id').value

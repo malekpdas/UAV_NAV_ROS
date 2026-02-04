@@ -1,9 +1,5 @@
 /imu_bno085:
   ros__parameters:
-    i2c_interface:
-      bus: 1
-      address: 0x4A
-
     rate_hz: 100.0
     frame_id: "imu_link"
     

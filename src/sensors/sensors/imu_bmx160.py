@@ -8,7 +8,7 @@ from rclpy.node import Node
 from rcl_interfaces.msg import ParameterEvent
 from scipy.spatial.transform import Rotation as R
 from sensor_msgs.msg import Imu, MagneticField
-from sensors.bmx160.bmx160_lib import BMX160, GyroRange, AccelRange
+from sensors.bmx160.bmx160_lib import BMX160, GyroRange, AccelRange, _DEFAULT_I2C_ADDR
 
 class BMX160Node(Node):
     def __init__(self):
@@ -18,9 +18,9 @@ class BMX160Node(Node):
         self.load_parameters()
         
         # Initialize Sensor
-        self.imu = BMX160(self.i2c_bus, self.i2c_address)
+        self.imu = BMX160(1, _DEFAULT_I2C_ADDR)
         if self.imu.begin():
-            self.get_logger().info(f'✅ BMX160 init OK on bus {self.i2c_bus} at address 0x{self.i2c_address:02X}')
+            self.get_logger().info(f'✅ BMX160 init OK on bus {1} at address 0x{_DEFAULT_I2C_ADDR:02X}')
     
             # Configure gyro range (±500°/s is good for most applications)
             self.imu.set_gyro_range(GyroRange.DPS_500)
@@ -31,7 +31,7 @@ class BMX160Node(Node):
             self.get_logger().info(f'✅ Gyro configured: {GyroRange.DPS_500} sensitivity')
             self.get_logger().info(f'✅ Accel configured: {AccelRange.G_4} sensitivity')
         else:
-            self.get_logger().fatal(f'❌ BMX160 init FAILED on bus {self.i2c_bus} at address 0x{self.i2c_address:02X}')
+            self.get_logger().fatal(f'❌ BMX160 init FAILED on bus {1} at address 0x{_DEFAULT_I2C_ADDR:02X}')
             self._ok = False
             return
 
@@ -56,10 +56,6 @@ class BMX160Node(Node):
         self.timer = self.create_timer(period, self.tick)
 
     def declare_all_parameters(self):
-        # Parameters
-        self.declare_parameter('i2c_interface.bus', 1)
-        self.declare_parameter('i2c_interface.address', 0x68)
-
         self.declare_parameter('rate_hz', 100.0)
         self.declare_parameter('frame_id', 'imu_link')
         
@@ -81,10 +77,6 @@ class BMX160Node(Node):
         self.declare_parameter('sensor_calibration.mag_transform', [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0])
 
     def load_parameters(self):
-        # i2c connection
-        self.i2c_bus = self.get_parameter('i2c_interface.bus').value
-        self.i2c_address = self.get_parameter('i2c_interface.address').value
-
         # imu rate
         self.rate_hz = self.get_parameter('rate_hz').value
         self.frame_id = self.get_parameter('frame_id').value

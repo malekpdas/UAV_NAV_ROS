@@ -1,9 +1,5 @@
 /imu_bmx160:
   ros__parameters:
-    i2c_interface:
-      bus: 1
-      address: 0x68
-
     rate_hz: 100.0
     frame_id: "imu_link"
     

@@ -23,14 +23,13 @@ class ZoeM8QNode(Node):
 
         # I2C Setup
         try:
-            DEFAULT_GPS_ADDR = self.address
-            self.bus = SMBus(self.bus_num)
+            self.bus = SMBus(1)
             set_rate_hz(self.bus, self.rate_hz)
             enable_nav_pvt_only(self.bus)
-            self.get_logger().info(f'✅ Configured GPS: {self.rate_hz} Hz, UBX-NAV-PVT only on bus {self.bus_num} at address 0x{self.address:02X}')
+            self.get_logger().info(f'✅ Configured GPS: {self.rate_hz} Hz, UBX-NAV-PVT only on bus {1} at address 0x{DEFAULT_GPS_ADDR:02X}')
             time.sleep(0.25) # Wait for config to take effect
         except Exception as e:
-            self.get_logger().error(f'❌ GPS Config error: {e}, on bus {self.bus_num} at address 0x{self.address:02X}')
+            self.get_logger().error(f'❌ GPS Config error: {e}, on bus {1} at address 0x{DEFAULT_GPS_ADDR:02X}')
             self._ok = False
             return
 
@@ -42,9 +41,6 @@ class ZoeM8QNode(Node):
 
     def declare_all_parameters(self):
         # Parameters
-        self.declare_parameter('i2c_interface.bus', 1)
-        self.declare_parameter('i2c_interface.address', DEFAULT_GPS_ADDR)
-        
         self.declare_parameter('rate_hz', 10.0)
         self.declare_parameter('frame_id', 'gps_link')
 
@@ -54,9 +50,6 @@ class ZoeM8QNode(Node):
         self.declare_parameter('sensor_variance.vel_std', [0.5]) # m/s (speed accuracy)
 
     def load_parameters(self):
-        self.bus_num = int(self.get_parameter('i2c_interface.bus').value)
-        self.address = int(self.get_parameter('i2c_interface.address').value)
-
         self.rate_hz = float(self.get_parameter('rate_hz').value)
         self.frame_id = self.get_parameter('frame_id').value
         

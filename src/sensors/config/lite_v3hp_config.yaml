@@ -1,9 +1,5 @@
 lidar_lite_node:
   ros__parameters:
-    i2c_interface:
-      bus: 1
-      address: 0x62
-
     frequency: 100.0
     frame_id: "lidar_link"
 

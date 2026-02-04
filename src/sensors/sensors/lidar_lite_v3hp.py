@@ -12,34 +12,10 @@ class LidarLiteNode(Node):
     def __init__(self):
         super().__init__('lidar_lite_node')
         
-        # I2C Interface Parameters
-        self.declare_parameter('i2c_interface.bus', 1)
-        self.declare_parameter('i2c_interface.address', DEFAULT_ADDRESS)
-
-        # ROS Parameters
-        self.declare_parameter('frequency', 100.0) # Hz
-        self.declare_parameter('frame_id', 'lidar_link')
-
-        # Sensor Configuration Parameters
-        self.declare_parameter('sensor_config.min_range', 0.05)
-        self.declare_parameter('sensor_config.max_range', 40.0)
-        self.declare_parameter('sensor_config.preset', 'balanced')
-        self.declare_parameter('sensor_config.sig_count_val', -1)
-        self.declare_parameter('sensor_config.acq_config_reg', -1)
-        self.declare_parameter('sensor_config.threshold_bypass', -1)
-        self.declare_parameter('sensor_config.ref_count_val', -1)
-        
-        self.bus_id = self.get_parameter('i2c_interface.bus').value
-        self.address = self.get_parameter('i2c_interface.address').value
-
-        self.freq = self.get_parameter('frequency').value
-        self.frame_id = self.get_parameter('frame_id').value
-        
-        self.min_range = self.get_parameter('sensor_config.min_range').value
-        self.max_range = self.get_parameter('sensor_config.max_range').value
+        self.declare_all_parameters()
+        self.load_parameters()
         
         # Determine Final Settings
-        preset_name = self.get_parameter('sensor_config.preset').value
         if preset_name not in LidarLite.PRESETS:
             self.get_logger().warn(f"Unknown preset '{preset_name}', falling back to 'balanced'")
             preset_name = 'balanced'
@@ -54,11 +30,11 @@ class LidarLiteNode(Node):
                 self.get_logger().info(f"Overriding {key} from preset with: {val}")
 
         # Hardware
-        self.lidar = LidarLite(bus_id=self.bus_id, address=self.address)
+        self.lidar = LidarLite(1, DEFAULT_ADDRESS)
         if self.lidar.connected:
-            self.get_logger().info(f'✅ Lidar Lite init OK on bus {self.bus_id} at address 0x{self.address:02X}')
+            self.get_logger().info(f'✅ Lidar Lite init OK on bus {1} at address 0x{DEFAULT_ADDRESS:02X}')
         else:
-            self.get_logger().fatal(f'❌ Lidar Lite init FAILED on bus {self.bus_id} at address 0x{self.address:02X}')
+            self.get_logger().fatal(f'❌ Lidar Lite init FAILED on bus {1} at address 0x{DEFAULT_ADDRESS:02X}')
             self._ok = False
             return
         
@@ -75,6 +51,28 @@ class LidarLiteNode(Node):
         self.timer = self.create_timer(period, self.tick)
 
         self.get_logger().info(f'Lidar Lite Node started. Freq: {self.freq}Hz')
+
+    def declare_all_parameters(self):
+        # ROS Parameters
+        self.declare_parameter('frequency', 100.0) # Hz
+        self.declare_parameter('frame_id', 'lidar_link')
+
+        # Sensor Configuration Parameters
+        self.declare_parameter('sensor_config.min_range', 0.05)
+        self.declare_parameter('sensor_config.max_range', 40.0)
+        self.declare_parameter('sensor_config.preset', 'balanced')
+        self.declare_parameter('sensor_config.sig_count_val', -1)
+        self.declare_parameter('sensor_config.acq_config_reg', -1)
+        self.declare_parameter('sensor_config.threshold_bypass', -1)
+        self.declare_parameter('sensor_config.ref_count_val', -1)
+
+    def load_parameters(self):
+        self.freq = self.get_parameter('frequency').value
+        self.frame_id = self.get_parameter('frame_id').value
+        
+        self.min_range = self.get_parameter('sensor_config.min_range').value
+        self.max_range = self.get_parameter('sensor_config.max_range').value
+        self.preset_name = self.get_parameter('sensor_config.preset').value
 
     def tick(self):
         dist = self.lidar.read_distance()
