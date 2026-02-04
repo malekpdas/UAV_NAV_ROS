@@ -1,6 +1,8 @@
 from setuptools import setup
+import os
+from glob import glob
 
-package_name = 'servo_control_ros'
+package_name = 'rc_control'
 
 setup(
     name=package_name,
@@ -10,19 +12,19 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        ('share/' + package_name + '/launch', ['launch/servo_control.launch.py']),
-        ('share/' + package_name + '/config', ['config/servo_params.yaml']),
+        (os.path.join('share', package_name, 'launch'), glob('launch/*.launch.*')),
+        (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='User',
     maintainer_email='user@example.com',
-    description='Servo and ESC Control Package',
+    description='RC Receiver Control Package for reading GPIO signals',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'servo_controller_node = servo_control_ros.servo_controller_node:main',
+            f'rc_control = {package_name}.rc_control:main',
         ],
     },
 )

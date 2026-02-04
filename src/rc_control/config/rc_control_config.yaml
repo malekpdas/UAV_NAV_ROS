@@ -1,4 +1,4 @@
-rc_reader_node:
+/rc_control:
   ros__parameters:
     gpiochip: 4
     publish_rate: 50.0

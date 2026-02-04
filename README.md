@@ -6,8 +6,8 @@ This project provides a ROS2-based navigation stack for a UAV, including sensor 
 
 - `src/sensors`: Drivers for BMX160 IMU, BNO085 IMU, ZOE-M8Q GPS, and Lidar Lite v3HP.
 - `src/sensor_fusion`: AHRS and EKF-based state estimator (Linear Kalman Filter).
-- `src/rc_control_ros`: Node for reading RC receiver signals via GPIO.
-- `src/servo_control_ros`: Node for controlling servos and ESCs via GPIO/PWM.
+- `src/rc_control`: Node for reading RC receiver signals via GPIO.
+- `src/servo_control`: Node for controlling servos and ESCs via GPIO/PWM.
 - `src/calibration`: Tools for magnetometer calibration.
 - `src/extra_nodes`: Logging and visualization utilities.
 - `src/launch`: Global launch files (if any).
@@ -16,8 +16,8 @@ This project provides a ROS2-based navigation stack for a UAV, including sensor 
 
 - [sensors](src/sensors/README.md)
 - [sensor_fusion](src/sensor_fusion/README.md)
-- [rc_control_ros](src/rc_control_ros/README.md)
-- [servo_control_ros](src/servo_control_ros/README.md)
+- [rc_control](src/rc_control/README.md)
+- [servo_control](src/servo_control/README.md)
 - [calibration](src/calibration/README.md)
 - [extra_nodes](src/extra_nodes/README.md)
 

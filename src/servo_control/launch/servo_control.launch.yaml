@@ -1,0 +1,8 @@
+launch:
+  - node:
+      pkg: servo_control
+      exec: servo_control
+      name: servo_control
+      output: log
+      param:
+        - from: "$(find-pkg-share servo_control)/config/servo_control_config.yaml"

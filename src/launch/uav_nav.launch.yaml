@@ -42,17 +42,17 @@ launch:
   # Control
   # ============================================================
   - node:
-      pkg: rc_control_ros
+      pkg: rc_control
       exec: rc_reader_node
       name: rc_reader_node
       output: log
       param:
-        - from: $(find-pkg-share rc_control_ros)/config/rc_params.yaml
+        - from: $(find-pkg-share rc_control)/config/rc_control_config.yaml
 
   - node:
-      pkg: servo_control_ros
+      pkg: servo_control
       exec: servo_controller_node
       name: servo_controller_node
       output: log
       param:
-        - from: $(find-pkg-share servo_control_ros)/config/servo_params.yaml
+        - from: $(find-pkg-share servo_control)/config/servo_control_config.yaml

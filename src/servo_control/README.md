@@ -1,4 +1,4 @@
-# servo_control_ros
+# servo_control
 
 This package controls servos and ESCs via PWM signals using the `lgpio` library.
 
@@ -10,7 +10,7 @@ Subscribes to RC channels and flight mode, then maps them to GPIO pins for PWM c
 
 ## Configuration
 
-- `config/servo_params.yaml`: Pin mapping, PWM frequency, and safety limits.
+- `config/servo_control_config.yaml`: Pin mapping, PWM frequency, and safety limits.
 
 ## Launch
 

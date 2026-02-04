@@ -1,0 +1,8 @@
+launch:
+  - node:
+      pkg: rc_control
+      exec: rc_control
+      name: rc_control
+      output: log
+      param:
+        - from: "$(find-pkg-share rc_control)/config/rc_control_config.yaml"

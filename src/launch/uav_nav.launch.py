@@ -18,15 +18,15 @@ def generate_launch_description():
     # Get package directories
     sensors_pkg = get_package_share_directory('sensors')
     ekf_pkg = get_package_share_directory('sensor_fusion')
-    rc_pkg = get_package_share_directory('rc_control_ros')
-    servo_pkg = get_package_share_directory('servo_control_ros')
+    rc_pkg = get_package_share_directory('rc_control')
+    servo_pkg = get_package_share_directory('servo_control')
     
     # Config files
     bno085_config = os.path.join(sensors_pkg, 'config', 'bno085_config.yaml')
     gps_config = os.path.join(sensors_pkg, 'config', 'zoe_m8q_config.yaml')
     ekf_config = os.path.join(ekf_pkg, 'config', 'ekf_config.yaml')
-    rc_config = os.path.join(rc_pkg, 'config', 'rc_params.yaml')
-    servo_config = os.path.join(servo_pkg, 'config', 'servo_params.yaml')
+    rc_config = os.path.join(rc_pkg, 'config', 'rc_control_config.yaml')
+    servo_config = os.path.join(servo_pkg, 'config', 'servo_control_config.yaml')
 
     return LaunchDescription([
         # ============================================================
@@ -62,14 +62,14 @@ def generate_launch_description():
         # Control
         # ============================================================
         Node(
-            package='rc_control_ros',
+            package='rc_control',
             executable='rc_reader_node',
             name='rc_reader_node',
             output='log',
             parameters=[rc_config],
         ),
         Node(
-            package='servo_control_ros',
+            package='servo_control',
             executable='servo_controller_node',
             name='servo_controller_node',
             output='log',

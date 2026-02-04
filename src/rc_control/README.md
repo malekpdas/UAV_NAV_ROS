@@ -1,4 +1,4 @@
-# rc_control_ros
+# rc_control
 
 This package reads RC receiver signals via GPIO interrupts and publishes them as ROS2 topics.
 
@@ -10,7 +10,7 @@ Reads 6 channels (Pulse Width) from an RC receiver and publishes to `rc/channels
 
 ## Configuration
 
-- `config/rc_params.yaml`: GPIO pin definitions and publishing rate.
+- `config/rc_control_config.yaml`: GPIO pin definitions and publishing rate.
 
 ## Launch
 

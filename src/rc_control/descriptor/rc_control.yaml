@@ -1,8 +1,8 @@
 node_info:
-  pkg_name: "rc_control_ros"
+  pkg_name: "rc_control"
   executable_name: "rc_reader_node"
   node_default_id: "rc_reader_node"
-  default_config_file_path: "config/rc_params.yaml"
+  default_config_file_path: "config/rc_control_config.yaml"
   pub_topics:
     - name: "rc/channels"
       type: "std_msgs/msg/Int32MultiArray"

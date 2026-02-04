@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>servo_control_ros</name>
+  <name>rc_control</name>
   <version>0.0.1</version>
-  <description>Servo and ESC Control Package</description>
+  <description>RC Receiver Control Package for reading GPIO signals</description>
   <maintainer email="user@example.com">User</maintainer>
   <license>TODO: License declaration</license>
 
