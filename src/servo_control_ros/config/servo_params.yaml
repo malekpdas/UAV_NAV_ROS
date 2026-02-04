@@ -19,11 +19,11 @@
     
     # Pin Configuration (BCM/GPIO Numbers)
     gpio_pins: 
-      l_aileron: 24 # Left Aileron Servo
-      elevator: 23 # Elevator Servo
-      esc_rotor: 20    # ESC
-      rudder: 25   # Rudder Servo
-      r_aileron: 22 # Right Aileron Servo
+      l_aileron: 6 # Left Aileron Servo
+      elevator: 19 # Elevator Servo
+      esc_rotor: 5    # ESC
+      rudder: 13   # Rudder Servo
+      r_aileron: 26 # Right Aileron Servo
     
     # Channel Mapping (Index in rc_channels array: 0-4)
     # 0: Left Aileron, 1: Elevator, 2: Throttle, 3: Rudder, 4: Right Aileron

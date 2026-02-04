@@ -285,7 +285,7 @@ class ServoControllerNode(Node):
             pulse = data[ch_idx]
             
             # Clamp to valid range
-            pulse = max(self.min_pulse, min(self.max_pulse, pulse))
+            pulse = max(self.esc_min_pulse, min(self.esc_max_pulse, pulse))
             
             # Only update if value has changed (reduces GPIO traffic)
             if pulse != cfg['val']:
