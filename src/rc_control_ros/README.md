@@ -4,7 +4,7 @@ This package reads RC receiver signals via GPIO interrupts and publishes them as
 
 ## Nodes
 
-### [rc_reader_node](Descriptor/rc_reader_node.yaml)
+### [rc_reader_node](descriptor/rc_reader_node.yaml)
 
 Reads 6 channels (Pulse Width) from an RC receiver and publishes to `rc/channels` and `rc/mode`.
 

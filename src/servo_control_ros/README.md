@@ -4,7 +4,7 @@ This package controls servos and ESCs via PWM signals using the `lgpio` library.
 
 ## Nodes
 
-### [servo_controller_node](Descriptor/servo_controller_node.yaml)
+### [servo_controller_node](descriptor/servo_controller_node.yaml)
 
 Subscribes to RC channels and flight mode, then maps them to GPIO pins for PWM control.
 
