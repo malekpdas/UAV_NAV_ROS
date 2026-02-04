@@ -4,20 +4,20 @@ Utility functions for Hybrid EKF+AHRS Estimator
 import numpy as np
 
 
-def lla_to_ned(lat, lon, alt, lat0, lon0, alt0):
+def lla_to_ned(lat, lon, alt, ref_lla, r, f):
     """
     Convert Lat/Lon/Alt to NED coordinates relative to origin
     
     Args:
         lat, lon, alt: Current position
-        lat0, lon0, alt0: Origin position
+        ref_lla: Origin position
+        r: earth radius
+        f: flattening
     
     Returns:
         np.array: [North, East, Down] in meters
     """
-    # Earth parameters (WGS84)
-    R_earth = 6378137.0  # Equatorial radius (m)
-    f = 1.0 / 298.257223563  # Flattening
+    lat0, lon0, alt0 = ref_lla
     
     # Convert to radians
     lat_rad = np.radians(lat)
@@ -27,7 +27,7 @@ def lla_to_ned(lat, lon, alt, lat0, lon0, alt0):
     
     # Radius of curvature in prime vertical
     sin_lat0 = np.sin(lat0_rad)
-    N = R_earth / np.sqrt(1 - (2*f - f**2) * sin_lat0**2)
+    N = r / np.sqrt(1 - (2*f - f**2) * sin_lat0**2)
     
     # Differences
     dlat = lat_rad - lat0_rad
@@ -53,14 +53,14 @@ def ned_to_lla(north, east, down, lat0, lon0, alt0):
     Returns:
         tuple: (lat, lon, alt)
     """
-    R_earth = 6378137.0
+    r = 6378137.0
     f = 1.0 / 298.257223563
     
     lat0_rad = np.radians(lat0)
     lon0_rad = np.radians(lon0)
     
     sin_lat0 = np.sin(lat0_rad)
-    N = R_earth / np.sqrt(1 - (2*f - f**2) * sin_lat0**2)
+    N = r / np.sqrt(1 - (2*f - f**2) * sin_lat0**2)
     
     # Convert NED to lat/lon/alt
     dlat = north / (N * (1 - f)**2 + alt0)

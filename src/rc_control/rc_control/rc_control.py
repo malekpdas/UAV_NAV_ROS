@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-rc_reader_node.py - ROS2 Node for reading RC receiver signals
+rc_control.py - ROS2 Node for reading RC receiver signals
 Reads 6 channels via lgpio and publishes to rc/channels and rc/mode
 """
 
@@ -13,29 +13,15 @@ import time
 
 class RCReaderNode(Node):
     def __init__(self):
-        super().__init__('rc_reader_node')
+        super().__init__('rc_control')
         
         # Declare parameters
-        self.declare_parameter('gpiochip', 4)
-        self.declare_parameter('publish_rate', 50.0) # 50Hz is standard for servo
-        self.declare_parameter('failsafe_timeout', 0.5)
-        
-        # Default Pins: [13, 19, 26, 12, 5, 6]
-        # Ch 6: Mode Switch
-        self.declare_parameter('gpio_pins', [13, 19, 26, 12, 5, 6])
-
-        # Topics
-        self.declare_parameter('pub_topics.channels', 'rc/channels')
-        self.declare_parameter('pub_topics.mode', 'rc/mode')
-        
-        # Get parameters
-        self.gpiochip = self.get_parameter('gpiochip').value
-        self.rate_hz = self.get_parameter('publish_rate').value
-        self.failsafe_timeout = self.get_parameter('failsafe_timeout').value
-        self.pins = self.get_parameter('gpio_pins').value
+        self.declare_all_parameters()
+        self.load_parameters()
         
         if len(self.pins) != 6:
             self.get_logger().error("Must provide exactly 6 GPIO pins!")
+            self._ok = False
             return
 
         # Initialize GPIO
@@ -61,6 +47,22 @@ class RCReaderNode(Node):
         self.timer = self.create_timer(1.0 / self.rate_hz, self.timer_callback)
         
         self.get_logger().info(f'RC Reader Node Started.')
+
+    def declare_all_parameters(self):
+        self.declare_parameter('gpiochip', 4)
+        self.declare_parameter('publish_rate', 50.0) # 50Hz is standard for servo
+        self.declare_parameter('failsafe_timeout', 0.5)
+        
+        # Default Pins: [20, 25, 16, 12, 24, 21]
+        # Ch 6: Mode Switch
+        self.declare_parameter('gpio_pins', [20, 25, 16, 12, 24, 21])
+
+    def load_parameters(self):
+        # Get parameters
+        self.gpiochip = self.get_parameter('gpiochip').value
+        self.rate_hz = self.get_parameter('publish_rate').value
+        self.failsafe_timeout = self.get_parameter('failsafe_timeout').value
+        self.pins = self.get_parameter('gpio_pins').value
 
     def _make_callback(self, ch_idx):
         """Create a closure for specific channel callback"""
@@ -116,6 +118,11 @@ class RCReaderNode(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = RCReaderNode()
+
+    if not getattr(node, '_ok', True):
+        rclpy.shutdown()
+        return
+
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

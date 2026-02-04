@@ -6,10 +6,10 @@
       base_link_frame: 'base_link'
     
     sub_topics:
-      imu: '/imu/data'
-      mag: '/imu/mag'
-      gps_fix: '/gps/fix'
-      gps_vel: '/gps/vel'
+      imu: '/imu_bno085/data'
+      mag: '/imu_bno085/mag'
+      gps_fix: '/gps_zoe_m8q/fix'
+      gps_vel: '/gps_zoe_m8q/vel'
       timeout_sec: 5.0
       check_rate: 10.0
 
@@ -40,3 +40,4 @@
       gravity: 9.8066
       radius: 6378137.0
       flattening: 0.0033528106647474805
+      ref_pos: [34.8767172, 136.9613642, 17.54]

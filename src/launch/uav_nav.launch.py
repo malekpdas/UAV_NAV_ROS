@@ -18,15 +18,15 @@ def generate_launch_description():
     # Get package directories
     sensors_pkg = get_package_share_directory('sensors')
     ekf_pkg = get_package_share_directory('sensor_fusion')
-    rc_pkg = get_package_share_directory('rc_control')
-    servo_pkg = get_package_share_directory('servo_control')
+    rc_control_pkg = get_package_share_directory('rc_control')
+    servo_control_pkg = get_package_share_directory('servo_control')
     
     # Config files
     bno085_config = os.path.join(sensors_pkg, 'config', 'bno085_config.yaml')
     gps_config = os.path.join(sensors_pkg, 'config', 'zoe_m8q_config.yaml')
-    ekf_config = os.path.join(ekf_pkg, 'config', 'ekf_config.yaml')
-    rc_config = os.path.join(rc_pkg, 'config', 'rc_control_config.yaml')
-    servo_config = os.path.join(servo_pkg, 'config', 'servo_control_config.yaml')
+    sensor_fusion_config = os.path.join(ekf_pkg, 'config', 'sensor_fusion_config.yaml')
+    rc_control_config = os.path.join(rc_control_pkg, 'config', 'rc_control_config.yaml')
+    servo_control_config = os.path.join(servo_control_pkg, 'config', 'servo_control_config.yaml')
 
     return LaunchDescription([
         # ============================================================
@@ -55,7 +55,7 @@ def generate_launch_description():
             executable='sensor_fusion',
             name='sensor_fusion',
             output='log',
-            parameters=[ekf_config],
+            parameters=[sensor_fusion_config],
         ),
         
         # ============================================================
@@ -63,16 +63,16 @@ def generate_launch_description():
         # ============================================================
         Node(
             package='rc_control',
-            executable='rc_reader_node',
-            name='rc_reader_node',
+            executable='rc_control',
+            name='rc_control',
             output='log',
-            parameters=[rc_config],
+            parameters=[rc_control_config],
         ),
         Node(
             package='servo_control',
-            executable='servo_controller_node',
-            name='servo_controller_node',
+            executable='servo_control',
+            name='servo_control',
             output='log',
-            parameters=[servo_config],
+            parameters=[servo_control_config],
         ),
     ])

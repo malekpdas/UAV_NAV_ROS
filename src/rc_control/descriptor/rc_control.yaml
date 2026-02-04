@@ -1,7 +1,7 @@
 node_info:
   pkg_name: "rc_control"
-  executable_name: "rc_reader_node"
-  node_default_id: "rc_reader_node"
+  executable_name: "rc_control"
+  node_default_id: "rc_control"
   default_config_file_path: "config/rc_control_config.yaml"
   pub_topics:
     - name: "rc/channels"

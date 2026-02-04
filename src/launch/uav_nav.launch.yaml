@@ -30,29 +30,35 @@ launch:
   # ============================================================
   # State Estimation
   # ============================================================
-  - node:
-      pkg: sensor_fusion
-      exec: sensor_fusion
-      name: sensor_fusion
-      output: log
-      param:
-        - from: $(find-pkg-share sensor_fusion)/config/sensor_fusion_config.yaml
+  - timer:
+      period: 2.0
+      children:
+        - node:
+            pkg: sensor_fusion
+            exec: sensor_fusion
+            name: sensor_fusion
+            output: log
+            param:
+              - from: $(find-pkg-share sensor_fusion)/config/sensor_fusion_config.yaml
 
   # ============================================================
   # Control
   # ============================================================
   - node:
       pkg: rc_control
-      exec: rc_reader_node
-      name: rc_reader_node
+      exec: rc_control
+      name: rc_control
       output: log
       param:
         - from: $(find-pkg-share rc_control)/config/rc_control_config.yaml
 
-  - node:
-      pkg: servo_control
-      exec: servo_controller_node
-      name: servo_controller_node
-      output: log
-      param:
-        - from: $(find-pkg-share servo_control)/config/servo_control_config.yaml
+  - timer:
+      period: 1.0
+      children:
+        - node:
+            pkg: servo_control
+            exec: servo_control
+            name: servo_control
+            output: log
+            param:
+              - from: $(find-pkg-share servo_control)/config/servo_control_config.yaml

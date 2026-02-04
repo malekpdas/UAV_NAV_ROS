@@ -24,13 +24,13 @@ from sensor_fusion.lib.ekf_core import LinearKalmanFilter, RobustLPFilter
 from sensor_fusion.lib.utils import lla_to_ned
 
 
-class IMUGPSFusionNode(Node):
+class SensorFusionNode(Node):
     """
     ROS2 Node for IMU/GPS integration using a Linear Kalman Filter.
     """
     
     def __init__(self):
-        super().__init__('imu_gps_fusion_node')
+        super().__init__('sensor_fusion_node')
         
         # Declare and load ROS2 parameters
         self.declare_all_parameters()
@@ -61,20 +61,21 @@ class IMUGPSFusionNode(Node):
         )
 
         # Kalman Filter for position/velocity estimation with bias
-        self.kf = LinearKalmanFilter(
-            self.kf_initial_pos_uncertainty,
-            self.kf_initial_vel_uncertainty,
-            self.kf_initial_bias_uncertainty,
-            self.kf_process_noise_pos,
-            self.kf_process_noise_vel,
-            self.kf_process_noise_bias,
-            self.kf_measurement_noise_pos,
-            self.kf_measurement_noise_vel
-        )
+        kf_config = {
+                'initial_pos_uncertainty': self.kf_initial_pos_uncertainty,
+                'initial_vel_uncertainty': self.kf_initial_vel_uncertainty,
+                'initial_bias_uncertainty': self.kf_initial_bias_uncertainty,
+                'process_noise_pos': self.kf_process_noise_pos,
+                'process_noise_vel': self.kf_process_noise_vel,
+                'process_noise_bias': self.kf_process_noise_bias,
+                'measurement_noise_pos': self.kf_measurement_noise_pos,
+                'measurement_noise_vel': self.kf_measurement_noise_vel,
+                'gravity': self.earth_gravity,
+            }
+        self.kf = LinearKalmanFilter(config=kf_config)
         self.kf_initialized = False
         
         self.last_imu_time = None
-        self.origin = None
         self.current_gyro = np.zeros(3)
         
         self.latest_mag = None
@@ -115,7 +116,7 @@ class IMUGPSFusionNode(Node):
         )
 
         # Low-pass filters
-        self.lp_filter_accel = RobustLPFilter(alpha=self.accel_alpha)
+        self.lp_filter_accel = RobustLPFilter(alpha=self.lp_filter_accel_alpha)
         
         self.get_logger().info('IMU/GPS Fusion Node initialized')
 
@@ -190,6 +191,7 @@ class IMUGPSFusionNode(Node):
         self.declare_parameter('earth.gravity', 9.8066)
         self.declare_parameter('earth.radius', 6378137.0)
         self.declare_parameter('earth.flattening', 0.0033528106647474805)
+        self.declare_parameter('earth.ref_pos', [0.0, 0.0, 0.0])
 
     def load_parameters(self):
         """Load all ROS2 parameters into a nested dictionary structure."""
@@ -227,6 +229,7 @@ class IMUGPSFusionNode(Node):
         self.earth_gravity = self.get_parameter('earth.gravity').value
         self.earth_radius = self.get_parameter('earth.radius').value
         self.earth_flattening = self.get_parameter('earth.flattening').value
+        self.earth_ref_pos = self.get_parameter('earth.ref_pos').value
 
     def msg_to_sec(self, stamp):
         """Convert ROS timestamp to seconds."""
@@ -298,7 +301,7 @@ class IMUGPSFusionNode(Node):
         # Get Earth Acceleration
         self.current_a_ned = (
             self.ahrs.earth_acceleration + 
-            np.array([0, 0, self.gravity])
+            np.array([0, 0, self.earth_gravity])
         )
         
         # Kalman Filter Prediction Step
@@ -315,9 +318,7 @@ class IMUGPSFusionNode(Node):
         if np.isnan(msg.latitude) or self.latest_gps_vel is None:
             return
             
-        if self.origin is None:
-            # Initialize origin and states
-            self.origin = [msg.latitude, msg.longitude, msg.altitude]
+        if not self.kf_initialized:
             
             # Initialize Kalman Filter
             self.kf.initialize(np.zeros(3), self.latest_gps_vel)
@@ -329,7 +330,8 @@ class IMUGPSFusionNode(Node):
             return
 
         # GPS position in NED
-        pos_gps = self.lla_to_ned(msg.latitude, msg.longitude, msg.altitude)
+        pos_gps = lla_to_ned(msg.latitude, msg.longitude, msg.altitude,
+                                    self.earth_ref_pos, self.earth_radius, self.earth_flattening)
         
         # Extract position covariance
         R = np.array(msg.position_covariance).reshape(3, 3)
@@ -428,7 +430,7 @@ class IMUGPSFusionNode(Node):
         # Linear acceleration (gravity already removed by AHRS, convert NED to ENU)
         accel_ned = (
             self.ahrs.earth_acceleration + 
-            np.array([0, 0, self.gravity])
+            np.array([0, 0, self.earth_gravity])
         ) - self.kf.x[6:9]
         imu_msg.linear_acceleration.x = float(accel_ned[0])  # North
         imu_msg.linear_acceleration.y = float(accel_ned[1])  # East
@@ -452,7 +454,7 @@ class IMUGPSFusionNode(Node):
 
 def main():
     rclpy.init()
-    node = IMUGPSFusionNode()
+    node = SensorFusionNode()
 
     if not getattr(node, '_ok', True):
         rclpy.shutdown()

@@ -1,7 +1,7 @@
 node_info:
   pkg_name: "servo_control"
-  executable_name: "servo_controller_node"
-  node_default_id: "servo_controller_node"
+  executable_name: "servo_controller"
+  node_default_id: "servo_controller"
   default_config_file_path: "config/servo_control_config.yaml"
   pub_topics: []
   sub_topics:

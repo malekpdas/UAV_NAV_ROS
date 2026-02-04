@@ -11,7 +11,7 @@ import sys
 class ServoControllerNode(Node):
     
     def __init__(self):
-        super().__init__('servo_controller_node')
+        super().__init__('servo_controller')
         
         self.declare_all_params()
         self.load_parameters()
@@ -110,11 +110,11 @@ class ServoControllerNode(Node):
         self.declare_parameter('Safety.servo_max_pulse', 2000)
         
         # Pin Configuration
-        self.declare_parameter('gpio_pins.l_aileron', 24)
-        self.declare_parameter('gpio_pins.elevator', 23)
-        self.declare_parameter('gpio_pins.esc_rotor', 20)
-        self.declare_parameter('gpio_pins.rudder', 25)
-        self.declare_parameter('gpio_pins.r_aileron', 22)
+        self.declare_parameter('gpio_pins.l_aileron', 6)
+        self.declare_parameter('gpio_pins.elevator', 19)
+        self.declare_parameter('gpio_pins.esc_rotor', 5)
+        self.declare_parameter('gpio_pins.rudder', 13)
+        self.declare_parameter('gpio_pins.r_aileron', 26)
         
         # Channel Mapping (Index in rc_channels array: 0-4)
         self.declare_parameter('rc_channels.l_aileron', 0)
