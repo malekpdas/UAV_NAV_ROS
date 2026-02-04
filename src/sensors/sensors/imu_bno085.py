@@ -214,6 +214,12 @@ class BNO085Node(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = BNO085Node()
+
+    if not getattr(node, '_ok', True):
+        node.destroy()
+        rclpy.shutdown()
+        return
+
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

@@ -111,7 +111,7 @@ class RCReaderNode(Node):
             self.pub_channels.publish(msg_channels)
             self.pub_mode.publish(msg_mode)
 
-    def destroy_node(self):
+    def destroy(self):
         lgpio.gpiochip_close(self.h)
         super().destroy_node()
 
@@ -120,6 +120,7 @@ def main(args=None):
     node = RCReaderNode()
 
     if not getattr(node, '_ok', True):
+        node.destroy()
         rclpy.shutdown()
         return
 
@@ -128,7 +129,7 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     finally:
-        node.destroy_node()
+        node.destroy()
         if rclpy.ok():
             rclpy.shutdown()
 

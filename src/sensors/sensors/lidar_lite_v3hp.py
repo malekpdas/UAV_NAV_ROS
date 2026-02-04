@@ -93,7 +93,7 @@ class LidarLiteNode(Node):
         self.pub_range.publish(msg)
       
 
-    def destroy_node(self):
+    def destroy(self):
         if hasattr(self, 'lidar'):
             self.lidar.close()            
         if self.timer:
@@ -105,6 +105,7 @@ def main(args=None):
     node = LidarLiteNode()
 
     if not getattr(node, '_ok', True):
+        node.destroy()
         rclpy.shutdown()
         return
 
@@ -113,7 +114,7 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     finally:
-        node.destroy_node()
+        node.destroy()
         if rclpy.ok():
             rclpy.shutdown()
 

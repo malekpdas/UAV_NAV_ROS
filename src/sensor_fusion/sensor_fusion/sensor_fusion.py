@@ -82,9 +82,9 @@ class SensorFusionNode(Node):
         self.latest_gps_vel = None
 
         # ROS2 Publishers
-        self.odom_pub = self.create_publisher(Odometry, '/ekf/odom', 10)
+        self.odom_pub = self.create_publisher(Odometry, '/fusion/odom', 10)
         if self.publish_acceleration:
-            self.accel_pub = self.create_publisher(Imu, '/ekf/linear_acceleration', 10)
+            self.accel_pub = self.create_publisher(Imu, '/fusion/linear_acceleration', 10)
         
         # TF Broadcaster
         self.tf_broadcaster = TransformBroadcaster(self)
@@ -452,11 +452,15 @@ class SensorFusionNode(Node):
         
         self.accel_pub.publish(imu_msg)
 
+    def destroy(self):
+        super().destroy_node()
+
 def main():
     rclpy.init()
     node = SensorFusionNode()
 
     if not getattr(node, '_ok', True):
+        node.destroy()
         rclpy.shutdown()
         return
 

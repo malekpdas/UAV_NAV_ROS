@@ -221,6 +221,7 @@ def main(args=None):
     node = BMX160Node()
 
     if not getattr(node, '_ok', True):
+        node.destroy()
         rclpy.shutdown()
         return
 

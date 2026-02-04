@@ -200,6 +200,7 @@ def main(args=None):
     node = ZoeM8QNode()
 
     if not getattr(node, '_ok', True):
+        node.destroy()
         rclpy.shutdown()
         return
 

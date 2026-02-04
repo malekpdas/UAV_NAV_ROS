@@ -343,6 +343,7 @@ def main(args=None):
     node = ServoControllerNode()
 
     if not getattr(node, '_ok', True):
+        node.destroy()
         rclpy.shutdown()
         return
     
