@@ -1,0 +1,58 @@
+# Global Launch File for UAV Navigation Stack
+# ============================================
+# Launches all UAV components:
+# - IMU (BNO085)
+# - GPS (ZOE-M8Q)
+# - EKF State Estimator
+# - RC Control Input
+# - Servo/ESC Control Output
+
+launch:
+  # ============================================================
+  # Sensors
+  # ============================================================
+  - node:
+      pkg: sensors
+      exec: imu_bno085
+      name: imu_bno085
+      output: log
+      param:
+        - from: $(find-pkg-share sensors)/config/bno085_config.yaml
+
+  - node:
+      pkg: sensors
+      exec: gps_zoe_m8q
+      name: gps_zoe_m8q
+      output: log
+      param:
+        - from: $(find-pkg-share sensors)/config/zoe_m8q_config.yaml
+
+  # ============================================================
+  # State Estimation
+  # ============================================================
+  - node:
+      pkg: sensor_fusion
+      exec: sensor_fusion
+      name: sensor_fusion
+      output: log
+      param:
+        - from: $(find-pkg-share sensor_fusion)/config/sensor_fusion_config.yaml
+
+  # ============================================================
+  # Control
+  # ============================================================
+  - node:
+      pkg: rc_control_ros
+      exec: rc_reader_node
+      name: rc_reader_node
+      output: log
+      param:
+        - from: $(find-pkg-share rc_control_ros)/config/rc_params.yaml
+
+  - node:
+      pkg: servo_control_ros
+      exec: servo_controller_node
+      name: servo_controller_node
+      output: log
+      param:
+        - from: $(find-pkg-share servo_control_ros)/config/servo_params.yaml
