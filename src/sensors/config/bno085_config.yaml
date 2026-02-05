@@ -4,15 +4,15 @@
     frame_id: "imu_link"
     
     transformation:
-      imu_rotation: [-1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+      imu_rotation: [1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0]
       mag_decl: -8.03 # degress
 
     # Manual Biases (used if bias_removal is False)
     sensor_calibration:
-      bias_removal: false
-      bias_duration_sec: 2.0
-      accel_bias:     [0.0, 0.0, 0.0]
-      gyro_bias:      [0.0, 0.0, 0.0]
+      bias_removal: False
+      bias_duration_sec: 10.0
+      accel_bias:     [-0.65389203, -0.06457075,  0.03273146]
+      gyro_bias:      [2.18837535e-05, -1.23096113e-05, -2.32514881e-05]
       mag_bias:       [0.0, 0.0, 0.0]
       mag_transform:  [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
 

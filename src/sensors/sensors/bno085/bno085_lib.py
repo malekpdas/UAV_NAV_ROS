@@ -84,7 +84,8 @@ class BNO085:
             'mag': [0.0, 0.0, 0.0],
             'quat': [0.0, 0.0, 0.0, 1.0],
             'accuracy_quat': 0.0,
-            'accuracy_status': 0
+            'accuracy_status': 0,
+            'last_update': 0.0
         }
         self._initialized = False
         
@@ -92,44 +93,40 @@ class BNO085:
         self._accel_max = 78.5  # ~8g in m/s^2
         self._gyro_max = 34.9   # ~2000 deg/s in rad/s
 
-    def begin(self) -> bool:
-        """Initialize the sensor with extended soft reset timing."""
+    def begin(self, interval_us: int = 10000) -> bool:
+        """Initialize the sensor and enable reports with specified interval."""
         try:
             # Extended soft reset sequence (for boards without RST pin)
             for attempt in range(3):
                 # Send soft reset on executable channel
                 self._send_packet(CHANNEL_EXECUTABLE, [0x01])
-                time.sleep(0.8)  # Extended delay for soft reset
+                time.sleep(0.8)
                 
-                # Drain any boot/advertisement packets
-                for _ in range(10):
-                    self._read_packet()
+                # Drain
+                for i in range(10):
+                    # Using a direct internal read or get_data is fine here
+                    self.get_data()
                     time.sleep(0.02)
                 
-                # Enable Raw Reports (100Hz = 10000us)
-                self._enable_report(REPORT_ACCELEROMETER, 10000)
+                # Enable Raw Reports
+                self._enable_report(REPORT_ACCELEROMETER, interval_us)
                 time.sleep(0.05)
-                self._enable_report(REPORT_GYROSCOPE, 10000)
+                self._enable_report(REPORT_GYROSCOPE, interval_us)
                 time.sleep(0.05)
-                self._enable_report(REPORT_MAGNETOMETER, 10000)
+                self._enable_report(REPORT_MAGNETOMETER, interval_us)
                 time.sleep(0.05)
                 
-                # Disable Rotation Vector types
-                # self._enable_report(REPORT_ARVR_STABILIZED_RV, 0)
-                pass
-                
-                # Check if we get sensor data
-                for _ in range(10):
-                    ch, data = self._read_packet()
-                    if ch == CHANNEL_REPORTS and data:
+                # Check for data
+                for i in range(20):
+                    data = self.get_data()
+                    if self._initialized or (data['last_update'] > 0):
                         self._initialized = True
                         return True
-                    time.sleep(0.02)
+                    time.sleep(0.05)
             
             return False
             
-        except Exception as e:
-            print(f"BNO085 init failed: {e}")
+        except Exception:
             return False
 
     def _enable_report(self, report_id: int, interval_us: int):
@@ -172,12 +169,36 @@ class BNO085:
             return False
 
     def get_data(self):
-        """Poll sensor and return latest data dictionary."""
-        # Single poll per call - node timer handles rate
-        ch, data = self._read_packet()
-        if ch == CHANNEL_REPORTS and data:
-            self._parse_input_reports(data)
-        return self.data
+        """Poll sensor for data. Performs a single multi-packet read to maintain 100Hz rate."""
+        try:
+            # Read a 48-byte chunk. This fits within 10ms even on a 100kHz I2C bus.
+            # (34 bytes is a typical bundle: Accel+Gyro+Mag+Header)
+            r = i2c_msg.read(self.i2c_addr, 48)
+            self.i2cbus.i2c_rdwr(r)
+            buf = list(r)
+            
+            idx = 0
+            while idx + 4 <= len(buf):
+                length = ((buf[idx+1] & 0x7F) << 8) | buf[idx]
+                channel = buf[idx+2]
+                
+                if length <= 4 or length > 48:
+                    break
+                
+                if idx + length > len(buf):
+                    break
+                
+                if channel == CHANNEL_REPORTS:
+                    payload = buf[idx+4 : idx+length]
+                    if self._parse_input_reports(payload):
+                         self.data['last_update'] = time.time()
+                
+                idx += length
+                
+            return self.data
+            
+        except Exception:
+            return self.data
 
     # ========================================================================
     # Low Level SHTP / I2C
@@ -193,35 +214,23 @@ class BNO085:
         self.i2cbus.i2c_rdwr(w)
 
     def _read_packet(self):
-        """Read SHTP packet, return (channel, payload) or (None, None)."""
+        """Read a single SHTP packet in one transaction."""
         try:
-            # Read 48 bytes (Accel+Gyro+Mag = ~34 bytes + overhead)
-            r = i2c_msg.read(self.i2c_addr, 48)
+            r = i2c_msg.read(self.i2c_addr, 64)
             self.i2cbus.i2c_rdwr(r)
             buf = list(r)
-            
             length = ((buf[1] & 0x7F) << 8) | buf[0]
             channel = buf[2]
-            
-            # Validate packet length
-            if length <= 4 or length > 48:
-                return None, None
-            
-            # Ensure we have enough data
-            payload_len = min(length - 4, len(buf) - 4)
-            if payload_len <= 0:
-                return None, None
-            
-            return channel, buf[4:4 + payload_len]
-        except:
+            if length <= 4 or length > 64: return None, None
+            return channel, buf[4:length]
+        except Exception:
             return None, None
 
-    def _parse_input_reports(self, data: list):
-        """Parse sensor reports from channel 3 data."""
+    def _parse_input_reports(self, data: list) -> bool:
+        """Parse sensor reports from channel 3 data. Returns True if Accelerometer was updated."""
         i = 0
+        accel_updated = False
         while i < len(data):
-            if i >= len(data):
-                break
             report_id = data[i]
             
             # Timestamp reports (skip)
@@ -253,6 +262,7 @@ class BNO085:
                     # Sanity check: reject corrupt data
                     if abs(ax) < self._accel_max and abs(ay) < self._accel_max and abs(az) < self._accel_max:
                         self.data['accel'] = [ax, ay, az]
+                        accel_updated = True
                     i += 10
                 else:
                     break
@@ -293,6 +303,8 @@ class BNO085:
             
             else:
                 i += 1  # Unknown, skip byte
+                
+        return accel_updated
 
     def _int16(self, data, idx) -> int:
         """Parse signed 16-bit little-endian integer."""

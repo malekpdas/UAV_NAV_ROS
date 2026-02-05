@@ -469,7 +469,7 @@ def main():
     except KeyboardInterrupt:
         pass
     finally:
-        node.destroy_node()
+        node.destroy()
         if rclpy.ok():
             rclpy.shutdown()
 
