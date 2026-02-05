@@ -317,7 +317,6 @@ class ServoControllerNode(Node):
             if cfg['val'] != safe_val:
                 cfg['val'] = safe_val
                 self.set_pwm(cfg)
-                self.get_logger().info(f"Set {name} to safe value: {safe_val}us")
 
     def destroy(self):
         """Clean shutdown with safety measures."""

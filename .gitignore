@@ -6,3 +6,4 @@ log/*
 **/rosbag2**
 **.csv
 todo.md
+src/launch/log/**

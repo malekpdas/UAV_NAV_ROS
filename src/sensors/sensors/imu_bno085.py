@@ -207,7 +207,7 @@ class BNO085Node(Node):
     def destroy(self):
         if hasattr(self, 'imu'):
             self.imu.close()
-        if self.timer:
+        if hasattr(self, 'timer') and self.timer is not None:
             self.timer.cancel()
         super().destroy_node()
 
