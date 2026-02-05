@@ -1,354 +1,51 @@
-#!/usr/bin/env python3
-"""
-BNO085 9-Axis IMU Driver Library
-=================================
+import board
+import busio
 
-A Python library for interfacing with the Hillcrest BNO085 9-axis IMU sensor
-via I2C using the SHTP/SH2 protocol.
+from adafruit_bno08x.i2c import BNO08X_I2C
+from adafruit_bno08x import (
+    BNO_REPORT_ACCELEROMETER,
+    BNO_REPORT_GYROSCOPE,
+    BNO_REPORT_MAGNETOMETER,
+    _BNO_CHANNEL_CONTROL,
+)
 
-Features:
-- SHTP Protocol implementation
-- AR/VR Stabilized Rotation Vector (Quaternion)
-- Calibrated Accelerometer, Gyroscope, Magnetometer
-- Dynamic Calibration Data (DCD) management
-
-Note: Works best with RST pin connected to GPIO for hardware reset.
-      Without RST pin, uses extended soft reset timing.
-
-Author: User
-License: MIT
-"""
-
-import time
-from smbus2 import SMBus, i2c_msg
-
-# ========================================================================
-# Constants
-# ========================================================================
-
-# I2C Addresses
 BNO085_I2C_ADDR_DEFAULT = 0x4A
-BNO085_I2C_ADDR_ALT     = 0x4B
-
-# SHTP Channels
-CHANNEL_COMMAND = 0
-CHANNEL_EXECUTABLE = 1
-CHANNEL_CONTROL = 2
-CHANNEL_REPORTS = 3
-CHANNEL_WAKE_REPORTS = 4
-CHANNEL_GYRO_ROTATION = 5
-
-# Report IDs
-REPORT_ACCELEROMETER             = 0x01
-REPORT_GYROSCOPE                 = 0x02
-REPORT_MAGNETOMETER              = 0x03
-REPORT_LINEAR_ACCELERATION       = 0x04
-REPORT_ROTATION_VECTOR           = 0x05
-REPORT_GRAVITY                   = 0x06
-REPORT_GAME_ROTATION_VECTOR      = 0x08
-REPORT_GEOMAGNETIC_ROTATION_VECTOR = 0x09
-REPORT_ARVR_STABILIZED_RV        = 0x28
-REPORT_ARVR_STABILIZED_GAME_RV   = 0x29
-
-# Command IDs (Channel 2)
-CMD_SET_FEATURE_COMMAND          = 0xFD
-CMD_GET_FEATURE_REQUEST          = 0xFE
-CMD_COMMAND_REQUEST              = 0xF2
-CMD_DCD                          = 0x06
-CMD_ME_CALIBRATE                 = 0x07
-
-# Sub-commands
-DCD_SAVE_DCD                     = 0x01
-ME_CAL_CONFIG                    = 0x00
-
-# Q-Point Scalars
-Q_POINT_14 = 2.0 ** -14  # Rotation Vector
-Q_POINT_12 = 2.0 ** -12  # Accuracy
-Q_POINT_9  = 2.0 ** -9   # Gyroscope
-Q_POINT_8  = 2.0 ** -8   # Accelerometer
-Q_POINT_4  = 2.0 ** -4   # Magnetometer
 
 
 class BNO085:
-    """BNO085 IMU Driver using SHTP protocol over I2C."""
-    
-    def __init__(self, bus: int, i2c_addr: int = BNO085_I2C_ADDR_DEFAULT):
-        self.i2c_addr = i2c_addr
-        self.bus_num = bus
-        self.i2cbus = SMBus(bus)
-        self.sequence_number = [0] * 6
-        
-        self.data = {
-            'accel': [0.0, 0.0, 0.0],
-            'gyro': [0.0, 0.0, 0.0],
-            'mag': [0.0, 0.0, 0.0],
-            'quat': [0.0, 0.0, 0.0, 1.0],
-            'accuracy_quat': 0.0,
-            'accuracy_status': 0,
-            'last_update': 0.0
-        }
-        self._initialized = False
-        
-        # Sanity limits for data validation
-        self._accel_max = 78.5  # ~8g in m/s^2
-        self._gyro_max = 34.9   # ~2000 deg/s in rad/s
+    def __init__(self, rate_hz=100.0, address=BNO085_I2C_ADDR_DEFAULT):
+        self.i2c = busio.I2C(board.SCL, board.SDA)
+        self.bno = BNO08X_I2C(self.i2c, address=address)
 
-    def begin(self, interval_us: int = 10000) -> bool:
-        """Initialize the sensor and enable reports with specified interval."""
+        self._enable_feature_with_rate(BNO_REPORT_ACCELEROMETER, rate_hz)
+        self._enable_feature_with_rate(BNO_REPORT_GYROSCOPE, rate_hz)
+        self._enable_feature_with_rate(BNO_REPORT_MAGNETOMETER, rate_hz)
+
+    def read_latest_snapshot(self):
+        # Drain all pending packets so readings reflect the newest available data.
+        self.bno._process_available_packets()
+        readings = self.bno._readings
+        return (
+            readings.get(BNO_REPORT_ACCELEROMETER),
+            readings.get(BNO_REPORT_GYROSCOPE),
+            readings.get(BNO_REPORT_MAGNETOMETER),
+        )
+
+    def _enable_feature_with_rate(self, feature_id, rate_hz):
+        if rate_hz <= 0:
+            raise ValueError("rate_hz must be > 0")
+        # First enable with library defaults, then update the report interval.
+        self.bno.enable_feature(feature_id)
+        interval_us = int(1_000_000 / rate_hz)
+        set_feature_report = self.bno._get_feature_enable_report(feature_id, report_interval=interval_us)
+        self.bno._send_packet(_BNO_CHANNEL_CONTROL, set_feature_report)
+        # Pull a few packets to apply the new interval quickly.
+        self.bno._process_available_packets(max_packets=10)
+
+    def close_sensor(self):
+        # Best-effort cleanup: release I2C resources.
         try:
-            # Extended soft reset sequence (for boards without RST pin)
-            for attempt in range(3):
-                # Send soft reset on executable channel
-                self._send_packet(CHANNEL_EXECUTABLE, [0x01])
-                time.sleep(0.8)
-                
-                # Drain
-                for i in range(10):
-                    # Using a direct internal read or get_data is fine here
-                    self.get_data()
-                    time.sleep(0.02)
-                
-                # Enable Raw Reports
-                self._enable_report(REPORT_ACCELEROMETER, interval_us)
-                time.sleep(0.05)
-                self._enable_report(REPORT_GYROSCOPE, interval_us)
-                time.sleep(0.05)
-                self._enable_report(REPORT_MAGNETOMETER, interval_us)
-                time.sleep(0.05)
-                
-                # Check for data
-                for i in range(20):
-                    data = self.get_data()
-                    if self._initialized or (data['last_update'] > 0):
-                        self._initialized = True
-                        return True
-                    time.sleep(0.05)
-            
-            return False
-            
+            if self.i2c is not None:
+                self.i2c.deinit()
         except Exception:
-            return False
-
-    def _enable_report(self, report_id: int, interval_us: int):
-        """Enable a sensor report at specified interval (microseconds)."""
-        data = [
-            CMD_SET_FEATURE_COMMAND,
-            report_id,
-            0x00, 0x00, 0x00,  # Flags, Change sensitivity
-            (interval_us) & 0xFF,
-            (interval_us >> 8) & 0xFF,
-            (interval_us >> 16) & 0xFF,
-            (interval_us >> 24) & 0xFF,
-            0x00, 0x00, 0x00, 0x00,  # Batch interval
-            0x00, 0x00, 0x00, 0x00   # Sensor specific
-        ]
-        self._send_packet(CHANNEL_CONTROL, data)
-
-    def save_calibration(self) -> bool:
-        """Save Dynamic Calibration Data (DCD) to flash."""
-        data = [CMD_COMMAND_REQUEST, 0x00, CMD_DCD, DCD_SAVE_DCD,
-                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
-        try:
-            self._send_packet(CHANNEL_CONTROL, data)
-            time.sleep(0.1)
-            return True
-        except:
-            return False
-
-    def configure_calibration(self, accel=True, gyro=True, mag=True):
-        """Configure which sensors participate in calibration."""
-        data = [CMD_COMMAND_REQUEST, 0x00, CMD_ME_CALIBRATE, ME_CAL_CONFIG,
-                0x01 if accel else 0x00,
-                0x01 if gyro else 0x00,
-                0x01 if mag else 0x00,
-                0x00, 0x00, 0x00, 0x00, 0x00]
-        try:
-            self._send_packet(CHANNEL_CONTROL, data)
-            return True
-        except:
-            return False
-
-    def get_data(self):
-        """Poll sensor for data. Performs a single multi-packet read to maintain 100Hz rate."""
-        try:
-            # Read a 48-byte chunk. This fits within 10ms even on a 100kHz I2C bus.
-            # (34 bytes is a typical bundle: Accel+Gyro+Mag+Header)
-            r = i2c_msg.read(self.i2c_addr, 48)
-            self.i2cbus.i2c_rdwr(r)
-            buf = list(r)
-            
-            idx = 0
-            while idx + 4 <= len(buf):
-                length = ((buf[idx+1] & 0x7F) << 8) | buf[idx]
-                channel = buf[idx+2]
-                
-                if length <= 4 or length > 48:
-                    break
-                
-                if idx + length > len(buf):
-                    break
-                
-                if channel == CHANNEL_REPORTS:
-                    payload = buf[idx+4 : idx+length]
-                    if self._parse_input_reports(payload):
-                         self.data['last_update'] = time.time()
-                
-                idx += length
-                
-            return self.data
-            
-        except Exception:
-            return self.data
-
-    # ========================================================================
-    # Low Level SHTP / I2C
-    # ========================================================================
-
-    def _send_packet(self, channel: int, data: list):
-        """Send SHTP packet."""
-        length = len(data) + 4
-        packet = [length & 0xFF, (length >> 8) & 0x7F, channel,
-                  self.sequence_number[channel]] + data
-        self.sequence_number[channel] = (self.sequence_number[channel] + 1) & 0xFF
-        w = i2c_msg.write(self.i2c_addr, packet)
-        self.i2cbus.i2c_rdwr(w)
-
-    def _read_packet(self):
-        """Read a single SHTP packet in one transaction."""
-        try:
-            r = i2c_msg.read(self.i2c_addr, 64)
-            self.i2cbus.i2c_rdwr(r)
-            buf = list(r)
-            length = ((buf[1] & 0x7F) << 8) | buf[0]
-            channel = buf[2]
-            if length <= 4 or length > 64: return None, None
-            return channel, buf[4:length]
-        except Exception:
-            return None, None
-
-    def _parse_input_reports(self, data: list) -> bool:
-        """Parse sensor reports from channel 3 data. Returns True if Accelerometer was updated."""
-        i = 0
-        accel_updated = False
-        while i < len(data):
-            report_id = data[i]
-            
-            # Timestamp reports (skip)
-            if report_id == 0xFB or report_id == 0xFA:
-                i += 5
-                continue
-            
-            # AR/VR Stabilized Rotation Vector (0x28) - 14 bytes
-            if report_id == REPORT_ARVR_STABILIZED_RV:
-                if i + 14 <= len(data):
-                    self.data['accuracy_status'] = data[i+2] & 0x03
-                    self.data['quat'] = [
-                        self._int16(data, i+4) * Q_POINT_14,
-                        self._int16(data, i+6) * Q_POINT_14,
-                        self._int16(data, i+8) * Q_POINT_14,
-                        self._int16(data, i+10) * Q_POINT_14
-                    ]
-                    self.data['accuracy_quat'] = self._int16(data, i+12) * Q_POINT_12
-                    i += 14
-                else:
-                    break
-                    
-            # Accelerometer (0x01) - 10 bytes
-            elif report_id == REPORT_ACCELEROMETER:
-                if i + 10 <= len(data):
-                    ax = self._int16(data, i+4) * Q_POINT_8
-                    ay = self._int16(data, i+6) * Q_POINT_8
-                    az = self._int16(data, i+8) * Q_POINT_8
-                    # Sanity check: reject corrupt data
-                    if abs(ax) < self._accel_max and abs(ay) < self._accel_max and abs(az) < self._accel_max:
-                        self.data['accel'] = [ax, ay, az]
-                        accel_updated = True
-                    i += 10
-                else:
-                    break
-
-            # Gyroscope (0x02) - 10 bytes
-            elif report_id == REPORT_GYROSCOPE:
-                if i + 10 <= len(data):
-                    gx = self._int16(data, i+4) * Q_POINT_9
-                    gy = self._int16(data, i+6) * Q_POINT_9
-                    gz = self._int16(data, i+8) * Q_POINT_9
-                    # Sanity check: reject corrupt data
-                    if abs(gx) < self._gyro_max and abs(gy) < self._gyro_max and abs(gz) < self._gyro_max:
-                        self.data['gyro'] = [gx, gy, gz]
-                    i += 10
-                else:
-                    break
-
-            # Magnetometer (0x03) - 10 bytes
-            elif report_id == REPORT_MAGNETOMETER:
-                if i + 10 <= len(data):
-                    self.data['accuracy_status'] = data[i+2] & 0x03
-                    self.data['mag'] = [
-                        self._int16(data, i+4) * Q_POINT_4,
-                        self._int16(data, i+6) * Q_POINT_4,
-                        self._int16(data, i+8) * Q_POINT_4
-                    ]
-                    i += 10
-                else:
-                    break
-            
-            # Rotation Vector (0x05) - 14 bytes
-            elif report_id == REPORT_ROTATION_VECTOR:
-                i += 14 if i + 14 <= len(data) else len(data)
-            
-            # Game Rotation Vector (0x08) - 12 bytes
-            elif report_id == REPORT_GAME_ROTATION_VECTOR:
-                i += 12 if i + 12 <= len(data) else len(data)
-            
-            else:
-                i += 1  # Unknown, skip byte
-                
-        return accel_updated
-
-    def _int16(self, data, idx) -> int:
-        """Parse signed 16-bit little-endian integer."""
-        val = (data[idx+1] << 8) | data[idx]
-        return val - 0x10000 if val & 0x8000 else val
-
-    def close(self):
-        try:
-            self.i2cbus.close()
-        except:
             pass
-
-    def __del__(self):
-        self.close()
-
-
-
-if __name__ == '__main__':
-    print("BNO085 Max Rate Test")
-    imu = BNO085(1, 0x4A)
-    
-    if imu.begin():
-        print("✅ BNO085 Initialized")
-        count = 0
-        start_time = time.time()
-        
-        try:
-            while True:
-                # Direct data grab without printing
-                d = imu.get_data()
-
-                count += 1
-                
-                # Calculate and print stats every 1 second
-                elapsed = time.time() - start_time
-                if elapsed >= 1.0:
-                    freq = count / elapsed
-                    print(f"Current Rate: {freq:.2f} Hz")
-                    count = 0
-                    start_time = time.time()
-
-                time.sleep(0.0001)  # Small delay to avoid busy loop
-                    
-        except KeyboardInterrupt:
-            print("\nStopped")
-    else:
-        print("❌ Failed to init BNO085")

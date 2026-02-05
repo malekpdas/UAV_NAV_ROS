@@ -29,7 +29,7 @@ class RCReaderNode(Node):
         
         # Data Storage
         self.lock = threading.Lock()
-        self.pulses = [1500] * 6
+        self.pulses = self.failsafe_values.copy()
         self.last_rise = [None] * 6
         self.last_update = [time.time()] * 6
         self.failsafe = [False] * 6
@@ -56,6 +56,7 @@ class RCReaderNode(Node):
         # Default Pins: [20, 25, 16, 12, 24, 21]
         # Ch 6: Mode Switch
         self.declare_parameter('gpio_pins', [20, 25, 16, 12, 24, 21])
+        self.declare_parameter('failsafe_values', [1500]*6)
 
     def load_parameters(self):
         # Get parameters
@@ -63,6 +64,7 @@ class RCReaderNode(Node):
         self.rate_hz = self.get_parameter('publish_rate').value
         self.failsafe_timeout = self.get_parameter('failsafe_timeout').value
         self.pins = self.get_parameter('gpio_pins').value
+        self.failsafe_values = self.get_parameter('failsafe_values').value
 
     def _make_callback(self, ch_idx):
         """Create a closure for specific channel callback"""
@@ -90,6 +92,7 @@ class RCReaderNode(Node):
                 if current_time - self.last_update[i] > self.failsafe_timeout:
                     if not self.failsafe[i]:
                         self.failsafe[i] = True
+                        self.pulses[i] = self.failsafe_values[i]  # Use failsafe value
                         self.get_logger().warn(f'Channel {i+1} Failsafe Triggered')
                         pass
 

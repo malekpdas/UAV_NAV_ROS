@@ -8,7 +8,7 @@ from sensor_msgs.msg import Imu, MagneticField
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
-from sensors.bno085.bno085_lib import BNO085, BNO085_I2C_ADDR_DEFAULT
+from sensors.bno085.bno085_lib import BNO085
 
 import time
 
@@ -19,12 +19,11 @@ class BNO085Node(Node):
         self.declare_all_parameters()
         self.load_parameters()
 
-        self.imu = BNO085(1, BNO085_I2C_ADDR_DEFAULT)
-        interval_us = int(1e6 / self.rate_hz)
-        if self.imu.begin(interval_us):
+        try:
+            self.imu = BNO085(rate_hz=self.rate_hz)
             self.get_logger().info(f'✅ BNO085 init OK (rate: {self.rate_hz}Hz) on bus 1')
-        else:
-            self.get_logger().fatal(f'❌ BNO085 init FAILED')
+        except Exception as e:
+            self.get_logger().fatal(f'❌ BNO085 init FAILED: {e}')
             self._ok = False
             return
 
@@ -74,72 +73,75 @@ class BNO085Node(Node):
         self.frame_id = self.get_parameter('frame_id').value
 
         # Transformations
-        self._imu_rot = np.array(self.get_parameter('transformation.imu_rotation').value).reshape(3, 3)
+        self.imu_rot = np.array(self.get_parameter('transformation.imu_rotation').value).reshape(3, 3)
         self.mag_dec_angle = self.get_parameter('transformation.mag_decl').value
-        self._mag_dec_rot = R.from_euler('xyz', [0, 0, self.mag_dec_angle], degrees=True).as_matrix()
+        self.mag_dec_rot = R.from_euler('xyz', [0, 0, self.mag_dec_angle], degrees=True).as_matrix()
         
         # Sensor Calibration
         self.bias_removal = self.get_parameter('sensor_calibration.bias_removal').value
         self.bias_duration_sec = self.get_parameter('sensor_calibration.bias_duration_sec').value
-        self._accel_bias = np.array(self.get_parameter('sensor_calibration.accel_bias').value)
-        self._gyro_bias = np.array(self.get_parameter('sensor_calibration.gyro_bias').value)
-        self._mag_bias = np.array(self.get_parameter('sensor_calibration.mag_bias').value)
-        self._mag_transform = np.array(self.get_parameter('sensor_calibration.mag_transform').value).reshape(3, 3)
+        self.accel_bias = np.array(self.get_parameter('sensor_calibration.accel_bias').value)
+        self.gyro_bias = np.array(self.get_parameter('sensor_calibration.gyro_bias').value)
+        self.mag_bias = np.array(self.get_parameter('sensor_calibration.mag_bias').value)
+        self.mag_transform = np.array(self.get_parameter('sensor_calibration.mag_transform').value).reshape(3, 3)
         
         # Sensor Variances
-        self._accel_cov = np.diag(self.get_parameter('sensor_variance.accel').value).flatten()
-        self._gyro_cov = np.diag(self.get_parameter('sensor_variance.gyro').value).flatten()
-        self._mag_cov = np.diag(self.get_parameter('sensor_variance.mag').value).flatten()
+        self.accel_cov = np.diag(self.get_parameter('sensor_variance.accel').value).flatten()
+        self.gyro_cov = np.diag(self.get_parameter('sensor_variance.gyro').value).flatten()
+        self.mag_cov = np.diag(self.get_parameter('sensor_variance.mag').value).flatten()
 
     def tick(self):
         try:
             # Drain all reports from the internal buffer. 
-            data = self.imu.get_data()
+            accel, gyro, mag = self.imu.read_latest_snapshot()
+
+            if self.calibrating:
+                self.calibrate_biases(accel, gyro)
+                return
             
             # Publish exactly once per tick to maintain the configured frequency
-            if data['last_update'] > 0: # Ensure we have received at least one sample ever
-                self.publish_data(data)
+            if any(x is None for x in [accel, gyro, mag]): # Ensure we have received at least one sample ever
+                self.get_logger().warn("Received None data from BNO085 sensor")
+                return
+            self.publish_data(accel, gyro, mag)
                 
         except Exception as e:
             self.get_logger().warn(f'Error in tick: {e}')
 
-    def publish_data(self, data):
+    def calibrate_biases(self, accel, gyro):
+        ax, ay, az = accel
+        gx, gy, gz = gyro
+        # Calibration Logic (Startup Bias Removal)
+        now_sec = self.get_clock().now().nanoseconds / 1e9
+        if now_sec < self.calibration_end_time:
+            self.calibration_samples['accel'].append([ax, ay, az])
+            self.calibration_samples['gyro'].append([gx, gy, gz])
+        else:
+            # Finish calibration
+            accel_data = np.array(self.calibration_samples['accel'])
+            gyro_data = np.array(self.calibration_samples['gyro'])
+            
+            if len(accel_data) > 0:
+                self.gyro_bias = np.mean(gyro_data, axis=0)
+                
+                # Accel bias: assume Z is Gravity (9.80665)
+                gravity = self.imu_rot @ np.array([0.0, 0.0, -9.80665])
+                a_mean = np.mean(accel_data, axis=0)
+                self.accel_bias = a_mean - gravity
+                
+                self.get_logger().info(f'Calibration Done. Gyro Bias: {self.gyro_bias}, Accel Bias: {self.accel_bias}')
+            else:
+                self.get_logger().warn('Calibration failed: no data collected.')
+            
+            self.calibrating = False
+
+    def publish_data(self, accel, gyro, mag):
         """Callback to publish ROS messages for each received report."""
         now = self.get_clock().now().to_msg()
-        
-        accel = data['accel'] # m/s^2
-        gyro = data['gyro']   # rad/s
-        mag = data['mag']     # uT
         
         ax, ay, az = accel[0], accel[1], accel[2]
         gx, gy, gz = gyro[0], gyro[1], gyro[2]
         mx, my, mz = mag[0], mag[1], mag[2]
-
-        # Calibration Logic (Startup Bias Removal)
-        if self.calibrating:
-            now_sec = self.get_clock().now().nanoseconds / 1e9
-            if now_sec < self.calibration_end_time:
-                self.calibration_samples['accel'].append([ax, ay, az])
-                self.calibration_samples['gyro'].append([gx, gy, gz])
-            else:
-                # Finish calibration
-                accel_data = np.array(self.calibration_samples['accel'])
-                gyro_data = np.array(self.calibration_samples['gyro'])
-                
-                if len(accel_data) > 0:
-                    self._gyro_bias = np.mean(gyro_data, axis=0)
-                    
-                    # Accel bias: assume Z is Gravity (9.80665)
-                    gravity = self._imu_rot @ np.array([0.0, 0.0, -9.80665])
-                    a_mean = np.mean(accel_data, axis=0)
-                    self._accel_bias = a_mean - gravity
-                    
-                    self.get_logger().info(f'Calibration Done. Gyro Bias: {self._gyro_bias}, Accel Bias: {self._accel_bias}')
-                else:
-                    self.get_logger().warn('Calibration failed: no data collected.')
-                
-                self.calibrating = False
-            return
 
         # IMU Message
         imu_msg = Imu()
@@ -147,30 +149,30 @@ class BNO085Node(Node):
         imu_msg.header.frame_id = self.frame_id
         
         # Apply Bias (Sensor Frame)
-        ax_cal = ax - self._accel_bias[0]
-        ay_cal = ay - self._accel_bias[1]
-        az_cal = az - self._accel_bias[2]
+        ax_cal = ax - self.accel_bias[0]
+        ay_cal = ay - self.accel_bias[1]
+        az_cal = az - self.accel_bias[2]
         
-        gx_cal = gx - self._gyro_bias[0]
-        gy_cal = gy - self._gyro_bias[1]
-        gz_cal = gz - self._gyro_bias[2]
+        gx_cal = gx - self.gyro_bias[0]
+        gy_cal = gy - self.gyro_bias[1]
+        gz_cal = gz - self.gyro_bias[2]
         
         # Apply Rotation (Mounting -> Body)
         accel_vec = np.array([ax_cal, ay_cal, az_cal])
         gyro_vec = np.array([gx_cal, gy_cal, gz_cal])
         
-        accel_body = self._imu_rot @ accel_vec
-        gyro_body = self._imu_rot @ gyro_vec
+        accel_body = self.imu_rot @ accel_vec
+        gyro_body = self.imu_rot @ gyro_vec
         
         imu_msg.linear_acceleration.x = accel_body[0]
         imu_msg.linear_acceleration.y = accel_body[1]
         imu_msg.linear_acceleration.z = accel_body[2]
-        imu_msg.linear_acceleration_covariance = self._accel_cov
+        imu_msg.linear_acceleration_covariance = self.accel_cov
         
         imu_msg.angular_velocity.x = gyro_body[0]
         imu_msg.angular_velocity.y = gyro_body[1]
         imu_msg.angular_velocity.z = gyro_body[2]
-        imu_msg.angular_velocity_covariance = self._gyro_cov
+        imu_msg.angular_velocity_covariance = self.gyro_cov
         
         # No Orientation provided (Raw Mode)
         imu_msg.orientation_covariance[0] = -1.0 
@@ -184,19 +186,18 @@ class BNO085Node(Node):
         B = np.array([mx, my, mz])
         
         # Rotation
-        B_body = self._imu_rot @ B
+        B_body = self.imu_rot @ B
         
         # Soft/Hard Iron 
-        B_bias = self._imu_rot @ self._mag_bias
-        B_calib = (B_body - B_bias) @ self._mag_transform.T
+        B_calib = (B_body - self.mag_bias) @ self.mag_transform.T
         
         # Declination alignment (if needed)
-        B_true = self._mag_dec_rot.T @ B_calib
+        B_true = self.mag_dec_rot.T @ B_calib
         
-        mag_msg.magnetic_field.x = B_true[0] * 1e-6 # Convert uT to Tesla
-        mag_msg.magnetic_field.y = B_true[1] * 1e-6
-        mag_msg.magnetic_field.z = B_true[2] * 1e-6
-        mag_msg.magnetic_field_covariance = self._mag_cov
+        mag_msg.magnetic_field.x = B_true[0]
+        mag_msg.magnetic_field.y = B_true[1]
+        mag_msg.magnetic_field.z = B_true[2]
+        mag_msg.magnetic_field_covariance = self.mag_cov
 
         if rclpy.ok():
             self.pub_imu.publish(imu_msg)
@@ -204,7 +205,7 @@ class BNO085Node(Node):
             
     def destroy(self):
         if hasattr(self, 'imu'):
-            self.imu.close()
+            self.imu.close_sensor()
         if hasattr(self, 'timer') and self.timer is not None:
             self.timer.cancel()
         super().destroy_node()
