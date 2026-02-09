@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+numpy
+scipy
+matplotlib
+pydantic
+psutil
+PyYAML
+imufusion
+smbus2
+lgpio

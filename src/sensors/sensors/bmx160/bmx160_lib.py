@@ -17,7 +17,7 @@ License: MIT
 Modified: 2024 - Production hardening and documentation
 """
 
-import smbus
+import smbus2 as smbus
 import time
 from typing import Optional, List, Tuple
 from enum import IntEnum
