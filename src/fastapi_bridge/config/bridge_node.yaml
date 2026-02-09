@@ -3,5 +3,6 @@ ros2_bridge:
     ws_root: "~/UAV_NAV_ROS"
     log_file_path: "~/.ros/log/latest/launch.log"
     launch_dir: "[ws_root]/src/launch"
+    rec_dir: "[ws_root]/recordings/"
     api_port: 8000
     api_host: "localhost"

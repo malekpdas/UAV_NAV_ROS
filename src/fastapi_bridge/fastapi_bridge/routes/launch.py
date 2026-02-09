@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request, status
-from fastapi_bridge.helpers.terminal_cmd import launch_ros2, kill_process
+from fastapi_bridge.helpers.terminal_cmd import launch_ros2, record_topics, kill_process
 from fastapi_bridge.helpers.format_converter import write_yaml
 from typing import List, Dict, Any
 from pydantic import BaseModel
@@ -28,19 +28,24 @@ def launch_nodes(request: Request):
 @router.post("/stop", status_code=status.HTTP_200_OK)
 def stop_nodes(request: Request):
     try:
-        pid = request.app.state.launch_pid
+        try:
+            launch_pid = request.app.state.launch_pid
+            launch_killed = kill_process(launch_pid)
+        except:
+            launch_killed = False
 
-        if not pid:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No launch running")
+        try:
+            recording_pid = request.app.state.recording_pid
+            recording_killed = kill_process(recording_pid)
+        except:
+            recording_killed = False
 
-        is_ok = kill_process(pid)
-
-        if is_ok:
+        if launch_killed and recording_killed:
             request.app.state.launch_pid = None
-            return {"msg": "OK"}
+            request.app.state.recording_pid = None
+            
+        return {"msg": "OK", "launch_killed": launch_killed, "recording_killed": recording_killed}
         
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unknown command")
-
     except HTTPException:
         raise
     except Exception as e:
@@ -86,3 +91,25 @@ def create_launch_file(request: Request, data: LaunchFileBody):
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
         
+class RecordingData(BaseModel):
+    topics: List[str]
+
+@router.post("/start_recording", status_code=status.HTTP_200_OK)
+def start_recording(request: Request, data: RecordingData):
+    try:
+
+        rec_dir = request.app.state.rec_dir
+        Path(rec_dir).mkdir(parents=True, exist_ok=True)
+
+        pid = record_topics(rec_dir, data.topics)
+
+        if pid is None:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error recording topics.")
+
+        request.app.state.recording_pid = pid
+        return {"msg": "OK", "pid": pid}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

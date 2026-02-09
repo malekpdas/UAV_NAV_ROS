@@ -2,6 +2,7 @@ import subprocess
 import os, signal
 import time
 import psutil
+from typing import List, Optional
 
 def list_children(pid):
     parent = psutil.Process(pid)
@@ -10,32 +11,37 @@ def list_children(pid):
 def kill_process(pid) -> bool:
     try:
         os.killpg(pid, signal.SIGINT)
-        time.sleep(2)
+        time.sleep(3)
         os.killpg(pid, signal.SIGTERM)
-        time.sleep(2)
+        time.sleep(3)
         os.killpg(pid, signal.SIGKILL)
         print(f"Process group {pid} terminated.")
         return True
     except ProcessLookupError:
-        print(f"Process {pid} not found.")
-        return False
+        raise Exception(f"Process {pid} not found.")
     except PermissionError:
-        print(f"Permission denied to terminate {pid}.")
-        return False
+        raise Exception(f"Permission denied to terminate {pid}.")
 
-def run_command(command) -> int:
+def run_command(command, cwd: Optional[str] = None) -> int:
     try:
         proc = subprocess.Popen(
             command,
-            start_new_session=True,      # CREATE process group
+            cwd=cwd,                     # None = inherit current directory
+            start_new_session=True,     # create process group
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL
         )
-        return proc.pid   # group leader PID
+        return proc.pid
     except Exception as e:
-        print(f"Error running command: {e}")
-        return None
+        raise Exception(f"Error running command: {e}")
 
+def record_topics(rec_path: str, topics: List[str]) -> int:
+    command = ["ros2", "bag", "record"]
+    if len(topics) > 0:
+        command += topics
+    else:
+        command += ["--all-topics"]
+    return run_command(command, cwd=rec_path)
 
 def launch_ros2(launch_file) -> int:
     command = ["ros2", "launch", launch_file]

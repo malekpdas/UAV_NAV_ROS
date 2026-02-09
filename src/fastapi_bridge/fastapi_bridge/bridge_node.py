@@ -14,21 +14,24 @@ app = FastAPI(title="ROS2 Node Description API")
 class ROS2BridgeNode(Node):
     def __init__(self):
         super().__init__('ros2_bridge')
-        self.declare_parameter('ws_root', '/home/malekpdas/ros2-ws')
+        self.declare_parameter('ws_root', '/home/malekpdas/UAV_NAV_ROS')
         self.declare_parameter('api_host', '0.0.0.0')
         self.declare_parameter('api_port', 8000)
         self.declare_parameter('log_file_path', '/home/malekpdas/.ros/log/latest/launch.log')
-        self.declare_parameter('launch_dir', '/home/malekpdas/ros2-ws/src/launch')
+        self.declare_parameter('launch_dir', '/home/malekpdas/UAV_NAV_ROS/src/launch')
+        self.declare_parameter('rec_dir', '/home/malekpdas/UAV_NAV_ROS/recordings')
 
         self.ws_root = self.get_parameter('ws_root').get_parameter_value().string_value
         self.api_host = self.get_parameter('api_host').get_parameter_value().string_value
         self.api_port = self.get_parameter('api_port').get_parameter_value().integer_value
         self.log_file_path = self.get_parameter('log_file_path').get_parameter_value().string_value
         self.launch_dir = self.get_parameter('launch_dir').get_parameter_value().string_value
+        self.rec_dir = self.get_parameter('rec_dir').get_parameter_value().string_value
 
         app.state.ws_root = os.path.expanduser(self.ws_root)
         app.state.log_file_path = os.path.expanduser(self.log_file_path)
         app.state.launch_dir = self.launch_dir.replace("[ws_root]", app.state.ws_root)
+        app.state.rec_dir = self.rec_dir.replace("[ws_root]", app.state.ws_root)
         app.state.is_shutting_down = False
 
         self.register_routes()
