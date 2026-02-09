@@ -7,6 +7,7 @@ from fastapi_bridge.routes.launch import router as launch_router
 from fastapi_bridge.routes.config import router as config_router
 import uvicorn
 import threading
+import os
 
 app = FastAPI(title="ROS2 Node Description API")
 
@@ -25,19 +26,10 @@ class ROS2BridgeNode(Node):
         self.log_file_path = self.get_parameter('log_file_path').get_parameter_value().string_value
         self.launch_dir = self.get_parameter('launch_dir').get_parameter_value().string_value
 
-        app.state.ws_root = self.ws_root
-        app.state.log_file_path = self.log_file_path
-        app.state.launch_dir = self.launch_dir
+        app.state.ws_root = os.path.expanduser(self.ws_root)
+        app.state.log_file_path = os.path.expanduser(self.log_file_path)
+        app.state.launch_dir = self.launch_dir.replace("[ws_root]", app.state.ws_root)
         app.state.is_shutting_down = False
-
-        # Add event handlers for graceful shutdown
-        @app.on_event("startup")
-        async def startup_event():
-            app.state.is_shutting_down = False
-
-        @app.on_event("shutdown")
-        async def shutdown_event():
-            app.state.is_shutting_down = True
 
         self.register_routes()
 
@@ -51,7 +43,6 @@ class ROS2BridgeNode(Node):
         uvicorn.run(app, host=self.api_host, port=self.api_port, log_level="info")
 
     def destroy(self):
-        app.should_exit = True
         app.routes.clear()
         self.destroy_node()
 
