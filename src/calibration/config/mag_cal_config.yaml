@@ -1,12 +1,28 @@
 /mag_calibration:
   ros__parameters:
-    max_samples: 50000
-    min_samples: 400
-    angular_bins: 6
-    gap_threshold_percent: 1.0
-    plot_every_n: 50
+    max_samples:
+      value: 50000
+      description: "Maximum number of magnetometer samples to collect"
+    min_samples:
+      value: 400
+      description: "Minimum number of samples required before starting calibration"
+    angular_bins:
+      value: 6
+      description: "Number of angular bins for coverage calculation"
+    gap_threshold_percent:
+      value: 1.0
+      description: "Gap threshold percentage to stop collection"
+    plot_every_n:
+      value: 50
+      description: "Update plot every N samples"
 
     topics:
-      mag: /imu_bno085/mag
-    timeout_sec: 5.0
-    check_rate: 10.0
+      mag:
+        value: "/imu_bno085/mag"
+        description: "Magnetometer topic to subscribe to"
+      timeout_sec:
+        value: 5.0
+        description: "Timeout for waiting for topics"
+      check_rate:
+        value: 10.0
+        description: "Rate to check for topic presence"

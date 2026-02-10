@@ -147,89 +147,89 @@ class SensorFusionNode(Node):
         """Declare all ROS2 parameters with default values."""
         
         # Frame IDs
-        self.declare_parameter('frames.map_frame', 'map')
-        self.declare_parameter('frames.odom_frame', 'odom')
-        self.declare_parameter('frames.base_link_frame', 'base_link')
+        self.declare_parameter('frames.map_frame.value', 'map')
+        self.declare_parameter('frames.odom_frame.value', 'odom')
+        self.declare_parameter('frames.base_link_frame.value', 'base_link')
         
         # Topics
         # Subscribed Topics
-        self.declare_parameter('sub_topics.imu', '/imu/data')
-        self.declare_parameter('sub_topics.mag', '/imu/mag')
-        self.declare_parameter('sub_topics.gps_fix', '/gps/fix')
-        self.declare_parameter('sub_topics.gps_vel', '/gps/vel')
-        self.declare_parameter('sub_topics.timeout_sec', 5.0)
-        self.declare_parameter('sub_topics.check_rate', 10.0)
+        self.declare_parameter('sub_topics.imu.value', '/imu/data')
+        self.declare_parameter('sub_topics.mag.value', '/imu/mag')
+        self.declare_parameter('sub_topics.gps_fix.value', '/gps/fix')
+        self.declare_parameter('sub_topics.gps_vel.value', '/gps/vel')
+        self.declare_parameter('sub_topics.timeout_sec.value', 5.0)
+        self.declare_parameter('sub_topics.check_rate.value', 10.0)
 
-        self.declare_parameter('publish_acceleration', False)
+        self.declare_parameter('publish_acceleration.value', False)
         
         # AHRS
-        self.declare_parameter('ahrs.offset_samples', 100)
-        self.declare_parameter('ahrs.gain', 0.5)
-        self.declare_parameter('ahrs.gyro_range', 500.0)
-        self.declare_parameter('ahrs.accel_rejection', 10.0)
-        self.declare_parameter('ahrs.mag_rejection', 10.0)
-        self.declare_parameter('ahrs.rejection_timeout', 500)
+        self.declare_parameter('ahrs.offset_samples.value', 100)
+        self.declare_parameter('ahrs.gain.value', 0.5)
+        self.declare_parameter('ahrs.gyro_range.value', 500.0)
+        self.declare_parameter('ahrs.accel_rejection.value', 10.0)
+        self.declare_parameter('ahrs.mag_rejection.value', 10.0)
+        self.declare_parameter('ahrs.rejection_timeout.value', 500)
         
         # Kalman Filter - Initial Uncertainties
-        self.declare_parameter('kalman_filter.initial_pos_uncertainty', 100.0)
-        self.declare_parameter('kalman_filter.initial_vel_uncertainty', 100.0)
-        self.declare_parameter('kalman_filter.initial_bias_uncertainty', 1.0)
+        self.declare_parameter('kalman_filter.initial_pos_uncertainty.value', 100.0)
+        self.declare_parameter('kalman_filter.initial_vel_uncertainty.value', 100.0)
+        self.declare_parameter('kalman_filter.initial_bias_uncertainty.value', 1.0)
         
         # Kalman Filter - Process Noise
-        self.declare_parameter('kalman_filter.process_noise_pos', 0.5)
-        self.declare_parameter('kalman_filter.process_noise_vel', 0.5)
-        self.declare_parameter('kalman_filter.process_noise_bias', 0.001)
+        self.declare_parameter('kalman_filter.process_noise_pos.value', 0.5)
+        self.declare_parameter('kalman_filter.process_noise_vel.value', 0.5)
+        self.declare_parameter('kalman_filter.process_noise_bias.value', 0.001)
         
         # Kalman Filter - Measurement Noise
-        self.declare_parameter('kalman_filter.measurement_noise_pos', 25.0)
-        self.declare_parameter('kalman_filter.measurement_noise_vel', 0.25)
+        self.declare_parameter('kalman_filter.measurement_noise_pos.value', 25.0)
+        self.declare_parameter('kalman_filter.measurement_noise_vel.value', 0.25)
         
         # LP Filters
-        self.declare_parameter('lp_filters.accel_alpha', 0.9)
+        self.declare_parameter('lp_filters.accel_alpha.value', 0.9)
         
         # Earth Model
-        self.declare_parameter('earth.gravity', 9.8066)
-        self.declare_parameter('earth.radius', 6378137.0)
-        self.declare_parameter('earth.flattening', 0.0033528106647474805)
-        self.declare_parameter('earth.ref_pos', [0.0, 0.0, 0.0])
+        self.declare_parameter('earth.gravity.value', 9.8066)
+        self.declare_parameter('earth.radius.value', 6378137.0)
+        self.declare_parameter('earth.flattening.value', 0.0033528106647474805)
+        self.declare_parameter('earth.ref_pos.value', [0.0, 0.0, 0.0])
 
     def load_parameters(self):
         """Load all ROS2 parameters into a nested dictionary structure."""
-        self.map_frame = self.get_parameter('frames.map_frame').value
-        self.odom_frame = self.get_parameter('frames.odom_frame').value
-        self.base_link_frame = self.get_parameter('frames.base_link_frame').value
+        self.map_frame = self.get_parameter('frames.map_frame.value').value
+        self.odom_frame = self.get_parameter('frames.odom_frame.value').value
+        self.base_link_frame = self.get_parameter('frames.base_link_frame.value').value
 
-        self.imu_topic = self.get_parameter('sub_topics.imu').value
-        self.mag_topic = self.get_parameter('sub_topics.mag').value
-        self.gps_fix_topic = self.get_parameter('sub_topics.gps_fix').value
-        self.gps_vel_topic = self.get_parameter('sub_topics.gps_vel').value
-        self.timeout_sec = self.get_parameter('sub_topics.timeout_sec').value
-        self.check_rate = self.get_parameter('sub_topics.check_rate').value
+        self.imu_topic = self.get_parameter('sub_topics.imu.value').value
+        self.mag_topic = self.get_parameter('sub_topics.mag.value').value
+        self.gps_fix_topic = self.get_parameter('sub_topics.gps_fix.value').value
+        self.gps_vel_topic = self.get_parameter('sub_topics.gps_vel.value').value
+        self.timeout_sec = self.get_parameter('sub_topics.timeout_sec.value').value
+        self.check_rate = self.get_parameter('sub_topics.check_rate.value').value
 
-        self.publish_acceleration = self.get_parameter('publish_acceleration').value
+        self.publish_acceleration = self.get_parameter('publish_acceleration.value').value
 
-        self.ahrs_offset_samples = self.get_parameter('ahrs.offset_samples').value
-        self.ahrs_gain = self.get_parameter('ahrs.gain').value
-        self.ahrs_gyro_range = self.get_parameter('ahrs.gyro_range').value
-        self.ahrs_accel_rejection = self.get_parameter('ahrs.accel_rejection').value
-        self.ahrs_mag_rejection = self.get_parameter('ahrs.mag_rejection').value
-        self.ahrs_rejection_timeout = self.get_parameter('ahrs.rejection_timeout').value
+        self.ahrs_offset_samples = self.get_parameter('ahrs.offset_samples.value').value
+        self.ahrs_gain = self.get_parameter('ahrs.gain.value').value
+        self.ahrs_gyro_range = self.get_parameter('ahrs.gyro_range.value').value
+        self.ahrs_accel_rejection = self.get_parameter('ahrs.accel_rejection.value').value
+        self.ahrs_mag_rejection = self.get_parameter('ahrs.mag_rejection.value').value
+        self.ahrs_rejection_timeout = self.get_parameter('ahrs.rejection_timeout.value').value
 
-        self.kf_initial_pos_uncertainty = self.get_parameter('kalman_filter.initial_pos_uncertainty').value
-        self.kf_initial_vel_uncertainty = self.get_parameter('kalman_filter.initial_vel_uncertainty').value
-        self.kf_initial_bias_uncertainty = self.get_parameter('kalman_filter.initial_bias_uncertainty').value
-        self.kf_process_noise_pos = self.get_parameter('kalman_filter.process_noise_pos').value
-        self.kf_process_noise_vel = self.get_parameter('kalman_filter.process_noise_vel').value
-        self.kf_process_noise_bias = self.get_parameter('kalman_filter.process_noise_bias').value
-        self.kf_measurement_noise_pos = self.get_parameter('kalman_filter.measurement_noise_pos').value
-        self.kf_measurement_noise_vel = self.get_parameter('kalman_filter.measurement_noise_vel').value
+        self.kf_initial_pos_uncertainty = self.get_parameter('kalman_filter.initial_pos_uncertainty.value').value
+        self.kf_initial_vel_uncertainty = self.get_parameter('kalman_filter.initial_vel_uncertainty.value').value
+        self.kf_initial_bias_uncertainty = self.get_parameter('kalman_filter.initial_bias_uncertainty.value').value
+        self.kf_process_noise_pos = self.get_parameter('kalman_filter.process_noise_pos.value').value
+        self.kf_process_noise_vel = self.get_parameter('kalman_filter.process_noise_vel.value').value
+        self.kf_process_noise_bias = self.get_parameter('kalman_filter.process_noise_bias.value').value
+        self.kf_measurement_noise_pos = self.get_parameter('kalman_filter.measurement_noise_pos.value').value
+        self.kf_measurement_noise_vel = self.get_parameter('kalman_filter.measurement_noise_vel.value').value
 
-        self.lp_filter_accel_alpha = self.get_parameter('lp_filters.accel_alpha').value
+        self.lp_filter_accel_alpha = self.get_parameter('lp_filters.accel_alpha.value').value
 
-        self.earth_gravity = self.get_parameter('earth.gravity').value
-        self.earth_radius = self.get_parameter('earth.radius').value
-        self.earth_flattening = self.get_parameter('earth.flattening').value
-        self.earth_ref_pos = self.get_parameter('earth.ref_pos').value
+        self.earth_gravity = self.get_parameter('earth.gravity.value').value
+        self.earth_radius = self.get_parameter('earth.radius.value').value
+        self.earth_flattening = self.get_parameter('earth.flattening.value').value
+        self.earth_ref_pos = self.get_parameter('earth.ref_pos.value').value
 
     def msg_to_sec(self, stamp):
         """Convert ROS timestamp to seconds."""

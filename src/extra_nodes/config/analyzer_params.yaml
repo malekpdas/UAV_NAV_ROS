@@ -1,7 +1,15 @@
 analyzer_params:
   ros__parameters:
     sub_topics:
-      gps_fix: "/gps/fix"
-      gps_vel: "/gps/vel"
-      odometry: "/ekf/odom"
-      filtered_imu: "/ekf/filtered_imu"
+      gps_fix:
+        value: "/gps/fix"
+        description: "GPS fix topic"
+      gps_vel:
+        value: "/gps/vel"
+        description: "GPS velocity topic"
+      odometry:
+        value: "/ekf/odom"
+        description: "Odometry topic"
+      filtered_imu:
+        value: "/ekf/filtered_imu"
+        description: "Filtered IMU topic"

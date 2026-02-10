@@ -1,26 +1,50 @@
 /imu_bmx160:
   ros__parameters:
-    rate_hz: 100.0
-    frame_id: "imu_link"
+    rate_hz:
+      value: 100.0
+      description: "Sensor update rate in Hz"
+    frame_id:
+      value: "imu_link"
+      description: "ROS frame ID for the IMU"
     
-    transformation:
-      imu_rotation: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
-      mag_decl: -8.03 # degress
-
-    # Manual Biases (used if bias_removal is False)
+    # Sensor Calibration
     sensor_calibration:
-      bias_removal: false
-      bias_duration_sec: 2.0
-      accel_bias:     [-0.39987259,  0.06733226,  0.26389121]
-      gyro_bias:      [-0.00667298,  0.00397193,  0.00581356]
-      mag_bias:       [-33.4081157,  -47.47297767, -13.47426104]
-      mag_transform:  [3.51869606e-03, -5.66419805e-05,  7.32537405e-05,
-                      -5.66419805e-05,  3.65732366e-03,  5.86315147e-05,
-                      7.32537405e-05,  5.86315147e-05,  1.51149403e-02]
-
-
-    # Sensor Variances (diagonal elements of covariance matrix)
+      bias_removal:
+        value: false
+        description: "Whether to perform bias removal on startup"
+      bias_duration_sec:
+        value: 2.0
+        description: "Duration of bias removal phase"
+      accel_bias:
+        value: [0.0, 0.0, 0.0]
+        description: "Accelerometer bias offsets"
+      gyro_bias:
+        value: [0.0, 0.0, 0.0]
+        description: "Gyroscope bias offsets"
+      mag_bias:
+        value: [0.0, 0.0, 0.0]
+        description: "Magnetometer hard-iron offsets"
+      mag_transform:
+        value: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+        description: "Magnetometer soft-iron transformation matrix"
+    
+    # Sensor Variance Parameters
     sensor_variance:
-      accel: [0.1, 0.1, 0.1]
-      gyro: [0.0001, 0.0001, 0.0001]
-      mag: [0.001, 0.001, 0.001]
+      accel:
+        value: [0.01, 0.01, 0.01]
+        description: "Accelerometer variance (x, y, z)"
+      gyro:
+        value: [0.001, 0.001, 0.001]
+        description: "Gyroscope variance (x, y, z)"
+      mag:
+        value: [0.001, 0.001, 0.001]
+        description: "Magnetometer variance (x, y, z)"
+    
+    # IMU Rotation (Mounting)
+    transformation:
+      imu_rotation:
+        value: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+        description: "Mounting rotation matrix from IMU to body frame"
+      mag_decl:
+        value: 0.0
+        description: "Magnetic declination in degrees"

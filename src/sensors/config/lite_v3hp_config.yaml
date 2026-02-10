@@ -1,13 +1,33 @@
-lidar_lite_node:
+/lidar_lite_node:
   ros__parameters:
-    frequency: 100.0
-    frame_id: "lidar_link"
+    frequency:
+      value: 100.0
+      description: "Sensor update rate in Hz"
+    frame_id:
+      value: "lidar_link"
+      description: "ROS frame ID for the Lidar"
 
+    # Sensor Configuration Parameters
     sensor_config:
-      min_range: 0.05
-      max_range: 40.0
-      preset: "high_accuracy"
-      sig_count_val: -1
-      acq_config_reg: -1
-      threshold_bypass: -1
-      ref_count_val: -1
+      min_range:
+        value: 0.05
+        description: "Minimum valid range in meters"
+      max_range:
+        value: 40.0
+        description: "Maximum valid range in meters"
+      preset:
+        value: "balanced"
+        description: "Lidar measurement preset (e.g., 'balanced', 'long_range', 'high_accuracy', 'high_speed')"
+        options: ["balanced", "long_range", "high_accuracy", "high_speed"]
+      sig_count_val:
+        value: -1
+        description: "Signal count value override (-1 to use preset)"
+      acq_config_reg:
+        value: -1
+        description: "Acquisition configuration register override (-1 to use preset)"
+      threshold_bypass:
+        value: -1
+        description: "Threshold bypass value override (-1 to use preset)"
+      ref_count_val:
+        value: -1
+        description: "Reference count value override (-1 to use preset)"

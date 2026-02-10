@@ -187,26 +187,26 @@ class MagCalNode(Node):
                 time.sleep(period)
                 
     def declare_all_parameters(self):
-        self.declare_parameter('topics.mag', 'imu/mag')
-        self.declare_parameter('timeout_sec', 5.0)
-        self.declare_parameter('check_rate', 10.0)
+        self.declare_parameter('topics.mag.value', 'imu/mag')
+        self.declare_parameter('timeout_sec.value', 5.0)
+        self.declare_parameter('check_rate.value', 10.0)
 
-        self.declare_parameter('max_samples', 50000)
-        self.declare_parameter('min_samples', 400)
-        self.declare_parameter('angular_bins', 6)
-        self.declare_parameter('gap_threshold_percent', 1.0)
-        self.declare_parameter('plot_every_n', 50)
+        self.declare_parameter('max_samples.value', 50000)
+        self.declare_parameter('min_samples.value', 400)
+        self.declare_parameter('angular_bins.value', 6)
+        self.declare_parameter('gap_threshold_percent.value', 1.0)
+        self.declare_parameter('plot_every_n.value', 50)
 
     def load_parameters(self):
-        self.mag_topic = self.get_parameter('topics.mag').value
-        self.timeout_sec = self.get_parameter('timeout_sec').value
-        self.check_rate = self.get_parameter('check_rate').value
+        self.mag_topic = self.get_parameter('topics.mag.value').value
+        self.timeout_sec = self.get_parameter('timeout_sec.value').value
+        self.check_rate = self.get_parameter('check_rate.value').value
 
-        self.max_samples = self.get_parameter('max_samples').value
-        self.min_samples = self.get_parameter('min_samples').value
-        self.angular_bins = self.get_parameter('angular_bins').value
-        self.gap_threshold_percent = self.get_parameter('gap_threshold_percent').value
-        self.plot_every_n = self.get_parameter('plot_every_n').value
+        self.max_samples = self.get_parameter('max_samples.value').value
+        self.min_samples = self.get_parameter('min_samples.value').value
+        self.angular_bins = self.get_parameter('angular_bins.value').value
+        self.gap_threshold_percent = self.get_parameter('gap_threshold_percent.value').value
+        self.plot_every_n = self.get_parameter('plot_every_n.value').value
 
     def mag_cb(self, msg):
         if self.done:

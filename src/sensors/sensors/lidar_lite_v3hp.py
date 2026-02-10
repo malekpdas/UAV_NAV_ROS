@@ -54,25 +54,25 @@ class LidarLiteNode(Node):
 
     def declare_all_parameters(self):
         # ROS Parameters
-        self.declare_parameter('frequency', 100.0) # Hz
-        self.declare_parameter('frame_id', 'lidar_link')
+        self.declare_parameter('frequency.value', 100.0) # Hz
+        self.declare_parameter('frame_id.value', 'lidar_link')
 
         # Sensor Configuration Parameters
-        self.declare_parameter('sensor_config.min_range', 0.05)
-        self.declare_parameter('sensor_config.max_range', 40.0)
-        self.declare_parameter('sensor_config.preset', 'balanced')
-        self.declare_parameter('sensor_config.sig_count_val', -1)
-        self.declare_parameter('sensor_config.acq_config_reg', -1)
-        self.declare_parameter('sensor_config.threshold_bypass', -1)
-        self.declare_parameter('sensor_config.ref_count_val', -1)
+        self.declare_parameter('sensor_config.min_range.value', 0.05)
+        self.declare_parameter('sensor_config.max_range.value', 40.0)
+        self.declare_parameter('sensor_config.preset.value', 'balanced')
+        self.declare_parameter('sensor_config.sig_count_val.value', -1)
+        self.declare_parameter('sensor_config.acq_config_reg.value', -1)
+        self.declare_parameter('sensor_config.threshold_bypass.value', -1)
+        self.declare_parameter('sensor_config.ref_count_val.value', -1)
 
     def load_parameters(self):
-        self.freq = self.get_parameter('frequency').value
-        self.frame_id = self.get_parameter('frame_id').value
+        self.freq = self.get_parameter('frequency.value').value
+        self.frame_id = self.get_parameter('frame_id.value').value
         
-        self.min_range = self.get_parameter('sensor_config.min_range').value
-        self.max_range = self.get_parameter('sensor_config.max_range').value
-        self.preset_name = self.get_parameter('sensor_config.preset').value
+        self.min_range = self.get_parameter('sensor_config.min_range.value').value
+        self.max_range = self.get_parameter('sensor_config.max_range.value').value
+        self.preset_name = self.get_parameter('sensor_config.preset.value').value
 
     def tick(self):
         dist = self.lidar.read_distance()

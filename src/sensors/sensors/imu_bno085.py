@@ -47,48 +47,48 @@ class BNO085Node(Node):
 
     def declare_all_parameters(self):
         # imu
-        self.declare_parameter('rate_hz', 100.0)
-        self.declare_parameter('frame_id', 'imu_link')
+        self.declare_parameter('rate_hz.value', 100.0)
+        self.declare_parameter('frame_id.value', 'imu_link')
         
         # Sensor Calibration
-        self.declare_parameter('sensor_calibration.bias_removal', False)
-        self.declare_parameter('sensor_calibration.bias_duration_sec', 2.0)
-        self.declare_parameter('sensor_calibration.accel_bias', [0.0, 0.0, 0.0])
-        self.declare_parameter('sensor_calibration.gyro_bias', [0.0, 0.0, 0.0])
-        self.declare_parameter('sensor_calibration.mag_bias', [0.0, 0.0, 0.0])
-        self.declare_parameter('sensor_calibration.mag_transform', [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0])
+        self.declare_parameter('sensor_calibration.bias_removal.value', False)
+        self.declare_parameter('sensor_calibration.bias_duration_sec.value', 2.0)
+        self.declare_parameter('sensor_calibration.accel_bias.value', [0.0, 0.0, 0.0])
+        self.declare_parameter('sensor_calibration.gyro_bias.value', [0.0, 0.0, 0.0])
+        self.declare_parameter('sensor_calibration.mag_bias.value', [0.0, 0.0, 0.0])
+        self.declare_parameter('sensor_calibration.mag_transform.value', [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0])
         
         # Sensor Variance Parameters
-        self.declare_parameter('sensor_variance.accel', [0.01, 0.01, 0.01])
-        self.declare_parameter('sensor_variance.gyro', [0.001, 0.001, 0.001])
-        self.declare_parameter('sensor_variance.mag', [0.001, 0.001, 0.001])
+        self.declare_parameter('sensor_variance.accel.value', [0.01, 0.01, 0.01])
+        self.declare_parameter('sensor_variance.gyro.value', [0.001, 0.001, 0.001])
+        self.declare_parameter('sensor_variance.mag.value', [0.001, 0.001, 0.001])
         
         # IMU Rotation (Mounting)
-        self.declare_parameter('transformation.imu_rotation', [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0])
-        self.declare_parameter('transformation.mag_decl', 0.0)
+        self.declare_parameter('transformation.imu_rotation.value', [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0])
+        self.declare_parameter('transformation.mag_decl.value', 0.0)
 
     def load_parameters(self):
         # imu
-        self.rate_hz = self.get_parameter('rate_hz').value
-        self.frame_id = self.get_parameter('frame_id').value
+        self.rate_hz = self.get_parameter('rate_hz.value').value
+        self.frame_id = self.get_parameter('frame_id.value').value
 
         # Transformations
-        self.imu_rot = np.array(self.get_parameter('transformation.imu_rotation').value).reshape(3, 3)
-        self.mag_dec_angle = self.get_parameter('transformation.mag_decl').value
+        self.imu_rot = np.array(self.get_parameter('transformation.imu_rotation.value').value).reshape(3, 3)
+        self.mag_dec_angle = self.get_parameter('transformation.mag_decl.value').value
         self.mag_dec_rot = R.from_euler('xyz', [0, 0, self.mag_dec_angle], degrees=True).as_matrix()
         
         # Sensor Calibration
-        self.bias_removal = self.get_parameter('sensor_calibration.bias_removal').value
-        self.bias_duration_sec = self.get_parameter('sensor_calibration.bias_duration_sec').value
-        self.accel_bias = np.array(self.get_parameter('sensor_calibration.accel_bias').value)
-        self.gyro_bias = np.array(self.get_parameter('sensor_calibration.gyro_bias').value)
-        self.mag_bias = np.array(self.get_parameter('sensor_calibration.mag_bias').value)
-        self.mag_transform = np.array(self.get_parameter('sensor_calibration.mag_transform').value).reshape(3, 3)
+        self.bias_removal = self.get_parameter('sensor_calibration.bias_removal.value').value
+        self.bias_duration_sec = self.get_parameter('sensor_calibration.bias_duration_sec.value').value
+        self.accel_bias = np.array(self.get_parameter('sensor_calibration.accel_bias.value').value)
+        self.gyro_bias = np.array(self.get_parameter('sensor_calibration.gyro_bias.value').value)
+        self.mag_bias = np.array(self.get_parameter('sensor_calibration.mag_bias.value').value)
+        self.mag_transform = np.array(self.get_parameter('sensor_calibration.mag_transform.value').value).reshape(3, 3)
         
         # Sensor Variances
-        self.accel_cov = np.diag(self.get_parameter('sensor_variance.accel').value).flatten()
-        self.gyro_cov = np.diag(self.get_parameter('sensor_variance.gyro').value).flatten()
-        self.mag_cov = np.diag(self.get_parameter('sensor_variance.mag').value).flatten()
+        self.accel_cov = np.diag(self.get_parameter('sensor_variance.accel.value').value).flatten()
+        self.gyro_cov = np.diag(self.get_parameter('sensor_variance.gyro.value').value).flatten()
+        self.mag_cov = np.diag(self.get_parameter('sensor_variance.mag.value').value).flatten()
 
     def tick(self):
         try:

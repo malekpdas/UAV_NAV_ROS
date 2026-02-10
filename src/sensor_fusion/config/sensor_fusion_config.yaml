@@ -1,43 +1,101 @@
 /sensor_fusion:
   ros__parameters:
     frames:
-      map_frame: 'map'
-      odom_frame: 'odom'
-      base_link_frame: 'base_link'
+      map_frame:
+        value: 'map'
+        description: "Name of the map frame"
+      odom_frame:
+        value: 'odom'
+        description: "Name of the odometry frame"
+      base_link_frame:
+        value: 'base_link'
+        description: "Name of the base link frame"
     
     sub_topics:
-      imu: '/imu_bno085/data'
-      mag: '/imu_bno085/mag'
-      gps_fix: '/gps_zoe_m8q/fix'
-      gps_vel: '/gps_zoe_m8q/vel'
-      timeout_sec: 5.0
-      check_rate: 10.0
+      imu:
+        value: '/imu_bno085/data'
+        description: "IMU data topic"
+      mag:
+        value: '/imu_bno085/mag'
+        description: "Magnetometer data topic"
+      gps_fix:
+        value: '/gps_zoe_m8q/fix'
+        description: "GPS fix topic"
+      gps_vel:
+        value: '/gps_zoe_m8q/vel'
+        description: "GPS velocity topic"
+      timeout_sec:
+        value: 5.0
+        description: "Timeout for topic discovery"
+      check_rate:
+        value: 10.0
+        description: "Rate to check for topic presence"
 
-    publish_acceleration: true
+    publish_acceleration:
+      value: true
+      description: "Whether to publish body-frame acceleration"
     
     ahrs:
-      offset_samples: 100
-      gain: 0.05
-      gyro_range: 500.0
-      accel_rejection: 10.0
-      mag_rejection: 10.0
-      rejection_timeout: 500
+      offset_samples:
+        value: 100
+        description: "Number of samples for gyro offset estimation"
+      gain:
+        value: 0.05
+        description: "AHRS filter gain"
+      gyro_range:
+        value: 500.0
+        description: "Gyroscope range in dps"
+      accel_rejection:
+        value: 10.0
+        description: "Accelerometer rejection threshold"
+      mag_rejection:
+        value: 10.0
+        description: "Magnetometer rejection threshold"
+      rejection_timeout:
+        value: 500
+        description: "Rejection timeout in samples"
     
     kalman_filter:
-      initial_pos_uncertainty: 25.0
-      initial_vel_uncertainty: 1.0
-      initial_bias_uncertainty: 0.01
-      process_noise_pos: 0.1
-      process_noise_vel: 0.01
-      process_noise_bias: 0.001
-      measurement_noise_pos: 25.0
-      measurement_noise_vel: 0.25
+      initial_pos_uncertainty:
+        value: 25.0
+        description: "Initial position uncertainty (variance)"
+      initial_vel_uncertainty:
+        value: 1.0
+        description: "Initial velocity uncertainty (variance)"
+      initial_bias_uncertainty:
+        value: 0.01
+        description: "Initial bias uncertainty (variance)"
+      process_noise_pos:
+        value: 0.1
+        description: "Process noise for position"
+      process_noise_vel:
+        value: 0.01
+        description: "Process noise for velocity"
+      process_noise_bias:
+        value: 0.001
+        description: "Process noise for bias"
+      measurement_noise_pos:
+        value: 25.0
+        description: "Measurement noise for position"
+      measurement_noise_vel:
+        value: 0.25
+        description: "Measurement noise for velocity"
     
     lp_filters:
-      accel_alpha: 0.98
+      accel_alpha:
+        value: 0.98
+        description: "Low-pass filter alpha for acceleration"
     
     earth:
-      gravity: 9.8066
-      radius: 6378137.0
-      flattening: 0.0033528106647474805
-      ref_pos: [34.8761905,136.9617842,19.63]
+      gravity:
+        value: 9.8066
+        description: "Local gravity magnitude"
+      radius:
+        value: 6378137.0
+        description: "Earth radius in meters"
+      flattening:
+        value: 0.0033528106647474805
+        description: "Earth flattening factor"
+      ref_pos:
+        value: [34.8761905, 136.9617842, 19.63]
+        description: "Reference position (lat, lon, alt) for Local NED frame"

@@ -49,22 +49,22 @@ class RCReaderNode(Node):
         self.get_logger().info(f'RC Reader Node Started.')
 
     def declare_all_parameters(self):
-        self.declare_parameter('gpiochip', 4)
-        self.declare_parameter('publish_rate', 50.0) # 50Hz is standard for servo
-        self.declare_parameter('failsafe_timeout', 0.5)
+        self.declare_parameter('gpiochip.value', 4)
+        self.declare_parameter('publish_rate.value', 50.0) # 50Hz is standard for servo
+        self.declare_parameter('failsafe_timeout.value', 0.5)
         
         # Default Pins: [20, 25, 16, 12, 24, 21]
         # Ch 6: Mode Switch
-        self.declare_parameter('gpio_pins', [20, 25, 16, 12, 24, 21])
-        self.declare_parameter('failsafe_values', [1500]*6)
+        self.declare_parameter('gpio_pins.value', [20, 25, 16, 12, 24, 21])
+        self.declare_parameter('failsafe_values.value', [1500]*6)
 
     def load_parameters(self):
         # Get parameters
-        self.gpiochip = self.get_parameter('gpiochip').value
-        self.rate_hz = self.get_parameter('publish_rate').value
-        self.failsafe_timeout = self.get_parameter('failsafe_timeout').value
-        self.pins = self.get_parameter('gpio_pins').value
-        self.failsafe_values = self.get_parameter('failsafe_values').value
+        self.gpiochip = self.get_parameter('gpiochip.value').value
+        self.rate_hz = self.get_parameter('publish_rate.value').value
+        self.failsafe_timeout = self.get_parameter('failsafe_timeout.value').value
+        self.pins = self.get_parameter('gpio_pins.value').value
+        self.failsafe_values = self.get_parameter('failsafe_values.value').value
 
     def _make_callback(self, ch_idx):
         """Create a closure for specific channel callback"""

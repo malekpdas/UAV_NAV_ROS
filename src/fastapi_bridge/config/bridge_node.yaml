@@ -1,8 +1,20 @@
 ros2_bridge:
   ros__parameters:
-    ws_root: "~/UAV_NAV_ROS"
-    log_file_path: "~/.ros/log/latest/launch.log"
-    launch_dir: "[ws_root]/src/launch"
-    rec_dir: "[ws_root]/recordings/"
-    api_port: 8000
-    api_host: "localhost"
+    ws_root:
+      value: "~/UAV_NAV_ROS"
+      description: "Project workspace root directory"
+    log_file_path:
+      value: "~/.ros/log/latest/launch.log"
+      description: "Path to the ROS launch log file"
+    launch_dir:
+      value: "[ws_root]/src/launch"
+      description: "Path to launch files directory"
+    rec_dir:
+      value: "[ws_root]/recordings/"
+      description: "Directory for flight recordings"
+    api_port:
+      value: 8000
+      description: "FastAPI server port"
+    api_host:
+      value: "localhost"
+      description: "FastAPI server host"

@@ -88,26 +88,26 @@ class ZoeM8QNode(Node):
 
     def declare_all_parameters(self):
         # Interface Selection
-        self.declare_parameter('interface_type', 'uart')  # 'i2c' or 'uart'
+        self.declare_parameter('interface_type.value', 'uart')  # 'i2c' or 'uart'
         
         # GPS Parameters
-        self.declare_parameter('rate_hz', 10.0)
-        self.declare_parameter('frame_id', 'gps_link')
+        self.declare_parameter('rate_hz.value', 10.0)
+        self.declare_parameter('frame_id.value', 'gps_link')
         
         # Sensor Variances (used if sensor accuracy is 0/invalid)
-        self.declare_parameter('sensor_variance.pos_std', [4.0, 4.0, 10.0])  # m
-        self.declare_parameter('sensor_variance.vel_std', [0.5])  # m/s
+        self.declare_parameter('sensor_variance.pos_std.value', [4.0, 4.0, 10.0])  # m
+        self.declare_parameter('sensor_variance.vel_std.value', [0.5])  # m/s
 
     def load_parameters(self):
         # Interface config
-        self.interface_type = self.get_parameter('interface_type').value
+        self.interface_type = self.get_parameter('interface_type.value').value
         
         # GPS config
-        self.rate_hz = float(self.get_parameter('rate_hz').value)
-        self.frame_id = self.get_parameter('frame_id').value
+        self.rate_hz = float(self.get_parameter('rate_hz.value').value)
+        self.frame_id = self.get_parameter('frame_id.value').value
         
-        self.pos_std = self.get_parameter('sensor_variance.pos_std').value
-        self.vel_std = self.get_parameter('sensor_variance.vel_std').value
+        self.pos_std = self.get_parameter('sensor_variance.pos_std.value').value
+        self.vel_std = self.get_parameter('sensor_variance.vel_std.value').value
 
         # Publishers
         self.pub_fix = self.create_publisher(NavSatFix, '/gps_zoe_m8q/fix', 10)

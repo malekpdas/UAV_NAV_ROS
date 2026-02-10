@@ -93,67 +93,67 @@ class ServoControllerNode(Node):
             time.sleep(period)
        
     def declare_all_params(self):
-        self.declare_parameter('gpiochip', 4)
-        self.declare_parameter('pwm_freq', 50)
+        self.declare_parameter('gpiochip.value', 4)
+        self.declare_parameter('pwm_freq.value', 50)
 
         # topics
-        self.declare_parameter('sub_topics.channels', 'rc/channels')
-        self.declare_parameter('sub_topics.mode', 'rc/mode')
-        self.declare_parameter('timeout_sec', 5.0)
-        self.declare_parameter('check_rate', 10.0)
+        self.declare_parameter('sub_topics.channels.value', 'rc/channels')
+        self.declare_parameter('sub_topics.mode.value', 'rc/mode')
+        self.declare_parameter('timeout_sec.value', 5.0)
+        self.declare_parameter('check_rate.value', 10.0)
 
         # Safety parameters
-        self.declare_parameter('Safety.arming_duration', 5.0)
-        self.declare_parameter('Safety.esc_min_pulse', 1000)
-        self.declare_parameter('Safety.esc_max_pulse', 2000)
-        self.declare_parameter('Safety.servo_min_pulse', 1000)
-        self.declare_parameter('Safety.servo_max_pulse', 2000)
+        self.declare_parameter('Safety.arming_duration.value', 5.0)
+        self.declare_parameter('Safety.esc_min_pulse.value', 1000)
+        self.declare_parameter('Safety.esc_max_pulse.value', 2000)
+        self.declare_parameter('Safety.servo_min_pulse.value', 1000)
+        self.declare_parameter('Safety.servo_max_pulse.value', 2000)
         
         # Pin Configuration
-        self.declare_parameter('gpio_pins.l_aileron', 6)
-        self.declare_parameter('gpio_pins.elevator', 19)
-        self.declare_parameter('gpio_pins.esc_rotor', 5)
-        self.declare_parameter('gpio_pins.rudder', 13)
-        self.declare_parameter('gpio_pins.r_aileron', 26)
+        self.declare_parameter('gpio_pins.l_aileron.value', 6)
+        self.declare_parameter('gpio_pins.elevator.value', 19)
+        self.declare_parameter('gpio_pins.esc_rotor.value', 5)
+        self.declare_parameter('gpio_pins.rudder.value', 13)
+        self.declare_parameter('gpio_pins.r_aileron.value', 26)
         
         # Channel Mapping (Index in rc_channels array: 0-4)
-        self.declare_parameter('rc_channels.l_aileron', 0)
-        self.declare_parameter('rc_channels.elevator', 1)
-        self.declare_parameter('rc_channels.rotor', 2)
-        self.declare_parameter('rc_channels.rudder', 3)
-        self.declare_parameter('rc_channels.r_aileron', 4)
+        self.declare_parameter('rc_channels.l_aileron.value', 0)
+        self.declare_parameter('rc_channels.elevator.value', 1)
+        self.declare_parameter('rc_channels.rotor.value', 2)
+        self.declare_parameter('rc_channels.rudder.value', 3)
+        self.declare_parameter('rc_channels.r_aileron.value', 4)
 
     def load_parameters(self):        
         # Get parameters
-        self.gpiochip = self.get_parameter('gpiochip').value
-        self.pwm_freq = self.get_parameter('pwm_freq').value
+        self.gpiochip = self.get_parameter('gpiochip.value').value
+        self.pwm_freq = self.get_parameter('pwm_freq.value').value
 
         # topics
-        self.channels_topics = self.get_parameter('sub_topics.channels').value
-        self.mode_topics = self.get_parameter('sub_topics.mode').value
-        self.timeout_sec = self.get_parameter('timeout_sec').value
-        self.check_rate = self.get_parameter('check_rate').value
+        self.channels_topics = self.get_parameter('sub_topics.channels.value').value
+        self.mode_topics = self.get_parameter('sub_topics.mode.value').value
+        self.timeout_sec = self.get_parameter('timeout_sec.value').value
+        self.check_rate = self.get_parameter('check_rate.value').value
 
         # Safety parameters
-        self.arming_duration = self.get_parameter('Safety.arming_duration').value
-        self.esc_min_pulse = self.get_parameter('Safety.esc_min_pulse').value
-        self.esc_max_pulse = self.get_parameter('Safety.esc_max_pulse').value
-        self.servo_min_pulse = self.get_parameter('Safety.servo_min_pulse').value
-        self.servo_max_pulse = self.get_parameter('Safety.servo_max_pulse').value
+        self.arming_duration = self.get_parameter('Safety.arming_duration.value').value
+        self.esc_min_pulse = self.get_parameter('Safety.esc_min_pulse.value').value
+        self.esc_max_pulse = self.get_parameter('Safety.esc_max_pulse.value').value
+        self.servo_min_pulse = self.get_parameter('Safety.servo_min_pulse.value').value
+        self.servo_max_pulse = self.get_parameter('Safety.servo_max_pulse.value').value
         
         # Pin Configuration
-        self.l_aileron_gpio_pin = self.get_parameter('gpio_pins.l_aileron').value
-        self.elevator_gpio_pin = self.get_parameter('gpio_pins.elevator').value
-        self.esc_rotor_gpio_pin = self.get_parameter('gpio_pins.esc_rotor').value
-        self.rudder_gpio_pin = self.get_parameter('gpio_pins.rudder').value
-        self.r_aileron_gpio_pin = self.get_parameter('gpio_pins.r_aileron').value
+        self.l_aileron_gpio_pin = self.get_parameter('gpio_pins.l_aileron.value').value
+        self.elevator_gpio_pin = self.get_parameter('gpio_pins.elevator.value').value
+        self.esc_rotor_gpio_pin = self.get_parameter('gpio_pins.esc_rotor.value').value
+        self.rudder_gpio_pin = self.get_parameter('gpio_pins.rudder.value').value
+        self.r_aileron_gpio_pin = self.get_parameter('gpio_pins.r_aileron.value').value
         
         # Channel Mapping (Index in rc_channels array: 0-4)
-        self.l_aileron_rc_channel = self.get_parameter('rc_channels.l_aileron').value
-        self.elevator_rc_channel = self.get_parameter('rc_channels.elevator').value
-        self.esc_rotor_rc_channel = self.get_parameter('rc_channels.rotor').value
-        self.rudder_rc_channel = self.get_parameter('rc_channels.rudder').value
-        self.r_aileron_rc_channel = self.get_parameter('rc_channels.r_aileron').value
+        self.l_aileron_rc_channel = self.get_parameter('rc_channels.l_aileron.value').value
+        self.elevator_rc_channel = self.get_parameter('rc_channels.elevator.value').value
+        self.esc_rotor_rc_channel = self.get_parameter('rc_channels.rotor.value').value
+        self.rudder_rc_channel = self.get_parameter('rc_channels.rudder.value').value
+        self.r_aileron_rc_channel = self.get_parameter('rc_channels.r_aileron.value').value
 
         # Full ESC and Servo Configuration
         self.hw_map = {

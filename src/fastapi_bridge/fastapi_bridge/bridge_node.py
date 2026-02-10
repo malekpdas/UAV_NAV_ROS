@@ -14,19 +14,19 @@ app = FastAPI(title="ROS2 Node Description API")
 class ROS2BridgeNode(Node):
     def __init__(self):
         super().__init__('ros2_bridge')
-        self.declare_parameter('ws_root', '/home/malekpdas/UAV_NAV_ROS')
-        self.declare_parameter('api_host', '0.0.0.0')
-        self.declare_parameter('api_port', 8000)
-        self.declare_parameter('log_file_path', '/home/malekpdas/.ros/log/latest/launch.log')
-        self.declare_parameter('launch_dir', '/home/malekpdas/UAV_NAV_ROS/src/launch')
-        self.declare_parameter('rec_dir', '/home/malekpdas/UAV_NAV_ROS/recordings')
+        self.declare_parameter('ws_root.value', '/home/malekpdas/UAV_NAV_ROS')
+        self.declare_parameter('api_host.value', '0.0.0.0')
+        self.declare_parameter('api_port.value', 8000)
+        self.declare_parameter('log_file_path.value', '/home/malekpdas/.ros/log/latest/launch.log')
+        self.declare_parameter('launch_dir.value', '/home/malekpdas/UAV_NAV_ROS/src/launch')
+        self.declare_parameter('rec_dir.value', '/home/malekpdas/UAV_NAV_ROS/recordings')
 
-        self.ws_root = self.get_parameter('ws_root').get_parameter_value().string_value
-        self.api_host = self.get_parameter('api_host').get_parameter_value().string_value
-        self.api_port = self.get_parameter('api_port').get_parameter_value().integer_value
-        self.log_file_path = self.get_parameter('log_file_path').get_parameter_value().string_value
-        self.launch_dir = self.get_parameter('launch_dir').get_parameter_value().string_value
-        self.rec_dir = self.get_parameter('rec_dir').get_parameter_value().string_value
+        self.ws_root = self.get_parameter('ws_root.value').value
+        self.api_host = self.get_parameter('api_host.value').value
+        self.api_port = self.get_parameter('api_port.value').value
+        self.log_file_path = self.get_parameter('log_file_path.value').value
+        self.launch_dir = self.get_parameter('launch_dir.value').value
+        self.rec_dir = self.get_parameter('rec_dir.value').value
 
         app.state.ws_root = os.path.expanduser(self.ws_root)
         app.state.log_file_path = os.path.expanduser(self.log_file_path)

@@ -1,14 +1,23 @@
-/gps_zoe_m8q:
+/zoe_m8q_node:
   ros__parameters:
-    # Interface: 'i2c' or 'uart' (hardware settings are hardcoded)
-    interface_type: "uart"
-
-    rate_hz: 18.0
-    frame_id: "gps_link"
+    interface_type:
+      value: "uart"
+      description: "Communication interface: 'uart' or 'i2c'"
+      options: ["uart", "i2c"]
     
-    # Standard Deviation Defaults (used if sensor accuracy is 0/invalid)
+    # GPS Parameters
+    rate_hz:
+      value: 10.0
+      description: "GPS update rate in Hz"
+    frame_id:
+      value: "gps_link"
+      description: "ROS frame ID for the GPS"
+    
+    # Sensor Variances (used if sensor accuracy is 0/invalid)
     sensor_variance:
-      # Position: [lat, lon, alt] in meters
-      pos_std: [4.0, 4.0, 10.0]
-      # Velocity: speed in m/s
-      vel_std: [0.5]
+      pos_std:
+        value: [4.0, 4.0, 10.0]
+        description: "Standard deviation for position (h, h, v)"
+      vel_std:
+        value: [0.5]
+        description: "Standard deviation for velocity"
