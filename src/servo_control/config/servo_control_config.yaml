@@ -9,6 +9,10 @@
       mode: "rc/mode"
       timeout_sec: 5.0
       check_rate: 10.0
+
+    publish_servos:
+      value: true
+      description: "Whether to publish servo values"
     
     Safety:
       arming_duration: 1.0

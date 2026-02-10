@@ -61,6 +61,14 @@ class ServoControllerNode(Node):
             self.mode_callback,
             1
         )
+
+        # --- 6. Create Publishers ---
+        if self.publish_servos:
+            self.servo_pub = self.create_publisher(
+                Int32MultiArray,
+                'servo/outputs',
+                10
+            )
         
         # Create timer for watchdog (failsafe)
         self._timer = self.create_timer(0.1, self.watchdog_callback)
@@ -102,6 +110,9 @@ class ServoControllerNode(Node):
         self.declare_parameter('timeout_sec.value', 5.0)
         self.declare_parameter('check_rate.value', 10.0)
 
+        # Publish Servo
+        self.declare_parameter('publish_servos.value', True)
+
         # Safety parameters
         self.declare_parameter('Safety.arming_duration.value', 5.0)
         self.declare_parameter('Safety.esc_min_pulse.value', 1000)
@@ -133,6 +144,9 @@ class ServoControllerNode(Node):
         self.mode_topics = self.get_parameter('sub_topics.mode.value').value
         self.timeout_sec = self.get_parameter('timeout_sec.value').value
         self.check_rate = self.get_parameter('check_rate.value').value
+
+        # Publish Servo
+        self.publish_servos = self.get_parameter('publish_servos.value').value
 
         # Safety parameters
         self.arming_duration = self.get_parameter('Safety.arming_duration.value').value
@@ -295,6 +309,12 @@ class ServoControllerNode(Node):
                 self.get_logger().debug(
                     f"{name}: {pulse}us (pin {cfg['pin']}, ch {ch_idx})"
                 )
+
+        if self.publish_servos:
+            # Publish current servo outputs
+            pub_msg = Int32MultiArray()
+            pub_msg.data = msg.data
+            self.servo_pub.publish(pub_msg)
 
     def watchdog_callback(self):
         """
