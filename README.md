@@ -14,12 +14,12 @@ This project provides a ROS2-based navigation stack for a UAV, including sensor 
 
 ## Packages
 
-- [sensors](src/sensors/README.md)
-- [sensor_fusion](src/sensor_fusion/README.md)
-- [rc_control](src/rc_control/README.md)
-- [servo_control](src/servo_control/README.md)
-- [calibration](src/calibration/README.md)
-- [extra_nodes](src/extra_nodes/README.md)
+- [sensors](src/sensors/)
+- [sensor_fusion](src/sensor_fusion/)
+- [rc_control](src/rc_control/)
+- [servo_control](src/servo_control/)
+- [calibration](src/calibration/)
+- [extra_nodes](src/extra_nodes/)
 
 ## Getting Started
 
