@@ -2,7 +2,8 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.executors import SingleThreadedExecutor
-from std_msgs.msg import Int32MultiArray, String
+from std_msgs.msg import Header
+from custom_interfaces.msg import RcChannels, FlightMode
 import lgpio
 import time
 import os
@@ -50,13 +51,13 @@ class ServoControllerNode(Node):
         
         # --- 5. SUBSCRIPTIONS ---
         self.create_subscription(
-            Int32MultiArray,
+            RcChannels,
             self.channels_topics,
             self.rc_callback,
             1  # QoS depth of 1 for latest data only
         )
         self.create_subscription(
-            String,
+            FlightMode,
             self.mode_topics,
             self.mode_callback,
             1
@@ -65,7 +66,7 @@ class ServoControllerNode(Node):
         # --- 6. Create Publishers ---
         if self.publish_servos:
             self.servo_pub = self.create_publisher(
-                Int32MultiArray,
+                RcChannels,
                 'servo/outputs',
                 10
             )
@@ -257,10 +258,10 @@ class ServoControllerNode(Node):
         self.is_armed = True
         self.get_logger().info('ESC ARMED - System Ready')
 
-    def mode_callback(self, msg):
+    def mode_callback(self, msg: FlightMode):
         """Handle flight mode changes."""
         old_mode = self.current_mode
-        self.current_mode = msg.data
+        self.current_mode = msg.mode
         
         if old_mode != self.current_mode:
             self.get_logger().info(f'Mode changed: {old_mode} -> {self.current_mode}')
@@ -269,7 +270,7 @@ class ServoControllerNode(Node):
             if self.current_mode != 'MANUAL':
                 self.set_safe_outputs()
 
-    def rc_callback(self, msg):
+    def rc_callback(self, msg: RcChannels):
         """
         Process RC channel data with optimizations:
         - Only update changed values
@@ -286,17 +287,17 @@ class ServoControllerNode(Node):
         # if self.current_mode != 'MANUAL':
         #     return
             
-        data = msg.data
+        channels = msg.channels
         
         # Process each mapped output
         for name, cfg in self.hw_map.items():
             ch_idx = cfg['ch']
             
             # Validate channel index
-            if ch_idx < 0 or ch_idx >= len(data):
+            if ch_idx < 0 or ch_idx >= len(channels):
                 continue
             
-            pulse = data[ch_idx]
+            pulse = channels[ch_idx]
             
             # Clamp to valid range
             pulse = max(self.esc_min_pulse, min(self.esc_max_pulse, pulse))
@@ -312,8 +313,10 @@ class ServoControllerNode(Node):
 
         if self.publish_servos:
             # Publish current servo outputs
-            pub_msg = Int32MultiArray()
-            pub_msg.data = msg.data
+            pub_msg = RcChannels()
+            pub_msg.header = Header()
+            pub_msg.header.stamp = self.get_clock().now().to_msg()
+            pub_msg.channels = channels
             self.servo_pub.publish(pub_msg)
 
     def watchdog_callback(self):

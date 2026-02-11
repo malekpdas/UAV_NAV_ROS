@@ -6,7 +6,8 @@ Reads 6 channels via lgpio and publishes to rc/channels and rc/mode
 
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Int32MultiArray, String
+from custom_interfaces.msg import RcChannels, FlightMode
+from std_msgs.msg import Header
 import lgpio
 import threading
 import time
@@ -40,8 +41,8 @@ class RCReaderNode(Node):
             lgpio.callback(self.h, pin, lgpio.BOTH_EDGES, self._make_callback(i))
             
         # Publishers
-        self.pub_channels = self.create_publisher(Int32MultiArray, 'rc/channels', 10)
-        self.pub_mode = self.create_publisher(String, 'rc/mode', 10)
+        self.pub_channels = self.create_publisher(RcChannels, 'rc/channels', 10)
+        self.pub_mode = self.create_publisher(FlightMode, 'rc/mode', 10)
         
         # Timer
         self.timer = self.create_timer(1.0 / self.rate_hz, self.timer_callback)
@@ -98,8 +99,10 @@ class RCReaderNode(Node):
 
             # Prepare Messages
             # Msg 1: Channels 1-5
-            msg_channels = Int32MultiArray()
-            msg_channels.data = self.pulses[0:5] # First 5 channels
+            msg_channels = RcChannels()
+            msg_channels.header = Header()
+            msg_channels.header.stamp = self.get_clock().now().to_msg()
+            msg_channels.channels = self.pulses[0:5] # First 5 channels
             
             # Msg 2: Mode (Channel 6)
             # Simple thresholding for switch
@@ -108,8 +111,10 @@ class RCReaderNode(Node):
             if ch6_val > 1500:
                 mode_str = "AUTO"
             
-            msg_mode = String()
-            msg_mode.data = mode_str
+            msg_mode = FlightMode()
+            msg_mode.header = Header()
+            msg_mode.header.stamp = self.get_clock().now().to_msg()
+            msg_mode.mode = mode_str
             
             self.pub_channels.publish(msg_channels)
             self.pub_mode.publish(msg_mode)
