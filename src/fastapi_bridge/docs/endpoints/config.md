@@ -35,31 +35,71 @@ Reads a configuration file for a specific node. It prioritizes a custom config i
 ```json
 {
   "config": {
-    "rate_hz": 100,
-    "frame_id": "imu_link",
+    "rate_hz": {
+      "value": 100,
+      "description": "Sensor update rate in Hz",
+      "dtype": "int"
+    },
+    "frame_id": {
+      "value": "imu_link",
+      "description": "ROS frame ID for the IMU",
+      "dtype": "str"
+    },
     "sensor_calibration": {
-      "bias_removal": true,
-      "accel_bias": [-1.14582811, -0.01432422, 0.05357129],
-      "gyro_bias": [-0.00156234, 0.00089123, 0.00043211],
-      "mag_bias": [0.12345, -0.54321, 0.09876],
-      "mag_transform": [
-        [1.004, 0.012, -0.005],
-        [0.008, 1.003, 0.011],
-        [-0.003, 0.009, 0.999]
-      ]
+      "bias_removal": {
+        "value": false,
+        "description": "Whether to perform bias removal on startup",
+        "dtype": "bool"
+      },
+      "accel_bias": {
+        "value": [-1.14582811, -0.01432422, 0.05357129],
+        "description": "Accelerometer bias offsets",
+        "dtype": "float"
+      },
+      "gyro_bias": {
+        "value": [8.42370863e-05, 6.66060682e-05, -9.59910983e-05],
+        "description": "Gyroscope bias offsets",
+        "dtype": "float"
+      },
+      "mag_bias": {
+        "value": [4.82532218e-08, -9.12769731e-08, -6.33085141e-08],
+        "description": "Magnetometer bias offsets",
+        "dtype": "float"
+      },
+      "mag_transform": {
+        "value": [2.31239933e-02, -1.33933075e-04, -1.48083236e-05, -1.33933075e-04, 2.34637194e-02, 1.98589239e-05, -1.48083236e-05, 1.98589239e-05, 2.31128531e-02],
+        "description": "Magnetometer soft-iron transformation matrix",
+        "dtype": "float"
+      }
     },
     "sensor_variance": {
-      "accel": [0.01, 0.01, 0.01],
-      "gyro": [0.001, 0.001, 0.001],
-      "mag": [0.001, 0.001, 0.001]
+      "accel": {
+        "value": [0.01, 0.01, 0.01],
+        "description": "Accelerometer variance (x, y, z)",
+        "dtype": "float"
+      },
+      "gyro": {
+        "value": [0.001, 0.001, 0.001],
+        "description": "Gyroscope variance (x, y, z)",
+        "dtype": "float"
+      },
+      "mag": {
+        "value": [0.001, 0.001, 0.001],
+        "description": "Magnetometer variance (x, y, z)",
+        "dtype": "float"
+      }
     },
     "transformation": {
-      "imu_rotation": [
-        [1.0, 0.0, 0.0],
-        [0.0, 1.0, 0.0],
-        [0.0, 0.0, 1.0]
-      ],
-      "mag_decl": -8.03
+      "imu_rotation": {
+        "value": [1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0],
+        "description": "Mounting rotation matrix from IMU to body frame",
+        "dtype": "float"
+      },
+      "mag_decl": {
+        "value": -8.03,
+        "description": "Magnetic declination in degrees",
+        "dtype": "float"
+      }
     }
   },
   "msg": "OK",
@@ -72,12 +112,32 @@ Reads a configuration file for a specific node. It prioritizes a custom config i
 ```json
 {
   "config": {
-    "interface_type": "uart",
-    "rate_hz": 10,
-    "frame_id": "gps_link",
+    "interface_type": {
+      "value": "uart",
+      "description": "Communication interface (uart or spi)",
+      "dtype": "str"
+    },
+    "rate_hz": {
+      "value": 10,
+      "description": "Update rate in Hz",
+      "dtype": "int"
+    },
+    "frame_id": {
+      "value": "gps_link",
+      "description": "ROS frame ID for GPS",
+      "dtype": "str"
+    },
     "sensor_variance": {
-      "pos_std": [4.0, 4.0, 10.0],
-      "vel_std": [0.5]
+      "pos_std": {
+        "value": [4.0, 4.0, 10.0],
+        "description": "Position std dev (x, y, z) in meters",
+        "dtype": "float"
+      },
+      "vel_std": {
+        "value": [0.5],
+        "description": "Velocity std dev in m/s",
+        "dtype": "float"
+      }
     }
   },
   "msg": "OK",
@@ -91,41 +151,64 @@ Reads a configuration file for a specific node. It prioritizes a custom config i
 {
   "config": {
     "frames": {
-      "map_frame": "map",
-      "odom_frame": "odom",
-      "base_link_frame": "base_link"
-    },
-    "sensor_topics": {
-      "imu_topic": "imu_bno085/data",
-      "mag_topic": "imu_bno085/mag",
-      "gps_pos_topic": "gps_zoe_m8q/fix",
-      "gps_vel_topic": "gps_zoe_m8q/vel"
-    },
-    "ahrs": {
-      "offset_samples": 100,
-      "gain": 0.05,
-      "gyro_range": 500.0,
-      "accel_rejection": 10.0,
-      "mag_rejection": 10.0
+      "map_frame": {
+        "value": "map",
+        "description": "Global map frame name",
+        "dtype": "str"
+      },
+      "odom_frame": {
+        "value": "odom",
+        "description": "Odometry frame name",
+        "dtype": "str"
+      },
+      "base_link_frame": {
+        "value": "base_link",
+        "description": "Robot base link frame",
+        "dtype": "str"
+      }
     },
     "kalman": {
-      "initial_pos_uncertainty": 25.0,
-      "initial_vel_uncertainty": 1.0,
-      "initial_bias_uncertainty": 0.01,
+      "initial_pos_uncertainty": {
+        "value": 25.0,
+        "description": "Initial position uncertainty in meters",
+        "dtype": "float"
+      },
+      "initial_vel_uncertainty": {
+        "value": 1.0,
+        "description": "Initial velocity uncertainty in m/s",
+        "dtype": "float"
+      },
       "process_noise": {
-        "pos": 0.1,
-        "vel": 0.01,
-        "bias": 0.001
+        "pos": {
+          "value": 0.1,
+          "description": "Process noise for position",
+          "dtype": "float"
+        },
+        "vel": {
+          "value": 0.01,
+          "description": "Process noise for velocity",
+          "dtype": "float"
+        }
       },
       "measurement_noise": {
-        "pos": 25.0,
-        "vel": 0.25
+        "pos": {
+          "value": 25.0,
+          "description": "Measurement noise for position",
+          "dtype": "float"
+        },
+        "vel": {
+          "value": 0.25,
+          "description": "Measurement noise for velocity",
+          "dtype": "float"
+        }
       }
     },
     "earth": {
-      "gravity": 9.8066,
-      "radius": 6378137.0,
-      "ref_pos": [34.8761905, 136.9617842, 19.63]
+      "ref_pos": {
+        "value": [34.8761905, 136.9617842, 19.63],
+        "description": "Reference position [lat, lon, alt]",
+        "dtype": "float"
+      }
     }
   },
   "msg": "OK",
@@ -163,31 +246,56 @@ Technician landed after 20-minute flight and noticed drift. Wants to increase IM
 {
   "id": "bno085_node",
   "config": {
-    "rate_hz": 200,
-    "frame_id": "imu_link",
+    "rate_hz": {
+      "value": 200,
+      "description": "Sensor update rate in Hz",
+      "dtype": "int"
+    },
+    "frame_id": {
+      "value": "imu_link",
+      "description": "ROS frame ID for the IMU",
+      "dtype": "str"
+    },
     "sensor_calibration": {
-      "bias_removal": true,
-      "accel_bias": [-1.14582811, -0.01432422, 0.05357129],
-      "gyro_bias": [-0.00156234, 0.00089123, 0.00043211],
-      "mag_bias": [0.12345, -0.54321, 0.09876],
-      "mag_transform": [
-        [1.004, 0.012, -0.005],
-        [0.008, 1.003, 0.011],
-        [-0.003, 0.009, 0.999]
-      ]
+      "bias_removal": {
+        "value": true,
+        "description": "Whether to perform bias removal on startup",
+        "dtype": "bool"
+      },
+      "accel_bias": {
+        "value": [-1.14582811, -0.01432422, 0.05357129],
+        "description": "Accelerometer bias offsets",
+        "dtype": "float"
+      },
+      "mag_transform": {
+        "value": [2.31239933e-02, -1.33933075e-04, -1.48083236e-05, -1.33933075e-04, 2.34637194e-02, 1.98589239e-05, -1.48083236e-05, 1.98589239e-05, 2.31128531e-02],
+        "description": "Magnetometer soft-iron transformation matrix",
+        "dtype": "float"
+      }
     },
     "sensor_variance": {
-      "accel": [0.01, 0.01, 0.01],
-      "gyro": [0.001, 0.001, 0.001],
-      "mag": [0.001, 0.001, 0.001]
+      "accel": {
+        "value": [0.01, 0.01, 0.01],
+        "description": "Accelerometer variance (x, y, z)",
+        "dtype": "float"
+      },
+      "gyro": {
+        "value": [0.001, 0.001, 0.001],
+        "description": "Gyroscope variance (x, y, z)",
+        "dtype": "float"
+      }
     },
     "transformation": {
-      "imu_rotation": [
-        [1.0, 0.0, 0.0],
-        [0.0, 1.0, 0.0],
-        [0.0, 0.0, 1.0]
-      ],
-      "mag_decl": -8.03
+      "imu_rotation": {
+        "value": [1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0],
+        "description": "Mounting rotation matrix from IMU to body frame",
+        "dtype": "float"
+      },
+      "mag_decl": {
+        "value": -8.03,
+        "description": "Magnetic declination in degrees",
+        "dtype": "float"
+      }
     }
   }
 }
@@ -204,12 +312,32 @@ Technician landed after 20-minute flight and noticed drift. Wants to increase IM
 {
   "id": "zoe_m8q_node",
   "config": {
-    "interface_type": "uart",
-    "rate_hz": 10,
-    "frame_id": "gps_link",
+    "interface_type": {
+      "value": "uart",
+      "description": "Communication interface (uart or spi)",
+      "dtype": "str"
+    },
+    "rate_hz": {
+      "value": 10,
+      "description": "Update rate in Hz",
+      "dtype": "int"
+    },
+    "frame_id": {
+      "value": "gps_link",
+      "description": "ROS frame ID for GPS",
+      "dtype": "str"
+    },
     "sensor_variance": {
-      "pos_std": [6.0, 6.0, 15.0],
-      "vel_std": [1.0]
+      "pos_std": {
+        "value": [6.0, 6.0, 15.0],
+        "description": "Position std dev (x, y, z) in meters - increased for noisy urban conditions",
+        "dtype": "float"
+      },
+      "vel_std": {
+        "value": [1.0],
+        "description": "Velocity std dev in m/s - increased tolerance",
+        "dtype": "float"
+      }
     }
   }
 }
