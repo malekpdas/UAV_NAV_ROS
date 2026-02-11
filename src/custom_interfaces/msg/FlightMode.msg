@@ -1,3 +1,2 @@
 std_msgs/Header header
-int32[] channels
-string metadata
+string mode
