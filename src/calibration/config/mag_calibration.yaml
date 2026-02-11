@@ -3,26 +3,34 @@ mag_calibration:
     max_samples:
       value: 50000
       description: "Maximum number of magnetometer samples to collect"
+      dtype: int
     min_samples:
       value: 400
       description: "Minimum number of samples required before starting calibration"
+      dtype: int
     angular_bins:
       value: 6
       description: "Number of angular bins for coverage calculation"
+      dtype: int
     gap_threshold_percent:
       value: 1.0
       description: "Gap threshold percentage to stop collection"
+      dtype: float
     plot_every_n:
       value: 50
       description: "Update plot every N samples"
+      dtype: int
 
     topics:
       mag:
         value: "/imu_bno085/mag"
         description: "Magnetometer topic to subscribe to"
+        dtype: string
       timeout_sec:
         value: 5.0
         description: "Timeout for waiting for topics"
+        dtype: float
       check_rate:
         value: 10.0
         description: "Rate to check for topic presence"
+        dtype: float

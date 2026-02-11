@@ -3,18 +3,24 @@ api_bridge:
     ws_root:
       value: "~/UAV_NAV_ROS"
       description: "Project workspace root directory"
+      dtype: string
     log_file_path:
       value: "~/.ros/log/latest/launch.log"
       description: "Path to the ROS launch log file"
+      dtype: string
     launch_dir:
       value: "[ROS2-WS]/src/launch"
       description: "Path to launch files directory"
+      dtype: string
     rec_dir:
       value: "[ROS2-WS]/recordings/"
       description: "Directory for flight recordings"
+      dtype: string
     api_port:
       value: 8000
       description: "FastAPI server port"
+      dtype: int
     api_host:
       value: "localhost"
       description: "FastAPI server host"
+      dtype: string

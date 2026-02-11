@@ -3,15 +3,20 @@ rc_control:
     gpiochip:
       value: 4
       description: "GPIO chip number"
+      dtype: int
     publish_rate:
       value: 50.0
       description: "Publish rate in Hz"
+      dtype: float
     failsafe_timeout:
       value: 1.0
       description: "Time in seconds before triggering failsafe"
+      dtype: float
     gpio_pins:
       value: [20, 25, 16, 12, 24, 21]
       description: "GPIO pins for the 6 RC channels"
+      dtype: int
     failsafe_values:
       value: [1500, 1500, 1000, 1500, 1500, 1000]
       description: "Failsafe PWM values for each channel"
+      dtype: int

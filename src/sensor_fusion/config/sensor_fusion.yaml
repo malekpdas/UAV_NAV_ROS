@@ -4,98 +4,127 @@ sensor_fusion:
       map_frame:
         value: 'map'
         description: "Name of the map frame"
+        dtype: string
       odom_frame:
         value: 'odom'
         description: "Name of the odometry frame"
+        dtype: string
       base_link_frame:
         value: 'base_link'
         description: "Name of the base link frame"
+        dtype: string
     
     sub_topics:
       imu:
         value: '/imu_bno085/data'
         description: "IMU data topic"
+        dtype: string
       mag:
         value: '/imu_bno085/mag'
         description: "Magnetometer data topic"
+        dtype: string
       gps_fix:
         value: '/gps_zoe_m8q/fix'
         description: "GPS fix topic"
+        dtype: string
       gps_vel:
         value: '/gps_zoe_m8q/vel'
         description: "GPS velocity topic"
+        dtype: string
       timeout_sec:
         value: 5.0
         description: "Timeout for topic discovery"
+        dtype: float
       check_rate:
         value: 10.0
         description: "Rate to check for topic presence"
+        dtype: float
 
     publish_acceleration:
       value: true
       description: "Whether to publish body-frame acceleration"
+      dtype: bool
     
     ahrs:
       offset_samples:
         value: 100
         description: "Number of samples for gyro offset estimation"
+        dtype: int
       gain:
         value: 0.05
         description: "AHRS filter gain"
+        dtype: float
       gyro_range:
         value: 500.0
         description: "Gyroscope range in dps"
+        dtype: float
       accel_rejection:
         value: 10.0
         description: "Accelerometer rejection threshold"
+        dtype: float
       mag_rejection:
         value: 10.0
         description: "Magnetometer rejection threshold"
+        dtype: float
       rejection_timeout:
         value: 500
         description: "Rejection timeout in samples"
+        dtype: int
     
     kalman_filter:
       initial_pos_uncertainty:
         value: 25.0
         description: "Initial position uncertainty (variance)"
+        dtype: float
       initial_vel_uncertainty:
         value: 1.0
         description: "Initial velocity uncertainty (variance)"
+        dtype: float
       initial_bias_uncertainty:
         value: 0.01
         description: "Initial bias uncertainty (variance)"
+        dtype: float
       process_noise_pos:
         value: 0.1
         description: "Process noise for position"
+        dtype: float
       process_noise_vel:
         value: 0.01
         description: "Process noise for velocity"
+        dtype: float
       process_noise_bias:
         value: 0.001
         description: "Process noise for bias"
+        dtype: float
       measurement_noise_pos:
         value: 25.0
         description: "Measurement noise for position"
+        dtype: float
       measurement_noise_vel:
         value: 0.25
         description: "Measurement noise for velocity"
+        dtype: float
     
     lp_filters:
       accel_alpha:
         value: 0.98
         description: "Low-pass filter alpha for acceleration"
+        dtype: float
     
     earth:
       gravity:
         value: 9.8066
         description: "Local gravity magnitude"
+        dtype: float
       radius:
         value: 6378137.0
         description: "Earth radius in meters"
+        dtype: float
       flattening:
         value: 0.0033528106647474805
         description: "Earth flattening factor"
+        dtype: float
       ref_pos:
         value: [34.8761905, 136.9617842, 19.63]
         description: "Reference position (lat, lon, alt) for Local NED frame"
+        dtype: float

@@ -1,50 +1,63 @@
 imu_bmx160:
   ros__parameters:
     rate_hz:
-      value: 100.0
+      value: 100
       description: "Sensor update rate in Hz"
+      dtype: int
     frame_id:
       value: "imu_link"
       description: "ROS frame ID for the IMU"
+      dtype: string
     
     # Sensor Calibration
     sensor_calibration:
       bias_removal:
         value: false
         description: "Whether to perform bias removal on startup"
+        dtype: bool
       bias_duration_sec:
         value: 2.0
         description: "Duration of bias removal phase"
+        dtype: float
       accel_bias:
         value: [0.0, 0.0, 0.0]
         description: "Accelerometer bias offsets"
+        dtype: float
       gyro_bias:
         value: [0.0, 0.0, 0.0]
         description: "Gyroscope bias offsets"
+        dtype: float
       mag_bias:
         value: [0.0, 0.0, 0.0]
         description: "Magnetometer hard-iron offsets"
+        dtype: float
       mag_transform:
         value: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
         description: "Magnetometer soft-iron transformation matrix"
+        dtype: float
     
     # Sensor Variance Parameters
     sensor_variance:
       accel:
         value: [0.01, 0.01, 0.01]
         description: "Accelerometer variance (x, y, z)"
+        dtype: float
       gyro:
         value: [0.001, 0.001, 0.001]
         description: "Gyroscope variance (x, y, z)"
+        dtype: float
       mag:
         value: [0.001, 0.001, 0.001]
         description: "Magnetometer variance (x, y, z)"
+        dtype: float
     
     # IMU Rotation (Mounting)
     transformation:
       imu_rotation:
         value: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
         description: "Mounting rotation matrix from IMU to body frame"
+        dtype: float
       mag_decl:
         value: 0.0
         description: "Magnetic declination in degrees"
+        dtype: float

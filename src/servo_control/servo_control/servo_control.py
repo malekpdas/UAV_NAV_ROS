@@ -115,10 +115,10 @@ class ServoControllerNode(Node):
 
         # Safety parameters
         self.declare_parameter('Safety.arming_duration.value', 5.0)
-        self.declare_parameter('Safety.esc_min_pulse.value', 1000)
-        self.declare_parameter('Safety.esc_max_pulse.value', 2000)
-        self.declare_parameter('Safety.servo_min_pulse.value', 1000)
-        self.declare_parameter('Safety.servo_max_pulse.value', 2000)
+        self.declare_parameter('Safety.esc_min_pulse.value', 1000.0)
+        self.declare_parameter('Safety.esc_max_pulse.value', 2000.0)
+        self.declare_parameter('Safety.servo_min_pulse.value', 1000.0)
+        self.declare_parameter('Safety.servo_max_pulse.value', 2000.0)
         
         # Pin Configuration
         self.declare_parameter('gpio_pins.l_aileron.value', 6)

@@ -1,40 +1,102 @@
 servo_control:
   ros__parameters:
-    gpiochip: 4
-    pwm_freq: 50
+    gpiochip:
+      value: 4
+      description: "GPIO chip number"
+      dtype: int
+    pwm_freq:
+      value: 50
+      description: "PWM frequency in Hz"
+      dtype: int
 
     # Topics
     sub_topics:
-      channels: "rc/channels"
-      mode: "rc/mode"
-      timeout_sec: 5.0
-      check_rate: 10.0
+      channels:
+        value: "rc/channels"
+        description: "Topic for RC channels"
+        dtype: string
+      mode:
+        value: "rc/mode"
+        description: "Topic for flight mode"
+        dtype: string
+      timeout_sec:
+        value: 5.0
+        description: "Timeout for topic discovery"
+        dtype: float
+      check_rate:
+        value: 10.0
+        description: "Rate to check for topic presence"
+        dtype: float
 
     publish_servos:
       value: true
       description: "Whether to publish servo values"
+      dtype: bool
     
     Safety:
-      arming_duration: 1.0
-      esc_min_pulse: 1000
-      esc_max_pulse: 2000
-      servo_min_pulse: 1000
-      servo_max_pulse: 2000
+      arming_duration:
+        value: 1.0
+        description: "Duration for ESC arming sequence"
+        dtype: float
+      esc_min_pulse:
+        value: 1000.0
+        description: "Minimum pulse width for ESC"
+        dtype: float
+      esc_max_pulse:
+        value: 2000.0
+        description: "Maximum pulse width for ESC"
+        dtype: float
+      servo_min_pulse:
+        value: 1000.0
+        description: "Minimum pulse width for servos"
+        dtype: float
+      servo_max_pulse:
+        value: 2000.0
+        description: "Maximum pulse width for servos"
+        dtype: float
     
     # Pin Configuration (BCM/GPIO Numbers)
     gpio_pins: 
-      l_aileron: 6 # Left Aileron Servo
-      elevator: 19 # Elevator Servo
-      esc_rotor: 5    # ESC
-      rudder: 13   # Rudder Servo
-      r_aileron: 26 # Right Aileron Servo
+      l_aileron:
+        value: 6
+        description: "GPIO pin for Left Aileron"
+        dtype: int
+      elevator:
+        value: 19
+        description: "GPIO pin for Elevator"
+        dtype: int
+      esc_rotor:
+        value: 5
+        description: "GPIO pin for ESC/Rotor"
+        dtype: int
+      rudder:
+        value: 13
+        description: "GPIO pin for Rudder"
+        dtype: int
+      r_aileron:
+        value: 26
+        description: "GPIO pin for Right Aileron"
+        dtype: int
     
     # Channel Mapping (Index in rc_channels array: 0-4)
-    # 0: Left Aileron, 1: Elevator, 2: Throttle, 3: Rudder, 4: Right Aileron
     rc_channels:
-      l_aileron: 0
-      elevator: 1
-      rotor: 2
-      rudder: 3
-      r_aileron: 4
-    
+      l_aileron:
+        value: 0
+        description: "RC channel index for L Aileron"
+        dtype: int
+      elevator:
+        value: 1
+        description: "RC channel index for Elevator"
+        dtype: int
+      rotor:
+        value: 2
+        description: "RC channel index for Rotor"
+        dtype: int
+      rudder:
+        value: 3
+        description: "RC channel index for Rudder"
+        dtype: int
+      r_aileron:
+        value: 4
+        description: "RC channel index for R Aileron"
+        dtype: int

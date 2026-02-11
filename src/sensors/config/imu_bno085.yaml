@@ -1,52 +1,65 @@
 imu_bno085:
   ros__parameters:
     rate_hz:
-      value: 100.0
+      value: 100
       description: "Sensor update rate in Hz"
+      dtype: int
     frame_id:
       value: "imu_link"
       description: "ROS frame ID for the IMU"
+      dtype: str
     
     # Sensor Calibration
     sensor_calibration:
       bias_removal:
         value: false
         description: "Whether to perform bias removal on startup"
+        dtype: bool
       bias_duration_sec:
         value: 2.0
         description: "Duration of bias removal phase"
+        dtype: float
       accel_bias:
         value: [-1.14582811, -0.01432422,  0.05357129]
         description: "Accelerometer bias offsets"
+        dtype: float
       gyro_bias:
         value: [8.42370863e-05,  6.66060682e-05, -9.59910983e-05]
         description: "Gyroscope bias offsets"
+        dtype: float
       mag_bias:
         value: [4.82532218e-08, -9.12769731e-08, -6.33085141e-08]
         description: "Magnetometer bias offsets"
+        dtype: float
       mag_transform:
         value: [ 2.31239933e-02, -1.33933075e-04, -1.48083236e-05,
                 -1.33933075e-04,  2.34637194e-02,  1.98589239e-05,
                 -1.48083236e-05,  1.98589239e-05,  2.31128531e-02]
         description: "Magnetometer soft-iron transformation matrix"
+        dtype: float
     
     # Sensor Variance Parameters
     sensor_variance:
       accel:
         value: [0.01, 0.01, 0.01]
         description: "Accelerometer variance (x, y, z)"
+        dtype: float
       gyro:
         value: [0.001, 0.001, 0.001]
         description: "Gyroscope variance (x, y, z)"
+        dtype: float
       mag:
         value: [0.001, 0.001, 0.001]
         description: "Magnetometer variance (x, y, z)"
+        dtype: float
     
     # IMU Rotation (Mounting)
     transformation:
       imu_rotation:
         value: [1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0]
         description: "Mounting rotation matrix from IMU to body frame"
+        dtype: float
       mag_decl:
         value: -8.03
         description: "Magnetic declination in degrees"
+        dtype: float

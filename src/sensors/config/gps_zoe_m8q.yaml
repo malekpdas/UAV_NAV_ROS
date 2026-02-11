@@ -4,20 +4,25 @@ gps_zoe_m8q:
       value: "uart"
       description: "Communication interface: 'uart' or 'i2c'"
       options: ["uart", "i2c"]
+      dtype: choice
     
     # GPS Parameters
     rate_hz:
-      value: 10.0
+      value: 10
       description: "GPS update rate in Hz"
+      dtype: int
     frame_id:
       value: "gps_link"
       description: "ROS frame ID for the GPS"
+      dtype: str
     
     # Sensor Variances (used if sensor accuracy is 0/invalid)
     sensor_variance:
       pos_std:
         value: [4.0, 4.0, 10.0]
         description: "Standard deviation for position (h, h, v)"
+        dtype: float
       vel_std:
         value: [0.5]
         description: "Standard deviation for velocity"
+        dtype: float
