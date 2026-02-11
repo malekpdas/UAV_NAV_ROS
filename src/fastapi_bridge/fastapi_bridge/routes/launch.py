@@ -4,6 +4,7 @@ from fastapi_bridge.helpers.format_converter import write_yaml
 from typing import List, Dict, Any
 from pydantic import BaseModel
 from pathlib import Path
+import shutil
 
 router = APIRouter(prefix="/launch", tags=["launch"])
 
@@ -59,31 +60,35 @@ class LaunchEntry(BaseModel):
 class LaunchFileBody(BaseModel):
     launch: List[LaunchEntry]
 
-def to_ros2_yaml(body: LaunchFileBody, launch_dir: str) -> dict:
-    return {
-        "launch": [
-            {
-                "node": {
-                    "pkg": e.pkg,
-                    "exec": e.exec,
-                    "name": e.id.replace(" ", "_"),
-                    "output": "log",
-                    "param": [
-                        {"from": f"{launch_dir}/config/{e.id.replace(" ", "_")}.yaml"}
-                    ]
-                }
-            }
-            for e in body.launch
-        ]
+def to_ros2_yaml(body: LaunchFileBody, launch_dir: str, ws_dir: str) -> dict:
+    launch_dict = {
+        "launch": []
     }
+    for e in body.launch:
+        config_path = f"{launch_dir}/config/{e.id.replace(" ", "_")}.yaml"
+        if not Path(config_path).exists():
+            config_path = f"{ws_dir}/{e.pkg}/config/{e.exec}.yaml"
+        launch_dict["launch"].append({
+            "node": {
+                "pkg": e.pkg,
+                "exec": e.exec,
+                "name": e.id.replace(" ", "_"),
+                "output": "log",
+                "param": [
+                    {"from": config_path}
+                ]
+            }
+        })
+    return launch_dict
 
 @router.post("/create", status_code=status.HTTP_200_OK)
 def create_launch_file(request: Request, data: LaunchFileBody):
     try:
+        ws_dir = request.app.state.ws_dir
         launch_dir = request.app.state.launch_dir
         Path(launch_dir).mkdir(parents=True, exist_ok=True)
 
-        launch_yaml = to_ros2_yaml(data, launch_dir)
+        launch_yaml = to_ros2_yaml(data, launch_dir, ws_dir)
 
         launch_file_path = f"{launch_dir}/launch.yaml"
         write_yaml(launch_yaml, launch_file_path)
