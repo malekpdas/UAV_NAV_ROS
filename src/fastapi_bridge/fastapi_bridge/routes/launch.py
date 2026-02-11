@@ -88,10 +88,10 @@ def create_launch_file(request: Request, data: LaunchFileBody):
         launch_dir = request.app.state.launch_dir
         Path(launch_dir).mkdir(parents=True, exist_ok=True)
 
-        launch_yaml = to_ros2_yaml(data, launch_dir, ws_dir)
+        launch_dict = to_ros2_yaml(data, launch_dir, ws_dir)
 
         launch_file_path = f"{launch_dir}/launch.yaml"
-        write_yaml(launch_yaml, launch_file_path)
+        write_yaml(launch_dict, launch_file_path)
         return {"created": launch_file_path, "msg": "OK"}
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

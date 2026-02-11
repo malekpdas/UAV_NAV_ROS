@@ -113,7 +113,7 @@ def enforce_config_dtypes(config: dict) -> dict:
     
     return validated_config
 
-def validate_and_write_yaml_config(config: dict, path: str):
+def write_yaml(dict_data: dict, path: str):
     """
     Write config to YAML file with dtype validation.
     Ensures all values follow their specified dtype and options constraints.
@@ -125,11 +125,8 @@ def validate_and_write_yaml_config(config: dict, path: str):
     Raises:
         ValueError or TypeError if any value violates dtype constraints
     """
-    # Enforce dtype constraints before writing
-    validated_config = enforce_config_dtypes(config)
-    
     with open(path, "w") as f:
-        yaml.dump(validated_config, f, default_flow_style=False, sort_keys=False)
+        yaml.dump(dict_data, f, default_flow_style=False, sort_keys=False)
 
 def main():
     """Test cases for format_converter dtype validation."""
