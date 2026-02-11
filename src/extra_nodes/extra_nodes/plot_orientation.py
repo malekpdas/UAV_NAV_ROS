@@ -13,7 +13,12 @@ from scipy.spatial.transform import Rotation as R
 class OdomOrientationPlotter(Node):
     def __init__(self):
         super().__init__('odom_orientation_plotter')
-        self.subscription = self.create_subscription(Odometry, '/odom', self.odom_callback, 10)
+        
+        # Declare Parameters
+        self.declare_all_parameters()
+        self.load_parameters()    
+
+        self.subscription = self.create_subscription(Odometry, self.odom_topic, self.odom_callback, 10)
         
         # Plotting Setup
         plt.ion()
@@ -24,8 +29,28 @@ class OdomOrientationPlotter(Node):
         # Store orientation as a rotation object
         self.current_rotation = R.from_euler('xyz', [0, 0, 0])
         
-        # Timer to update plot at 10Hz (0.1s)
-        self.timer = self.create_timer(0.03, self.update_plot)
+        # Timer to update plot
+        self.timer = self.create_timer(self.update_period, self.update_plot)
+
+    def declare_all_parameters(self):
+        self.declare_parameter('odom_topic', '/odom')
+        self.declare_parameter('update_period', 0.03)
+        self.declare_parameter('box_dimensions.length', 4.0)
+        self.declare_parameter('box_dimensions.width', 2.0)
+        self.declare_parameter('box_dimensions.height', 0.8)
+        self.declare_parameter('colors.face_colors', ['#444444', '#00FF00', '#FF0000', '#FF0000', '#0000FF', '#0000FF'])
+        self.declare_parameter('colors.text_color', '#00FF00')
+        self.declare_parameter('colors.edge_color', 'white')
+
+    def load_parameters(self):
+        self.odom_topic = self.get_parameter('odom_topic').get_parameter_value().string_value
+        self.update_period = self.get_parameter('update_period').get_parameter_value().double_value
+        self.l = self.get_parameter('box_dimensions.length').get_parameter_value().double_value
+        self.w = self.get_parameter('box_dimensions.width').get_parameter_value().double_value
+        self.h = self.get_parameter('box_dimensions.height').get_parameter_value().double_value
+        self.face_colors = self.get_parameter('colors.face_colors').get_parameter_value().string_array_value
+        self.text_color = self.get_parameter('colors.text_color').get_parameter_value().string_value
+        self.edge_color = self.get_parameter('colors.edge_color').get_parameter_value().string_value
 
     def odom_callback(self, msg):
         q = msg.pose.pose.orientation
@@ -60,17 +85,16 @@ class OdomOrientationPlotter(Node):
         stats_text = f"ROLL:  {roll:>6.1f}°\nPITCH: {pitch:>6.1f}°\nYAW:   {yaw:>6.1f}°"
         self.ax.text2D(0.05, 0.95, stats_text, 
                        transform=self.ax.transAxes, 
-                       color='#00FF00',      # Neon Green
+                       color=self.text_color,
                        fontsize=12, 
                        family='monospace',   # Monospaced for alignment
                        fontweight='bold',
                        verticalalignment='top')
 
         # 5. Define rectangular box
-        l, w, h = 4, 2, 0.8
         v = np.array([
-            [-l, -w, -h], [l, -w, -h], [l, w, -h], [-l, w, -h],
-            [-l, -w, h],  [l, -w, h],  [l, w, h],  [-l, w, h]
+            [-self.l, -self.w, -self.h], [self.l, -self.w, -self.h], [self.l, self.w, -self.h], [-self.l, self.w, -self.h],
+            [-self.l, -self.w, self.h],  [self.l, -self.w, self.h],  [self.l, self.w, self.h],  [self.l, self.w, self.h]
         ])
 
         rv = self.current_rotation.apply(v)
@@ -80,8 +104,7 @@ class OdomOrientationPlotter(Node):
             [rv[0], rv[3], rv[7], rv[4]], [rv[1], rv[2], rv[6], rv[5]]
         ]
 
-        colors = ['#444444', '#00FF00', '#FF0000', '#FF0000', '#0000FF', '#0000FF']
-        poly = Poly3DCollection(faces, facecolors=colors, linewidths=1, edgecolors='white', alpha=1.0)
+        poly = Poly3DCollection(faces, facecolors=self.face_colors, linewidths=1, edgecolors=self.edge_color, alpha=1.0)
         self.ax.add_collection3d(poly)
 
         # 6. Local Axes

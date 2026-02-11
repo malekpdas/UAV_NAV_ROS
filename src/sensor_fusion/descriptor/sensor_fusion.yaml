@@ -2,7 +2,7 @@ node_info:
   pkg_name: "sensor_fusion"
   executable_name: "sensor_fusion"
   node_default_id: "fusion_node"
-  default_config_file_path: "config/sensor_fusion_config.yaml"
+  default_config_file_path: "config/sensor_fusion.yaml"
   pub_topics:
     - name: "/fusion/odom"
       type: "nav_msgs/msg/Odometry"

@@ -22,11 +22,11 @@ def generate_launch_description():
     servo_control_pkg = get_package_share_directory('servo_control')
     
     # Config files
-    bno085_config = os.path.join(sensors_pkg, 'config', 'bno085_config.yaml')
-    gps_config = os.path.join(sensors_pkg, 'config', 'zoe_m8q_config.yaml')
-    sensor_fusion_config = os.path.join(ekf_pkg, 'config', 'sensor_fusion_config.yaml')
-    rc_control_config = os.path.join(rc_control_pkg, 'config', 'rc_control_config.yaml')
-    servo_control_config = os.path.join(servo_control_pkg, 'config', 'servo_control_config.yaml')
+    imu_bno085_config = os.path.join(sensors_pkg, 'config', 'imu_bno085.yaml')
+    gps_zoe_m8q_config = os.path.join(sensors_pkg, 'config', 'gps_zoe_m8q.yaml')
+    sensor_fusion_config = os.path.join(ekf_pkg, 'config', 'sensor_fusion.yaml')
+    rc_control_config = os.path.join(rc_control_pkg, 'config', 'rc_control.yaml')
+    servo_control_config = os.path.join(servo_control_pkg, 'config', 'servo_control.yaml')
 
     return LaunchDescription([
         # ============================================================

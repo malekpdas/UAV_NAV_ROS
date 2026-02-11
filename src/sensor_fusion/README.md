@@ -15,7 +15,7 @@ Fuses IMU, Magnetometer, and GPS data to estimate the UAV's attitude, velocity, 
 
 ## Configuration
 
-- `config/sensor_fusion_config.yaml`: Filter gains, process noise, and topic names.
+- `config/sensor_fusion.yaml`: Filter gains, process noise, and topic names.
 
 ## Launch
 

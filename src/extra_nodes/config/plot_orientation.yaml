@@ -1,0 +1,28 @@
+plot_orientation:
+  ros__parameters:
+    odom_topic:
+      value: "/odom"
+      description: "Odometry topic to subscribe to"
+    update_period:
+      value: 0.03
+      description: "Period of the update timer in seconds"
+    box_dimensions:
+      length:
+        value: 4.0
+        description: "Length of the box"
+      width:
+        value: 2.0
+        description: "Width of the box"
+      height:
+        value: 0.8
+        description: "Height of the box"
+    colors:
+      face_colors:
+        value: ['#444444', '#00FF00', '#FF0000', '#FF0000', '#0000FF', '#0000FF']
+        description: "Colors for the 6 faces of the box"
+      text_color:
+        value: '#00FF00'
+        description: "Color for the text overlay"
+      edge_color:
+        value: 'white'
+        description: "Color for the edges of the box"

@@ -10,7 +10,7 @@ A robust nonlinear magnetometer calibration tool. It collects data samples and c
 
 ## Configuration
 
-- `config/mag_cal_config.yaml`: Sampling parameters and target topic.
+- `config/mag_calibration.yaml`: Sampling parameters and target topic.
 
 ## Usage
 

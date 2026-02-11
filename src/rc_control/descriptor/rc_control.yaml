@@ -2,7 +2,7 @@ node_info:
   pkg_name: "rc_control"
   executable_name: "rc_control"
   node_default_id: "rc_control"
-  default_config_file_path: "config/rc_control_config.yaml"
+  default_config_file_path: "config/rc_control.yaml"
   pub_topics:
     - name: "rc/channels"
       type: "std_msgs/msg/Int32MultiArray"

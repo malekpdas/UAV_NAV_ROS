@@ -1,0 +1,8 @@
+launch:
+  - node:
+      pkg: extra_nodes
+      exec: plot_orientation
+      name: plot_orientation
+      output: log
+      param:
+        - from: "$(find-pkg-share extra_nodes)/config/plot_orientation.yaml"
