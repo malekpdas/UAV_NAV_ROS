@@ -8,7 +8,7 @@ import shutil
 
 router = APIRouter(prefix="/launch", tags=["launch"])
 
-@router.post("/start", status_code=status.HTTP_200_OK)
+@router.get("/start", status_code=status.HTTP_200_OK)
 def launch_nodes(request: Request):
     try:
         launch_file_path = f"{request.app.state.launch_dir}/launch.yaml"
@@ -26,7 +26,7 @@ def launch_nodes(request: Request):
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
-@router.post("/stop", status_code=status.HTTP_200_OK)
+@router.get("/stop", status_code=status.HTTP_200_OK)
 def stop_nodes(request: Request):
     try:
         try:
