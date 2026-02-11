@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi_bridge.helpers.terminal_cmd import launch_ros2, kill_process
-from fastapi_bridge.helpers.format_converter import write_yaml, open_yaml_config
+from fastapi_bridge.helpers.format_converter import validate_and_write_yaml_config, open_yaml_config
 from typing import List, Dict, Any
 from pydantic import BaseModel
 from pathlib import Path
@@ -60,7 +60,7 @@ def create_config_file(request: Request, data: ConfigFileBody):
         config_yaml = to_ros2_config(data)
         
         config_file_path = f"{config_dir}/{name}.yaml"
-        write_yaml(config_yaml, config_file_path)
+        validate_and_write_yaml_config(config_yaml, config_file_path)
 
         return {"created": config_file_path, "msg": "OK"}
 
