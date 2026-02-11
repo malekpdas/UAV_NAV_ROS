@@ -5,4 +5,4 @@ launch:
       name: sensor_fusion
       output: log
       param:
-        - from: "$(find-pkg-share sensor_fusion)/config/sensor_fusion_config.yaml"
+        - from: "$(find-pkg-share sensor_fusion)/config/sensor_fusion.yaml"

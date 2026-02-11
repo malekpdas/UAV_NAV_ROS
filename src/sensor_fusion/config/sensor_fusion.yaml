@@ -1,4 +1,4 @@
-/sensor_fusion:
+sensor_fusion:
   ros__parameters:
     frames:
       map_frame:

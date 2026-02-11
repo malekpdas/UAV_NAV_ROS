@@ -5,4 +5,4 @@ launch:
       name: gps_zoe_m8q
       output: log
       param:
-        - from: "$(find-pkg-share sensors)/config/zoe_m8q_config.yaml"
+        - from: "$(find-pkg-share sensors)/config/gps_zoe_m8q.yaml"

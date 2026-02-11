@@ -1,4 +1,4 @@
-/zoe_m8q_node:
+gps_zoe_m8q:
   ros__parameters:
     interface_type:
       value: "uart"

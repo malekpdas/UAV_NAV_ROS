@@ -5,7 +5,7 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     pkg_share = get_package_share_directory('sensor_fusion')
-    config = os.path.join(pkg_share, 'config', 'sensor_fusion_config.yaml')
+    config = os.path.join(pkg_share, 'config', 'sensor_fusion.yaml')
 
     return LaunchDescription([
         Node(

@@ -2,7 +2,7 @@ node_info:
   pkg_name: "sensors"
   executable_name: "gps_zoe_m8q"
   node_default_id: "zoe_m8q_node"
-  default_config_file_path: "config/zoe_m8q_config.yaml"
+  default_config_file_path: "config/gps_zoe_m8q.yaml"
   pub_topics:
     - name: "/gps_zoe_m8q/fix"
       type: "sensor_msgs/msg/NavSatFix"

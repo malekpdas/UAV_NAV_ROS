@@ -2,7 +2,7 @@ node_info:
   pkg_name: "sensors"
   executable_name: "lidar_lite_v3hp"
   node_default_id: "lidar_lite_node"
-  default_config_file_path: "config/lite_v3hp_config.yaml"
+  default_config_file_path: "config/lidar_lite_v3hp.yaml"
   pub_topics:
     - name: "lidar/range"
       type: "sensor_msgs/msg/Range"

@@ -1,7 +1,0 @@
-launch:
-  - node:
-      pkg: fastapi_bridge
-      exec: bridge_node
-      name: bridge_node
-      param:
-        - from: /home/malekpdas/ros2-ws/src/fastapi_bridge/config/bridge_node.yaml

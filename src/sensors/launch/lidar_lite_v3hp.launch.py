@@ -5,13 +5,13 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     pkg_share = get_package_share_directory('sensors')
-    config = os.path.join(pkg_share, 'config', 'bno085_config.yaml')
+    config = os.path.join(pkg_share, 'config', 'lidar_lite_v3hp.yaml')
 
     return LaunchDescription([
         Node(
             package='sensors',
-            executable='imu_bno085',
-            name='imu_bno085',
+            executable='lidar_lite_v3hp',
+            name='lidar_lite_v3hp',
             output='log',
             parameters=[config],
         ),

@@ -24,6 +24,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            f'plot_orientation = {package_name}.plot_orientation:main',
         ],
     },
 )

@@ -5,7 +5,7 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
     pkg_share = get_package_share_directory('servo_control')
-    config_file = os.path.join(pkg_share, 'config', 'servo_control_config.yaml')
+    config_file = os.path.join(pkg_share, 'config', 'servo_control.yaml')
 
     return LaunchDescription([
         Node(

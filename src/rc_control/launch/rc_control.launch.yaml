@@ -5,4 +5,4 @@ launch:
       name: rc_control
       output: log
       param:
-        - from: "$(find-pkg-share rc_control)/config/rc_control_config.yaml"
+        - from: "$(find-pkg-share rc_control)/config/rc_control.yaml"

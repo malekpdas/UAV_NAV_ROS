@@ -1,4 +1,4 @@
-/lidar_lite_node:
+lidar_lite_v3hp:
   ros__parameters:
     frequency:
       value: 100.0

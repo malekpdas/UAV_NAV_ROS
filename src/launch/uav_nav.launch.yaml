@@ -17,7 +17,7 @@ launch:
       name: imu_bno085
       output: log
       param:
-        - from: $(find-pkg-share sensors)/config/bno085_config.yaml
+        - from: $(find-pkg-share sensors)/config/imu_bno085.yaml
 
   - node:
       pkg: sensors
@@ -25,7 +25,7 @@ launch:
       name: gps_zoe_m8q
       output: log
       param:
-        - from: $(find-pkg-share sensors)/config/zoe_m8q_config.yaml
+        - from: $(find-pkg-share sensors)/config/gps_zoe_m8q.yaml
 
   # ============================================================
   # State Estimation
@@ -39,7 +39,7 @@ launch:
             name: sensor_fusion
             output: log
             param:
-              - from: $(find-pkg-share sensor_fusion)/config/sensor_fusion_config.yaml
+              - from: $(find-pkg-share sensor_fusion)/config/sensor_fusion.yaml
 
   # ============================================================
   # Control
@@ -50,7 +50,7 @@ launch:
       name: rc_control
       output: log
       param:
-        - from: $(find-pkg-share rc_control)/config/rc_control_config.yaml
+        - from: $(find-pkg-share rc_control)/config/rc_control.yaml
 
   - timer:
       period: 1.0
@@ -61,4 +61,4 @@ launch:
             name: servo_control
             output: log
             param:
-              - from: $(find-pkg-share servo_control)/config/servo_control_config.yaml
+              - from: $(find-pkg-share servo_control)/config/servo_control.yaml

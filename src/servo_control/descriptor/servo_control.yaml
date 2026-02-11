@@ -1,8 +1,8 @@
 node_info:
   pkg_name: "servo_control"
-  executable_name: "servo_controller"
-  node_default_id: "servo_controller"
-  default_config_file_path: "config/servo_control_config.yaml"
+  executable_name: "servo_control"
+  node_default_id: "servo_control"
+  default_config_file_path: "config/servo_control.yaml"
   pub_topics: []
   sub_topics:
     - name: "rc/channels"

@@ -5,4 +5,4 @@ launch:
       name: mag_calibration
       output: log
       param:
-        - from: "$(find-pkg-share calibration)/config/mag_cal_config.yaml"
+        - from: "$(find-pkg-share calibration)/config/mag_calibration.yaml"

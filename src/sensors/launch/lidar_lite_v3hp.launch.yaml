@@ -5,4 +5,4 @@ launch:
       name: lidar_lite_v3hp
       output: log
       param:
-        - from: "$(find-pkg-share sensors)/config/lite_v3hp_config.yaml"
+        - from: "$(find-pkg-share sensors)/config/lidar_lite_v3hp.yaml"

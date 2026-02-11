@@ -1,4 +1,4 @@
-/rc_control:
+rc_control:
   ros__parameters:
     gpiochip:
       value: 4

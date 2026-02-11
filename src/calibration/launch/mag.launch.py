@@ -5,7 +5,7 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     pkg_share = get_package_share_directory('calibration')
-    config = os.path.join(pkg_share, 'config', 'mag_cal_config.yaml')
+    config = os.path.join(pkg_share, 'config', 'mag_calibration.yaml')
 
     return LaunchDescription([
         Node(

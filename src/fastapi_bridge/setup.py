@@ -28,7 +28,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            f'bridge_node = {package_name}.bridge_node:main',
+            f'api_bridge = {package_name}.api_bridge:main',
         ],
     },
 )

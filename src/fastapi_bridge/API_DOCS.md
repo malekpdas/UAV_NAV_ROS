@@ -28,7 +28,7 @@ Returns a list of node descriptions found in the workspace. Each description inc
     "pkg_name": "math_operators",
     "executable_name": "add_operator",
     "node_default_id": "add_operator",
-    "default_config": "/home/malekpdas/ros2-ws/src/math_operators/config/add_operator.yaml",
+    "default_config": "[ROS2-WS]/src/package_name/config/node_name.yaml",
     "sub_topics": [
       {
         "name": "number1",

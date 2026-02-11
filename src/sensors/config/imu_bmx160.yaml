@@ -1,4 +1,4 @@
-/imu_bmx160:
+imu_bmx160:
   ros__parameters:
     rate_hz:
       value: 100.0

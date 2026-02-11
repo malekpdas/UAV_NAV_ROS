@@ -5,4 +5,4 @@ launch:
       name: imu_bmx160
       output: log
       param:
-        - from: "$(find-pkg-share sensors)/config/bmx160_config.yaml"
+        - from: "$(find-pkg-share sensors)/config/imu_bmx160.yaml"

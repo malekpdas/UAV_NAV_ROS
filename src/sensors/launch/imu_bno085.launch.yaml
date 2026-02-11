@@ -5,4 +5,4 @@ launch:
       name: imu_bno085
       output: log
       param:
-        - from: "$(find-pkg-share sensors)/config/bno085_config.yaml"
+        - from: "$(find-pkg-share sensors)/config/imu_bno085.yaml"

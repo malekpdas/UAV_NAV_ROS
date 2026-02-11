@@ -5,14 +5,14 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     pkg_share = get_package_share_directory('sensors')
-    config = os.path.join(pkg_share, 'config', 'zoe_m8q_config.yaml')
+    config = os.path.join(pkg_share, 'config', 'imu_bmx160.yaml')
 
     return LaunchDescription([
         Node(
             package='sensors',
-            executable='gps_zoe_m8q',
-            name='gps_zoe_m8q',
+            executable='imu_bmx160',
+            name='imu_bmx160',
             output='log',
             parameters=[config],
-        ),
+        )
     ])

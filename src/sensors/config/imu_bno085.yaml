@@ -1,4 +1,4 @@
-/bno085_node:
+imu_bno085:
   ros__parameters:
     rate_hz:
       value: 100.0
