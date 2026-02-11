@@ -96,7 +96,7 @@ class ZoeM8QNode(Node):
         
         # Sensor Variances (used if sensor accuracy is 0/invalid)
         self.declare_parameter('sensor_variance.pos_std.value', [4.0, 4.0, 10.0])  # m
-        self.declare_parameter('sensor_variance.vel_std.value', [0.5])  # m/s
+        self.declare_parameter('sensor_variance.vel_std.value', 0.5)  # m/s
 
     def load_parameters(self):
         # Interface config
@@ -178,7 +178,7 @@ class ZoeM8QNode(Node):
         vel_msg.twist.twist.linear.z = float(data.velD)  # Down
         
         # Covariance
-        s_acc = data.sAcc if data.sAcc > 0 else self.vel_std[0]
+        s_acc = data.sAcc if data.sAcc > 0 else self.vel_std
         cov = s_acc ** 2
         
         vel_msg.twist.covariance[0] = cov

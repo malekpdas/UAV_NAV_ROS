@@ -23,6 +23,6 @@ gps_zoe_m8q:
         description: "Standard deviation for position (h, h, v)"
         dtype: float
       vel_std:
-        value: [0.5]
-        description: "Standard deviation for velocity"
+        value: 0.5
+        description: "Standard deviation for velocity (x, y, z)"
         dtype: float
