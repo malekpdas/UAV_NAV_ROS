@@ -14,7 +14,6 @@ class ImuFusionTest(Node):
 
         # IMUFusion AHRS
         self.ahrs = imufusion.Ahrs()
-        self.gyro_offset = imufusion.Offset(500)
         self.ahrs.settings = imufusion.Settings(
             imufusion.CONVENTION_NED,
             0.5,     # gain >0 so accel corrects roll/pitch
@@ -47,14 +46,13 @@ class ImuFusionTest(Node):
             msg.linear_acceleration.x,
             msg.linear_acceleration.y,
             msg.linear_acceleration.z
-        ])
+        ])/9.8066
 
         # No magnetometer
         mag = np.array([0.0, 0.0, 0.0])
 
         # Update AHRS
-        gyro_corr = self.gyro_offset.update(gyro)
-        self.ahrs.update(gyro_corr, accel, mag, dt)
+        self.ahrs.update(gyro, accel, mag, dt)
 
         # Output Euler
         roll, pitch, yaw = self.ahrs.quaternion.to_euler()
@@ -62,14 +60,20 @@ class ImuFusionTest(Node):
         self.get_logger().info(
             f"R={roll:7.2f}  P={pitch:7.2f}  Y={yaw:7.2f} | "
             f"|gyro|={np.linalg.norm(gyro):.4f} | "
-            f"|gyro bias|={np.linalg.norm(gyro_corr-gyro):.4f}"
         )
+        self.get_logger().info(f"\nearth accel:\t{self.ahrs.earth_acceleration*9.8066}\ngravity:\t{self.ahrs.gravity*9.8066}")
 
 def main():
     rclpy.init()
     node = ImuFusionTest()
-    rclpy.spin(node)
-    rclpy.shutdown()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 if __name__ == "__main__":
     main()
