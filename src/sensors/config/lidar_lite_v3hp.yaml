@@ -1,9 +1,9 @@
 lidar_lite_v3hp:
   ros__parameters:
     frequency:
-      value: 100
+      value: 100.0
       description: "Sensor update rate in Hz"
-      dtype: int
+      dtype: float
     frame_id:
       value: "lidar_link"
       description: "ROS frame ID for the Lidar"

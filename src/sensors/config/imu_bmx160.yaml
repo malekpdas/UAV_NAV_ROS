@@ -1,9 +1,9 @@
 imu_bmx160:
   ros__parameters:
     rate_hz:
-      value: 100
+      value: 100.0
       description: "Sensor update rate in Hz"
-      dtype: int
+      dtype: float
     frame_id:
       value: "imu_link"
       description: "ROS frame ID for the IMU"

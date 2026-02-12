@@ -16,15 +16,15 @@ class LidarLiteNode(Node):
         self.load_parameters()
         
         # Determine Final Settings
-        if preset_name not in LidarLite.PRESETS:
-            self.get_logger().warn(f"Unknown preset '{preset_name}', falling back to 'balanced'")
-            preset_name = 'balanced'
+        if self.preset_name not in LidarLite.PRESETS:
+            self.get_logger().warn(f"Unknown preset '{self.preset_name}', falling back to 'balanced'")
+            self.preset_name = 'balanced'
             
-        settings = LidarLite.PRESETS[preset_name].copy()
+        settings = LidarLite.PRESETS[self.preset_name].copy()
         
         # Check for individual overrides
         for key in settings.keys():
-            val = self.get_parameter(f'sensor_config.{key}').value
+            val = self.get_parameter(f'sensor_config.{key}.value').value
             if val != -1:
                 settings[key] = val
                 self.get_logger().info(f"Overriding {key} from preset with: {val}")
@@ -96,7 +96,7 @@ class LidarLiteNode(Node):
     def destroy(self):
         if hasattr(self, 'lidar'):
             self.lidar.close()            
-        if self.timer:
+        if hasattr(self, 'timer'):
             self.timer.cancel()
         super().destroy_node()
 

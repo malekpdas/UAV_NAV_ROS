@@ -8,7 +8,7 @@ from rclpy.node import Node
 from rcl_interfaces.msg import ParameterEvent
 from scipy.spatial.transform import Rotation as R
 from sensor_msgs.msg import Imu, MagneticField
-from sensors.bmx160.bmx160_lib import BMX160, GyroRange, AccelRange, _DEFAULT_I2C_ADDR
+from sensors.bmx160.bmx160_lib import BMX160, GyroRange, AccelRange
 
 class BMX160Node(Node):
     def __init__(self):
@@ -18,9 +18,10 @@ class BMX160Node(Node):
         self.load_parameters()
         
         # Initialize Sensor
-        self.imu = BMX160(1, _DEFAULT_I2C_ADDR)
+        default_addr = BMX160._DEFAULT_I2C_ADDR
+        self.imu = BMX160(1, default_addr)
         if self.imu.begin():
-            self.get_logger().info(f'✅ BMX160 init OK on bus {1} at address 0x{_DEFAULT_I2C_ADDR:02X}')
+            self.get_logger().info(f'✅ BMX160 init OK on bus {1} at address 0x{default_addr:02X}')
     
             # Configure gyro range (±500°/s is good for most applications)
             self.imu.set_gyro_range(GyroRange.DPS_500)
@@ -31,7 +32,7 @@ class BMX160Node(Node):
             self.get_logger().info(f'✅ Gyro configured: {GyroRange.DPS_500} sensitivity')
             self.get_logger().info(f'✅ Accel configured: {AccelRange.G_4} sensitivity')
         else:
-            self.get_logger().fatal(f'❌ BMX160 init FAILED on bus {1} at address 0x{_DEFAULT_I2C_ADDR:02X}')
+            self.get_logger().fatal(f'❌ BMX160 init FAILED on bus {1} at address 0x{default_addr:02X}')
             self._ok = False
             return
 
@@ -211,8 +212,8 @@ class BMX160Node(Node):
 
     def destroy(self):
         if hasattr(self, 'imu'):
-            self.imu.close()
-        if self.timer:
+            del self.imu
+        if hasattr(self, 'timer'):
             self.timer.cancel()
         super().destroy_node()
 

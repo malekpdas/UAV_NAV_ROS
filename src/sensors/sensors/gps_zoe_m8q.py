@@ -137,7 +137,7 @@ class ZoeM8QNode(Node):
             
     def publish_data(self, data):
         timestamp = self.get_clock().now().to_msg()
-        
+
         # 1. NavSatFix
         fix_msg = NavSatFix()
         fix_msg.header.stamp = timestamp
@@ -145,7 +145,7 @@ class ZoeM8QNode(Node):
         
         fix_msg.latitude = float(data.lat)
         fix_msg.longitude = float(data.lon)
-        fix_msg.altitude = float(data.height)  # Ellipsoid height
+        fix_msg.altitude = float(data.hMSL)  # Ellipsoid height
         
         # Status
         if data.fixType >= 2:  # 2D, 3D, GNSS+DR, Time all count as a fix
@@ -165,7 +165,7 @@ class ZoeM8QNode(Node):
             0.0, 0.0, v_acc ** 2
         ]
         fix_msg.position_covariance_type = 2  # COVARIANCE_TYPE_DIAGONAL_KNOWN
-        
+
         self.pub_fix.publish(fix_msg)
         
         # 2. TwistWithCovarianceStamped (Velocity)

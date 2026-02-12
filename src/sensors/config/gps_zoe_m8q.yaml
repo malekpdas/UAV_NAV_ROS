@@ -8,9 +8,9 @@ gps_zoe_m8q:
     
     # GPS Parameters
     rate_hz:
-      value: 10
+      value: 15.0
       description: "GPS update rate in Hz"
-      dtype: int
+      dtype: float
     frame_id:
       value: "gps_link"
       description: "ROS frame ID for the GPS"
