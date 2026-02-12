@@ -25,6 +25,8 @@ setup(
     entry_points={
         'console_scripts': [
             f'plot_orientation = {package_name}.plot_orientation:main',
+            f'gyro_integrator = {package_name}.gyro_integrator:main',
+            f'imu_fusion_test = {package_name}.imu_fusion_test:main',
         ],
     },
 )
