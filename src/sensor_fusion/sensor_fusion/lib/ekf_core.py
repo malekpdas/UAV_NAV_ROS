@@ -72,14 +72,20 @@ class LinearKalmanFilter:
         """
         # Default configuration
         default_config = {
-            'initial_pos_uncertainty': 100.0,
-            'initial_vel_uncertainty': 100.0,
-            'initial_bias_uncertainty': 1.0,
-            'process_noise_pos': 0.1,
-            'process_noise_vel': 0.01,
+            'initial_pos_uncertainty_h': 2.0,
+            'initial_pos_uncertainty_v': 5.0,
+            'initial_vel_uncertainty_h': 1.0,
+            'initial_vel_uncertainty_v': 0.5,
+            'initial_bias_uncertainty': 0.01,
+            'process_noise_pos_h': 0.1,
+            'process_noise_pos_v': 0.01,
+            'process_noise_vel_h': 0.01,
+            'process_noise_vel_v': 0.005,
             'process_noise_bias': 0.001,
-            'measurement_noise_pos': 25.0,
-            'measurement_noise_vel': 0.25,
+            'measurement_noise_pos_h': 25.0,
+            'measurement_noise_pos_v': 50.0,
+            'measurement_noise_vel_h': 0.25,
+            'measurement_noise_vel_v': 0.1,
             'gravity': 9.8066,
         }
         
@@ -93,15 +99,23 @@ class LinearKalmanFilter:
         
         # State covariance matrix
         self.P = np.eye(9)
-        self.P[0:3, 0:3] *= self.config['initial_pos_uncertainty']
-        self.P[3:6, 3:6] *= self.config['initial_vel_uncertainty']
+        self.P[0:2, 0:2] *= self.config['initial_pos_uncertainty_h']
+        self.P[2, 2]     *= self.config['initial_pos_uncertainty_v']
+        self.P[3:5, 3:5] *= self.config['initial_vel_uncertainty_h']
+        self.P[5, 5]     *= self.config['initial_vel_uncertainty_v']
         self.P[6:9, 6:9] *= self.config['initial_bias_uncertainty']
         
-        # Process noise covariance (tunable)
-        self.Q = np.eye(9)
-        self.Q[0:3, 0:3] *= self.config['process_noise_pos']
-        self.Q[3:6, 3:6] *= self.config['process_noise_vel']
-        self.Q[6:9, 6:9] *= self.config['process_noise_bias']
+        # Process noise covariance (base spectral density, scaled by dt in predict)
+        self.Q = np.zeros(9)
+        self.Q[0] = self.config['process_noise_pos_h']
+        self.Q[1] = self.config['process_noise_pos_h']
+        self.Q[2] = self.config['process_noise_pos_v']
+        self.Q[3] = self.config['process_noise_vel_h']
+        self.Q[4] = self.config['process_noise_vel_h']
+        self.Q[5] = self.config['process_noise_vel_v']
+        self.Q[6] = self.config['process_noise_bias']
+        self.Q[7] = self.config['process_noise_bias']
+        self.Q[8] = self.config['process_noise_bias']
 
     def predict(self, a_measured, dt):
         """
@@ -130,8 +144,21 @@ class LinearKalmanFilter:
         self.x[3:6] = v + a_corrected * dt
         # Biases remain constant: self.x[6:9] = ba
         
-        # Covariance prediction
-        self.P = F @ self.P @ F.T + self.Q
+        # Covariance prediction with dt-scaled process noise
+        # Note: Position noise scaled by dt (random walk) to model drift/uncertainty growth
+        # instead of dt^3/3 (integrated accel noise) to prevent covariance collapse.
+        Q_scaled = np.diag([
+            self.Q[0] * dt,           # pos_h (drift/diffusion)
+            self.Q[1] * dt,           # pos_h
+            self.Q[2] * dt,           # pos_v
+            self.Q[3] * dt,           # vel_h
+            self.Q[4] * dt,           # vel_h
+            self.Q[5] * dt,           # vel_v
+            self.Q[6] * dt,           # bias
+            self.Q[7] * dt,           # bias
+            self.Q[8] * dt,           # bias
+        ])
+        self.P = F @ self.P @ F.T + Q_scaled
         
     def update_position(self, z_pos, R=None):
         """
@@ -150,7 +177,11 @@ class LinearKalmanFilter:
         
         # Measurement noise (position only)
         if R is None:
-            R = np.eye(3) * self.config['measurement_noise_pos']
+            R = np.diag([
+                self.config['measurement_noise_pos_h'],
+                self.config['measurement_noise_pos_h'],
+                self.config['measurement_noise_pos_v'],
+            ])
         
         # Innovation (measurement residual)
         y = z - H @ self.x
@@ -185,7 +216,11 @@ class LinearKalmanFilter:
         
         # Measurement noise (velocity only)
         if R is None:
-            R = np.eye(3) * self.config['measurement_noise_vel']
+            R = np.diag([
+                self.config['measurement_noise_vel_h'],
+                self.config['measurement_noise_vel_h'],
+                self.config['measurement_noise_vel_v'],
+            ])
         
         # Innovation (measurement residual)
         y = z - H @ self.x
@@ -221,9 +256,14 @@ class LinearKalmanFilter:
         H[3:6, 3:6] = np.eye(3)  # Measure velocity
 
         if R is None:
-            R = np.zeros((6, 6))
-            R[:3, :3] = np.eye(3) * self.config['measurement_noise_pos']
-            R[3:, 3:] = np.eye(3) * self.config['measurement_noise_vel']
+            R = np.diag([
+                self.config['measurement_noise_pos_h'],
+                self.config['measurement_noise_pos_h'],
+                self.config['measurement_noise_pos_v'],
+                self.config['measurement_noise_vel_h'],
+                self.config['measurement_noise_vel_h'],
+                self.config['measurement_noise_vel_v'],
+            ])
         
         # Innovation (measurement residual)
         y = z - H @ self.x

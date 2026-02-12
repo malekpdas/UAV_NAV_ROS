@@ -61,14 +61,20 @@ class SensorFusionNode(Node):
 
         # Kalman Filter for position/velocity estimation with bias
         kf_config = {
-                'initial_pos_uncertainty': self.kf_initial_pos_uncertainty,
-                'initial_vel_uncertainty': self.kf_initial_vel_uncertainty,
+                'initial_pos_uncertainty_h': self.kf_initial_pos_uncertainty_h,
+                'initial_pos_uncertainty_v': self.kf_initial_pos_uncertainty_v,
+                'initial_vel_uncertainty_h': self.kf_initial_vel_uncertainty_h,
+                'initial_vel_uncertainty_v': self.kf_initial_vel_uncertainty_v,
                 'initial_bias_uncertainty': self.kf_initial_bias_uncertainty,
-                'process_noise_pos': self.kf_process_noise_pos,
-                'process_noise_vel': self.kf_process_noise_vel,
+                'process_noise_pos_h': self.kf_process_noise_pos_h,
+                'process_noise_pos_v': self.kf_process_noise_pos_v,
+                'process_noise_vel_h': self.kf_process_noise_vel_h,
+                'process_noise_vel_v': self.kf_process_noise_vel_v,
                 'process_noise_bias': self.kf_process_noise_bias,
-                'measurement_noise_pos': self.kf_measurement_noise_pos,
-                'measurement_noise_vel': self.kf_measurement_noise_vel,
+                'measurement_noise_pos_h': self.kf_measurement_noise_pos_h,
+                'measurement_noise_pos_v': self.kf_measurement_noise_pos_v,
+                'measurement_noise_vel_h': self.kf_measurement_noise_vel_h,
+                'measurement_noise_vel_v': self.kf_measurement_noise_vel_v,
                 'gravity': self.earth_gravity,
             }
         self.kf = LinearKalmanFilter(config=kf_config)
@@ -169,18 +175,24 @@ class SensorFusionNode(Node):
         self.declare_parameter('ahrs.rejection_timeout.value', 500)
         
         # Kalman Filter - Initial Uncertainties
-        self.declare_parameter('kalman_filter.initial_pos_uncertainty.value', 100.0)
-        self.declare_parameter('kalman_filter.initial_vel_uncertainty.value', 100.0)
-        self.declare_parameter('kalman_filter.initial_bias_uncertainty.value', 1.0)
+        self.declare_parameter('kalman_filter.initial_pos_uncertainty_h.value', 25.0)
+        self.declare_parameter('kalman_filter.initial_pos_uncertainty_v.value', 10.0)
+        self.declare_parameter('kalman_filter.initial_vel_uncertainty_h.value', 1.0)
+        self.declare_parameter('kalman_filter.initial_vel_uncertainty_v.value', 0.5)
+        self.declare_parameter('kalman_filter.initial_bias_uncertainty.value', 0.01)
         
         # Kalman Filter - Process Noise
-        self.declare_parameter('kalman_filter.process_noise_pos.value', 0.5)
-        self.declare_parameter('kalman_filter.process_noise_vel.value', 0.5)
+        self.declare_parameter('kalman_filter.process_noise_pos_h.value', 0.1)
+        self.declare_parameter('kalman_filter.process_noise_pos_v.value', 0.01)
+        self.declare_parameter('kalman_filter.process_noise_vel_h.value', 0.01)
+        self.declare_parameter('kalman_filter.process_noise_vel_v.value', 0.005)
         self.declare_parameter('kalman_filter.process_noise_bias.value', 0.001)
         
         # Kalman Filter - Measurement Noise
-        self.declare_parameter('kalman_filter.measurement_noise_pos.value', 25.0)
-        self.declare_parameter('kalman_filter.measurement_noise_vel.value', 0.25)
+        self.declare_parameter('kalman_filter.measurement_noise_pos_h.value', 25.0)
+        self.declare_parameter('kalman_filter.measurement_noise_pos_v.value', 50.0)
+        self.declare_parameter('kalman_filter.measurement_noise_vel_h.value', 0.25)
+        self.declare_parameter('kalman_filter.measurement_noise_vel_v.value', 0.1)
         
         # LP Filters
         self.declare_parameter('lp_filters.accel_alpha.value', 0.9)
@@ -212,14 +224,20 @@ class SensorFusionNode(Node):
         self.ahrs_mag_rejection = self.get_parameter('ahrs.mag_rejection.value').value
         self.ahrs_rejection_timeout = self.get_parameter('ahrs.rejection_timeout.value').value
 
-        self.kf_initial_pos_uncertainty = self.get_parameter('kalman_filter.initial_pos_uncertainty.value').value
-        self.kf_initial_vel_uncertainty = self.get_parameter('kalman_filter.initial_vel_uncertainty.value').value
+        self.kf_initial_pos_uncertainty_h = self.get_parameter('kalman_filter.initial_pos_uncertainty_h.value').value
+        self.kf_initial_pos_uncertainty_v = self.get_parameter('kalman_filter.initial_pos_uncertainty_v.value').value
+        self.kf_initial_vel_uncertainty_h = self.get_parameter('kalman_filter.initial_vel_uncertainty_h.value').value
+        self.kf_initial_vel_uncertainty_v = self.get_parameter('kalman_filter.initial_vel_uncertainty_v.value').value
         self.kf_initial_bias_uncertainty = self.get_parameter('kalman_filter.initial_bias_uncertainty.value').value
-        self.kf_process_noise_pos = self.get_parameter('kalman_filter.process_noise_pos.value').value
-        self.kf_process_noise_vel = self.get_parameter('kalman_filter.process_noise_vel.value').value
+        self.kf_process_noise_pos_h = self.get_parameter('kalman_filter.process_noise_pos_h.value').value
+        self.kf_process_noise_pos_v = self.get_parameter('kalman_filter.process_noise_pos_v.value').value
+        self.kf_process_noise_vel_h = self.get_parameter('kalman_filter.process_noise_vel_h.value').value
+        self.kf_process_noise_vel_v = self.get_parameter('kalman_filter.process_noise_vel_v.value').value
         self.kf_process_noise_bias = self.get_parameter('kalman_filter.process_noise_bias.value').value
-        self.kf_measurement_noise_pos = self.get_parameter('kalman_filter.measurement_noise_pos.value').value
-        self.kf_measurement_noise_vel = self.get_parameter('kalman_filter.measurement_noise_vel.value').value
+        self.kf_measurement_noise_pos_h = self.get_parameter('kalman_filter.measurement_noise_pos_h.value').value
+        self.kf_measurement_noise_pos_v = self.get_parameter('kalman_filter.measurement_noise_pos_v.value').value
+        self.kf_measurement_noise_vel_h = self.get_parameter('kalman_filter.measurement_noise_vel_h.value').value
+        self.kf_measurement_noise_vel_v = self.get_parameter('kalman_filter.measurement_noise_vel_v.value').value
 
         self.lp_filter_accel_alpha = self.get_parameter('lp_filters.accel_alpha.value').value
 
@@ -291,14 +309,14 @@ class SensorFusionNode(Node):
         # Store raw gyro for bias estimation
         self.current_gyro = gyro.copy()
         
-        # Update AHRS
-        self.ahrs.update(gyro, accel, self.latest_mag, dt)
+        # Convert to g-units for imufusion (expects g, not m/s²)
+        accel_g = accel / self.earth_gravity
         
-        # Get Earth Acceleration
-        self.current_a_ned = (
-            self.ahrs.earth_acceleration + 
-            np.array([0, 0, self.earth_gravity])
-        )
+        # Update AHRS
+        self.ahrs.update(gyro, accel_g, self.latest_mag, dt)
+        
+        # Get Earth Acceleration (earth_acceleration is gravity-free in g, convert to m/s²)
+        self.current_a_ned = self.ahrs.earth_acceleration * self.earth_gravity
         
         # Kalman Filter Prediction Step
         if self.kf_initialized:
@@ -316,13 +334,17 @@ class SensorFusionNode(Node):
             
         if not self.kf_initialized:
             
-            # Initialize Kalman Filter
-            self.kf.initialize(np.zeros(3), self.latest_gps_vel)
+            # Compute initial position in NED relative to fixed reference
+            pos_init = lla_to_ned(msg.latitude, msg.longitude, msg.altitude,
+                                  self.earth_ref_pos, self.earth_radius)
+            
+            # Initialize Kalman Filter at actual GPS position
+            self.kf.initialize(pos_init, self.latest_gps_vel)
             self.kf_initialized = True
             
             self.last_gps_vel = self.latest_gps_vel
             
-            self.get_logger().info('Filter initialized with first GPS fix')
+            self.get_logger().info(f'Filter initialized at NED: [{pos_init[0]:.1f}, {pos_init[1]:.1f}, {pos_init[2]:.1f}]')
             return
 
         # GPS position in NED
@@ -424,10 +446,7 @@ class SensorFusionNode(Node):
         imu_msg.header.frame_id = self.base_link_frame
         
         # Linear acceleration (gravity already removed by AHRS, convert NED to ENU)
-        accel_ned = (
-            self.ahrs.earth_acceleration + 
-            np.array([0, 0, self.earth_gravity])
-        ) - self.kf.x[6:9]
+        accel_ned = (self.ahrs.earth_acceleration * self.earth_gravity) - self.kf.x[6:9]
         imu_msg.linear_acceleration.x = float(accel_ned[0])  # North
         imu_msg.linear_acceleration.y = float(accel_ned[1])  # East
         imu_msg.linear_acceleration.z = float(accel_ned[2])  # Down

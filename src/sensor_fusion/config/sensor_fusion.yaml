@@ -68,37 +68,61 @@ sensor_fusion:
         dtype: int
     
     kalman_filter:
-      initial_pos_uncertainty:
+      initial_pos_uncertainty_h:
         value: 25.0
-        description: "Initial position uncertainty (variance)"
+        description: "Initial horizontal position uncertainty (variance)"
         dtype: float
-      initial_vel_uncertainty:
+      initial_pos_uncertainty_v:
+        value: 10.0
+        description: "Initial vertical position uncertainty (variance)"
+        dtype: float
+      initial_vel_uncertainty_h:
         value: 1.0
-        description: "Initial velocity uncertainty (variance)"
+        description: "Initial horizontal velocity uncertainty (variance)"
+        dtype: float
+      initial_vel_uncertainty_v:
+        value: 0.5
+        description: "Initial vertical velocity uncertainty (variance)"
         dtype: float
       initial_bias_uncertainty:
         value: 0.01
         description: "Initial bias uncertainty (variance)"
         dtype: float
-      process_noise_pos:
-        value: 0.1
-        description: "Process noise for position"
+      process_noise_pos_h:
+        value: 0.5
+        description: "Process noise spectral density for horizontal position (increased to prevent collapse)"
         dtype: float
-      process_noise_vel:
+      process_noise_pos_v:
+        value: 0.1
+        description: "Process noise spectral density for vertical position (increased to prevent collapse)"
+        dtype: float
+      process_noise_vel_h:
+        value: 0.05
+        description: "Process noise spectral density for horizontal velocity"
+        dtype: float
+      process_noise_vel_v:
         value: 0.01
-        description: "Process noise for velocity"
+        description: "Process noise spectral density for vertical velocity"
         dtype: float
       process_noise_bias:
         value: 0.001
         description: "Process noise for bias"
         dtype: float
-      measurement_noise_pos:
-        value: 25.0
-        description: "Measurement noise for position"
+      measurement_noise_pos_h:
+        value: 16.0
+        description: "Measurement noise for horizontal position (4m std dev for multipath)"
         dtype: float
-      measurement_noise_vel:
+      measurement_noise_pos_v:
+        value: 100.0
+        description: "Measurement noise for vertical position (10m std dev for GPS altitude)"
+        dtype: float
+      measurement_noise_vel_h:
         value: 0.25
-        description: "Measurement noise for velocity"
+        description: "Measurement noise for horizontal velocity"
+        dtype: float
+      measurement_noise_vel_v:
+        value: 0.25
+        description: "Measurement noise for vertical velocity"
         dtype: float
     
     lp_filters:
