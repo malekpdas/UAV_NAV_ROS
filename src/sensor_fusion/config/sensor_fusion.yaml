@@ -46,10 +46,6 @@ sensor_fusion:
       dtype: bool
     
     ahrs:
-      offset_samples:
-        value: 100
-        description: "Number of samples for gyro offset estimation"
-        dtype: int
       gain:
         value: 0.05
         description: "AHRS filter gain"

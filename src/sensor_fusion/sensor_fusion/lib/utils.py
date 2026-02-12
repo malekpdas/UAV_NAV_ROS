@@ -4,18 +4,9 @@ Utility functions for Hybrid EKF+AHRS Estimator
 import numpy as np
 
 
-def lla_to_ned(lat, lon, alt, ref_lla, r, f):
+def lla_to_ned(lat, lon, alt, ref_lla, r):
     """
-    Convert Lat/Lon/Alt to NED coordinates relative to origin
-    
-    Args:
-        lat, lon, alt: Current position
-        ref_lla: Origin position
-        r: earth radius
-        f: flattening
-    
-    Returns:
-        np.array: [North, East, Down] in meters
+    Simplified LLA to NED conversion (good for <100km range)
     """
     lat0, lon0, alt0 = ref_lla
     
@@ -25,21 +16,12 @@ def lla_to_ned(lat, lon, alt, ref_lla, r, f):
     lat0_rad = np.radians(lat0)
     lon0_rad = np.radians(lon0)
     
-    # Radius of curvature in prime vertical
-    sin_lat0 = np.sin(lat0_rad)
-    N = r / np.sqrt(1 - (2*f - f**2) * sin_lat0**2)
+    # NED coordinates
+    north = (lat - lat0) * (np.pi/180) * r
+    east = (lon - lon0) * (np.pi/180) * r * np.cos(lat0_rad)
+    down = -(alt - alt0)
     
-    # Differences
-    dlat = lat_rad - lat0_rad
-    dlon = lon_rad - lon0_rad
-    dalt = alt - alt0
-    
-    # NED coordinates (small angle approximation valid for <100km)
-    north = dlat * (N * (1 - f)**2 + alt0)
-    east = dlon * (N + alt0) * np.cos(lat0_rad)
-    down = dalt
-    
-    return np.array([east, north, down])
+    return np.array([north, east, down])
 
 
 def ned_to_lla(north, east, down, lat0, lon0, alt0):

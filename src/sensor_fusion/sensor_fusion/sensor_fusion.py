@@ -49,7 +49,6 @@ class SensorFusionNode(Node):
             return
         
         # AHRS Setup
-        self.offset = imufusion.Offset(self.ahrs_offset_samples)
         self.ahrs = imufusion.Ahrs()
         self.ahrs.settings = imufusion.Settings(
             imufusion.CONVENTION_NED,
@@ -163,7 +162,6 @@ class SensorFusionNode(Node):
         self.declare_parameter('publish_acceleration.value', False)
         
         # AHRS
-        self.declare_parameter('ahrs.offset_samples.value', 100)
         self.declare_parameter('ahrs.gain.value', 0.5)
         self.declare_parameter('ahrs.gyro_range.value', 500.0)
         self.declare_parameter('ahrs.accel_rejection.value', 10.0)
@@ -208,7 +206,6 @@ class SensorFusionNode(Node):
 
         self.publish_acceleration = self.get_parameter('publish_acceleration.value').value
 
-        self.ahrs_offset_samples = self.get_parameter('ahrs.offset_samples.value').value
         self.ahrs_gain = self.get_parameter('ahrs.gain.value').value
         self.ahrs_gyro_range = self.get_parameter('ahrs.gyro_range.value').value
         self.ahrs_accel_rejection = self.get_parameter('ahrs.accel_rejection.value').value
@@ -245,11 +242,10 @@ class SensorFusionNode(Node):
 
     def cb_gps_vel(self, msg: TwistWithCovarianceStamped):
         """Callback for GPS velocity - updates KF with velocity measurement."""
-        # Convert to NED frame
         gps_vel = np.array([
-            msg.twist.twist.linear.y,
             msg.twist.twist.linear.x,
-            -msg.twist.twist.linear.z
+            msg.twist.twist.linear.y,
+            msg.twist.twist.linear.z
         ])
         self.latest_gps_vel = gps_vel
 
@@ -331,7 +327,7 @@ class SensorFusionNode(Node):
 
         # GPS position in NED
         pos_gps = lla_to_ned(msg.latitude, msg.longitude, msg.altitude,
-                                    self.earth_ref_pos, self.earth_radius, self.earth_flattening)
+                                    self.earth_ref_pos, self.earth_radius)
         
         # Extract position covariance
         R = np.array(msg.position_covariance).reshape(3, 3)
